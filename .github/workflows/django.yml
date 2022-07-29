@@ -49,8 +49,18 @@ jobs:
         python manage.py runserver &
       env:
         DATABASE_URL: "mysql://root:mysql-test@127.0.0.1/plutus_db_test"
-    - name: Run Tests
+    - name: Run Tests Mysql
+      if: ${{ matrix.db == 'mysql' }}
       env:
         DATABASE_URL: "mysql://root:mysql-test@127.0.0.1/plutus_db_test"
+        ALLOWED_HOSTS: "*,"
       run: |
         python manage.py test
+    - name: Run Tests SQLITE
+      if: ${{ matrix.db == 'sqlite' }}
+      env:
+        DATABASE_URL: "sqlite:///db.sqlite3"
+        ALLOWED_HOSTS: "*,"
+      run: |
+        python manage.py test
+    
