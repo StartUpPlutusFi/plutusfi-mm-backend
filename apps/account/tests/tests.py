@@ -26,4 +26,3 @@ class TestAccountFunctionalities(TestCase):
 
     def test_user_has_profile(self):
         self.assertIsNotNone(self.user.profile)
-        print("profile", self.user.profile)
