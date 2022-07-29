@@ -1,0 +1,67 @@
+name: PlutusFi API CI
+
+on:
+  push:
+    branches: [ master, develop, feature/**, bugfix/**, hotfix/** ]
+  pull_request:
+    branches: [ master, develop, feature/**, bugfix/**, hotfix/** ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        db: [mysql, sqlite]
+        python-version: [3.9]
+        include:
+        - db: mysql
+          db_port: 3306
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: mysql-test
+          MYSQL_DATABASE: plutus_db_test
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - 3306:3306
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Linter
+      run: |
+        black .
+    - name: Python Manager Commands
+      run: | 
+        python manage.py makemigrations
+        python manage.py migrate
+        python manage.py runserver &
+      env:
+        DATABASE_URL: "mysql://root:mysql-test@127.0.0.1/plutus_db_test"
+        ALLOWED_HOSTS: "*,"
+    - name: Run Tests Mysql
+      if: ${{ matrix.db == 'mysql' }}
+      env:
+        DATABASE_URL: "mysql://root:mysql-test@127.0.0.1/plutus_db_test"
+        ALLOWED_HOSTS: "*,"
+      run: |
+        python manage.py test
+    - name: Run Tests SQLITE
+      if: ${{ matrix.db == 'sqlite' }}
+      env:
+        DATABASE_URL: "sqlite:///db.sqlite3"
+        ALLOWED_HOSTS: "*,"
+      run: |
+        python manage.py test
+    
