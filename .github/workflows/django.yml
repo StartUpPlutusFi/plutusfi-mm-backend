@@ -50,6 +50,7 @@ jobs:
       env:
         DATABASE_URL: "mysql://root:mysql-test@127.0.0.1/plutus_db_test"
         ALLOWED_HOSTS: "*,"
+        JWT_SIG_KEY: "test"
     - name: Run Tests Mysql
       if: ${{ matrix.db == 'mysql' }}
       env:
