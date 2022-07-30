@@ -28,3 +28,7 @@ class RegisterUserView(generics.CreateAPIView):
         token = self.auth_user(serializer.instance)
 
         return Response(dict(serializer.data) | token, status=status.HTTP_201_CREATED)
+
+
+class GetProfileInfoView(generics.GenericAPIView):
+    pass

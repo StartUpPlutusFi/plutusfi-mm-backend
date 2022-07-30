@@ -42,16 +42,16 @@ THIRDPARTY_APPS = [
 ]
 
 INSTALLED_APPS = (
-        [
-            "django.contrib.admin",
-            "django.contrib.auth",
-            "django.contrib.contenttypes",
-            "django.contrib.sessions",
-            "django.contrib.messages",
-            "django.contrib.staticfiles",
-        ]
-        + THIRDPARTY_APPS
-        + PROJECT_APPS
+    [
+        "django.contrib.admin",
+        "django.contrib.auth",
+        "django.contrib.contenttypes",
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "django.contrib.staticfiles",
+    ]
+    + THIRDPARTY_APPS
+    + PROJECT_APPS
 )
 
 MIDDLEWARE = [
@@ -143,19 +143,16 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'UPDATE_LAST_LOGIN': True,
-
-    'ALGORITHM': 'HS512',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': JWT_SIG_KEY,
-
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
-    'JTI_CLAIM': 'jti',
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS512",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": JWT_SIG_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "JTI_CLAIM": "jti",
 }
