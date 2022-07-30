@@ -114,10 +114,7 @@ class TestAuthSystem(TestCase):
         self.assertEqual(request.json()["user"]["email"], self.user.email)
 
     def test_update_profile(self):
-        data = {
-            "last_name": "test",
-            "picture": self.gen_image()
-        }
+        data = {"last_name": "test", "picture": self.gen_image()}
 
         request = self.client.put(reverse("auth:profile-update"), data=data)
         self.assertEqual(request.status_code, 200)
