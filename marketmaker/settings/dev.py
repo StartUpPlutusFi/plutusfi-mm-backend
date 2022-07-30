@@ -10,6 +10,8 @@ env.read_env(os.path.join(BASE_DIR, ".env"))
 
 DEBUG = env.bool("DEBUB", True)
 
+JWT_SIG_KEY = env("JWT_SIG_KEY")
+
 DATABASES = {"default": env.db()}
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
