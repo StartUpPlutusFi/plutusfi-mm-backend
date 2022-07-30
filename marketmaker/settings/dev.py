@@ -1,4 +1,5 @@
 import os
+import sys
 
 import environ
 
@@ -17,3 +18,6 @@ DATABASES = {"default": env.db()}
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
+
+if "test" in sys.argv:
+    DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
