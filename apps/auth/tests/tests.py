@@ -1,3 +1,6 @@
+import io
+
+from PIL import Image
 from django.shortcuts import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -13,6 +16,15 @@ class TestAuthSystem(TestCase):
         self.user = UserFactory.create(password="abc123@", username="testA")
         self.client = APIClient()
         self.client.force_authenticate(self.user)
+
+    @staticmethod
+    def gen_image(color=(255, 255, 255)):
+        file = io.BytesIO()
+        image = Image.new("RGBA", size=(100, 100), color=color)
+        image.save(file, "png")
+        file.name = "test.png"
+        file.seek(0)
+        return file
 
     def test_register_user(self):
         data = {
@@ -90,4 +102,24 @@ class TestAuthSystem(TestCase):
         client = APIClient()
         request = client.post(reverse("auth:login"), data=data)
         self.assertEqual(request.status_code, 400)
-        self.assertEqual(request.json()["username"], ['This field is required.'])
+        self.assertEqual(request.json()["username"], ["This field is required."])
+
+    def test_get_profile_user(self):
+        request = self.client.get(reverse("auth:profile"))
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json()["id"], self.user.profile.id)
+        self.assertEqual(request.json()["user"]["username"], self.user.username)
+        self.assertEqual(request.json()["user"]["first_name"], self.user.first_name)
+        self.assertEqual(request.json()["user"]["last_name"], self.user.last_name)
+        self.assertEqual(request.json()["user"]["email"], self.user.email)
+
+    def test_update_profile(self):
+        data = {
+            "last_name": "test",
+            "picture": self.gen_image()
+        }
+
+        request = self.client.put(reverse("auth:profile-update"), data=data)
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json()["user"]["last_name"], data["last_name"])
+        self.assertIsNotNone(request.json()["picture"])
