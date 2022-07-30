@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 
 def upload_profile_picture(instance, filename):
-    return f"media/profile_picture/{instance.user.username}/{filename}"
+    return f"profile_picture/{instance.user.username}/{filename}"
 
 
 class User(AbstractUser):
