@@ -11,17 +11,6 @@ api = [
     path("api/delete/<int:pk>/", views.apiDelete, name="apiDelete"),
 ]
 
-bid_bot = [
-    path("bid/add", views.bidList, name="bidList"),
-    path("bid/list", views.bidAdd, name="bidAdd"),
-    path("bid/detail/<int:pk>/", views.bidDetails, name="bidDetails"),
-    path("bid/update/<int:pk>/", views.bidUpdate, name="bidUpdate"),
-    path("bid/delete/<int:pk>/", views.bidDelete, name="bidDelete"),
-    path("bid/ctrl/<int:pk>/", views.bid_bot_ctrl, name="bidCtrl"),
-    path("bid/status/<int:pk>/", views.bid_bot_run_status, name="bidStatus"),
-    path("bid/buy/<int:pk>/", views.bid_bot_buy, name="bidBuy"),
-    path("bid/cancel/<int:pk>/", views.bid_bot_cancel, name="bidCancel"),
-]
 
 hisotric = [
     path("order/historic", views.orderHistoric, name="orderHistoric"),
@@ -48,5 +37,4 @@ urlpatterns = (
     + bots
     + hisotric
     + api
-    + bid_bot
 )

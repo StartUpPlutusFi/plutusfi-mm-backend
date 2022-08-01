@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 PROJECT_APPS = [
     "apps.account",
     "apps.dashboard",
+    "apps.bid",
 ]
 
 THIRDPARTY_APPS = [

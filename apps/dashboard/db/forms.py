@@ -1,7 +1,5 @@
-from unicodedata import name
 from django import forms
-from requests import request
-from .models import BotConfigPairtokens, ApiKeys, Exchenge, MarketMakerBot, BidBot
+from apps.dashboard.db.models import BotConfigPairtokens, ApiKeys, Exchenge, MarketMakerBot, BidBot
 
 
 class LoginForm(forms.Form):
