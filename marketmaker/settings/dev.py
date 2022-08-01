@@ -1,6 +1,8 @@
 import os
 import sys
 
+
+
 import environ
 
 from .base import *
@@ -14,6 +16,8 @@ DEBUG = env.bool("DEBUB", True)
 JWT_SIG_KEY = env("JWT_SIG_KEY")
 
 DATABASES = {"default": env.db()}
+
+print("$$$$$$$$$$$$", DATABASES)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
