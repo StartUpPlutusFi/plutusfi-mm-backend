@@ -28,9 +28,7 @@ class MMbotAdd(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         data = MMBotSerializer(data=request.data)
-        data = dict(data.initial_data) | {
-            "user": request.user.id
-        }
+        data = dict(data.initial_data) | {"user": request.user.id}
         serializer = MMBotSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -56,7 +54,9 @@ class MMbotDelete(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        result = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user)
+        result = MarketMakerBot.objects.filter(
+            id=self.kwargs.get("pk"), user=self.request.user
+        )
         return result
 
     def delete(self, request, *args, **kwargs):
@@ -76,7 +76,9 @@ class MMbotUpdate(generics.UpdateAPIView):
     serializer_class = MMBotSerializerUpdate
 
     def get_queryset(self):
-        result = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user).first()
+        result = MarketMakerBot.objects.filter(
+            id=self.kwargs.get("pk"), user=self.request.user
+        ).first()
         return result
 
     def put(self, request, *args, **kwargs):

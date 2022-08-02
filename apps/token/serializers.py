@@ -19,9 +19,7 @@ class TokenSerializerUpdate(serializers.Serializer):
     pair = serializers.CharField(required=False)
 
     class Meta:
-        fields = (
-            "pair",
-        )
+        fields = ("pair",)
 
     def update(self, instance, validation_data):
         for k, v in validation_data.items():

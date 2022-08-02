@@ -51,7 +51,9 @@ class ApiKeyDelete(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(id=self.kwargs.get("pk"), user=self.request.user)
+        result = ApiKeys.objects.filter(
+            id=self.kwargs.get("pk"), user=self.request.user
+        )
         return result
 
     def delete(self, request, *args, **kwargs):

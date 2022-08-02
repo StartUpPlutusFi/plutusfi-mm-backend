@@ -38,9 +38,7 @@ class TokenDetail(generics.ListAPIView):
     serializer_class = TokenSerializer
 
     def get_queryset(self):
-        result = BotConfigPairtokens.objects.filter(
-             id=self.kwargs.get("pk")
-        )
+        result = BotConfigPairtokens.objects.filter(id=self.kwargs.get("pk"))
         return result
 
     def get(self, request, *args, **kwargs):

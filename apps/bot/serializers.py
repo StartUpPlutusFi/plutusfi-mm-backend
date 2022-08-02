@@ -24,7 +24,7 @@ class MMBotSerializerUpdate(serializers.Serializer):
 
     trade_qty_range_low = serializers.IntegerField(required=False)
     trade_qty_range_high = serializers.IntegerField(required=False)
-    trade_candle  = serializers.IntegerField(required=False)
+    trade_candle = serializers.IntegerField(required=False)
     trade_amount = serializers.FloatField(required=False)
 
     class Meta:
