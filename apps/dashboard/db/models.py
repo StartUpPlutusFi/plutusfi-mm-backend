@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 
 from apps.account.models import User
 
-class Exchenge(models.Model):
+class Exchange(models.Model):
 
     name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -22,7 +22,7 @@ class ApiKeys(models.Model):
     api_secret = models.CharField(_("API SECRET"), max_length=200)
     description = models.CharField(_("Description"), max_length=255)
     default = models.BooleanField(default=False)
-    exchange = models.ForeignKey(Exchenge, on_delete=models.DO_NOTHING, null=True)
+    exchange = models.ForeignKey(Exchange, on_delete=models.DO_NOTHING, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

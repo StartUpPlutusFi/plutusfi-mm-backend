@@ -14,7 +14,7 @@ def status_code(code):
         case 2:
             return {
                 'code': code,
-                'message': "invalid"
+                'message': "invalid parameter"
             }
         case 3:
             return {

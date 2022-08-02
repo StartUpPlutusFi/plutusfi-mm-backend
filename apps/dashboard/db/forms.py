@@ -1,20 +1,8 @@
 from django import forms
-from apps.dashboard.db.models import BotConfigPairtokens, ApiKeys, Exchenge, MarketMakerBot, BidBot
-
-
-class LoginForm(forms.Form):
-    username = forms.CharField(max_length=128, required=True)
-    password = forms.CharField(max_length=128, required=True)
-
-
-class RegisterForm(forms.Form):
-    username = forms.CharField(max_length=128, required=True)
-    password = forms.CharField(max_length=128, required=True)
-    email = forms.EmailField(max_length=128, required=True)
-
+from apps.dashboard.db.models import *
 
 class ApiForm(forms.ModelForm):
-    exchange = forms.ModelChoiceField(queryset=Exchenge.objects.all())
+    exchange = forms.ModelChoiceField(queryset=Exchange.objects.all())
     description = forms.CharField(max_length=128, required=True)
     api_key = forms.CharField(max_length=1024, required=True)
     api_secret = forms.CharField(max_length=1024, required=True)

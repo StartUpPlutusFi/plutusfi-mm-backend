@@ -1,41 +1,40 @@
 from django.shortcuts import render, redirect
-from django.core.serializers import serialize
-from django.http import HttpResponse, HttpResponseRedirect
-from django.http import JsonResponse
-
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-
 from django.contrib.auth import get_user_model
+
 
 from apps.dashboard.db import *
 from apps.dashboard.db.models import *
 from apps.dashboard.db.forms import *
 from apps.dashboard.ex.biconomy import *
 
-import json
-import time
+from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
-# Create your views here.
-def logStore(request, ack, msg=""):
-    try:
-        DashboardSysLogs.objects.create(action=ack, user_id=request.user.id, data=msg)
 
-        return {
-            "status": "pass",
-            "user_id": request.user.id,
-            "action": ack,
-            "data": msg,
-        }
-    except Exception as error:
 
-        return {
-            "status": "fail",
-            "user_id": request.user.id,
-            "action": ack,
-            "data": msg,
-            "exception": f"{error}",
-        }
+class LogStore(APIView):
+    permission_classes = (IsAuthenticated,)  
+    
+    def get(request):
+        try:
+            DashboardSysLogs.objects.create(action=request.body.ack, user_id=request.user.id, data=request.body.msg)
+            return Response({
+                "status": "pass",
+                "user_id": request.user.id,
+                "action": request.body.ack,
+                "data": request.body.msg,
+            })
+        except Exception as e:
+
+            return Response({
+                "status": "pass",
+                "user_id": request.user.id,
+                "action": request.body.ack,
+                "data": request.body.msg,
+            })
 
 
 # Login
@@ -241,3 +240,6 @@ def market_maker_bot_run_status(request, pk):
         return HttpResponse({"bot_status": "running"})
     else:
         return HttpResponse({"bot_status": "stoped"})
+
+
+
