@@ -29,7 +29,7 @@ class ExchangeAdd(generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response({status_code(2)})
+        return Response(status_code(2))
 
 
 class ExchangeDetail(generics.ListAPIView):
