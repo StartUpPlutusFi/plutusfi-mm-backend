@@ -29,7 +29,9 @@ class ExchangeAdd(generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(status_code(2))
+        return Response(
+            status_code(2)
+        )
 
 
 class ExchangeDetail(generics.ListAPIView):
@@ -52,7 +54,12 @@ class ExchangeDelete(generics.DestroyAPIView):
         return result
 
     def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+        try:
+            return self.destroy(request, *args, **kwargs)
+        except Exception as e:
+            return Response( 
+                status_code(5, "Cannot delete a parent row, check foreign key constraint or if the object exist")
+             )
 
 class ExchangeUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)  

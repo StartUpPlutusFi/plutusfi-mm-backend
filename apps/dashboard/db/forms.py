@@ -1,6 +1,7 @@
 from django import forms
 from apps.dashboard.db.models import *
 
+
 class ApiForm(forms.ModelForm):
     exchange = forms.ModelChoiceField(queryset=Exchange.objects.all())
     description = forms.CharField(max_length=128, required=True)

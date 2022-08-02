@@ -14,7 +14,7 @@ import time
 
 
 class BidList(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = BidBotSerializer
 
     def get_queryset(self):
@@ -23,25 +23,25 @@ class BidList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-    
+
 
 class BidAdd(generics.CreateAPIView):
-    permission_classes = (IsAuthenticated,) 
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         serializer = BidBotSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(status_code(1))
+        return Response(status_code(2))
 
 
 class BidDetail(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = BidBotSerializer
 
     def get_queryset(self):
-        result = BidBot.objects.filter(user=self.request.user, id=self.kwargs.get('pk'))
+        result = BidBot.objects.filter(user=self.request.user, id=self.kwargs.get("pk"))
         return result
 
     def get(self, request, *args, **kwargs):
@@ -49,21 +49,32 @@ class BidDetail(generics.ListAPIView):
 
 
 class BidDelete(generics.DestroyAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        result = BidBot.objects.filter(user=self.request.user, id=self.kwargs.get('pk'))
+        result = BidBot.objects.filter(user=self.request.user, id=self.kwargs.get("pk"))
         return result
 
     def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+        try:
+            return self.destroy(request, *args, **kwargs)
+        except Exception as e:
+            return Response(
+                status_code(
+                    5,
+                    "Cannot delete a parent row, check foreign key constraint or if the object exist",
+                )
+            )
+
 
 class BidUpdate(generics.UpdateAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = BidBotSerializerUpdate
 
     def get_queryset(self):
-        result = BidBot.objects.filter(user=self.request.user, id=self.kwargs.get('pk')).first()
+        result = BidBot.objects.filter(
+            user=self.request.user, id=self.kwargs.get("pk")
+        ).first()
         return result
 
     def put(self, request, *args, **kwargs):
@@ -73,19 +84,16 @@ class BidUpdate(generics.UpdateAPIView):
         return Response(BidBotSerializer(data).data)
 
 
-
 class BidStatus(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = BidBotSerializerStatus
 
     def get_queryset(self):
-        data = BidBot.objects.filter(id=self.kwargs.get('pk'), user=self.request.user)
+        data = BidBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user)
         return data
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-
-
 
 
 def bid_bot_buy(request, pk):
@@ -100,7 +108,6 @@ def bid_bot_buy(request, pk):
 
     api_key = bidbot.api_key.api_key
     api_sec = bidbot.api_key.api_secret
-
 
     exit = []
 
@@ -165,24 +172,30 @@ def bid_bot_cancel(request, pk):
 
 
 class BidCtrl(generics.UpdateAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = BidBotSerializerStatusUpdate
 
     def get_queryset(self):
-        result = BidBot.objects.filter(user=self.request.user, id=self.kwargs.get('pk')).first()
+        result = BidBot.objects.filter(
+            user=self.request.user, id=self.kwargs.get("pk")
+        ).first()
         return result
 
     def get(self, request, *args, **kwargs):
         try:
             data = self.get_queryset()
             if data.status == "STOP":
-                result = bid_bot_buy(request, self.kwargs.get('pk'))
-                BidBot.objects.filter(id=self.kwargs.get('pk'), user_id=request.user).update(status="START")
+                result = bid_bot_buy(request, self.kwargs.get("pk"))
+                BidBot.objects.filter(
+                    id=self.kwargs.get("pk"), user_id=request.user
+                ).update(status="START")
 
             else:
                 # Cancel all orders
-                result = bid_bot_cancel(request, self.kwargs.get('pk'))
-                BidBot.objects.filter(id=self.kwargs.get('pk'), user_id=request.user).update(status="STOP")
+                result = bid_bot_cancel(request, self.kwargs.get("pk"))
+                BidBot.objects.filter(
+                    id=self.kwargs.get("pk"), user_id=request.user
+                ).update(status="STOP")
 
             return Response(result)
         except Exception as e:

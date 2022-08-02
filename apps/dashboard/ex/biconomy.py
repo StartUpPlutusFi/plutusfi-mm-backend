@@ -208,7 +208,6 @@ def bid_order_creator(limit, price, symbol):
     else:
         bid_price = check_ref_price(symbol)
 
-
     bid_prices = []
     bid_quantitys = []
 

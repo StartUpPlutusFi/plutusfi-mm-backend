@@ -11,7 +11,7 @@ from apps.exchange_api.serializers import *
 
 
 class ApiKeyList(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializer
 
     def get_queryset(self):
@@ -20,10 +20,10 @@ class ApiKeyList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-    
+
 
 class ApiKeyAdd(generics.CreateAPIView):
-    permission_classes = (IsAuthenticated,) 
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         serializer = ApiKeySerializer(data=request.data)
@@ -34,11 +34,13 @@ class ApiKeyAdd(generics.CreateAPIView):
 
 
 class ApiKeyDetail(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializer
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(user=self.request.user, id=self.kwargs.get('pk'))
+        result = ApiKeys.objects.filter(
+            user=self.request.user, id=self.kwargs.get("pk")
+        )
         return result
 
     def get(self, request, *args, **kwargs):
@@ -46,21 +48,30 @@ class ApiKeyDetail(generics.ListAPIView):
 
 
 class ApiKeyDelete(generics.DestroyAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(id=self.kwargs.get('pk'))
+        result = ApiKeys.objects.filter(id=self.kwargs.get("pk"))
         return result
 
     def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+        try:
+            return self.destroy(request, *args, **kwargs)
+        except Exception as e:
+            return Response(
+                status_code(
+                    5,
+                    "Cannot delete a parent row, check foreign key constraint or if the object exist",
+                )
+            )
+
 
 class ApiKeyUpdate(generics.UpdateAPIView):
-    permission_classes = (IsAuthenticated,)  
+    permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializerUpdate
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(id=self.kwargs.get('pk')).first()
+        result = ApiKeys.objects.filter(id=self.kwargs.get("pk")).first()
         return result
 
     def put(self, request, *args, **kwargs):
@@ -68,4 +79,3 @@ class ApiKeyUpdate(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.update(self.get_queryset(), validation_data=serializer.data)
         return Response(ApiKeySerializer(data).data)
-

@@ -1,4 +1,4 @@
-def status_code(code):
+def status_code(code, msg=""):
 
     match code:
         case 0:
@@ -25,4 +25,9 @@ def status_code(code):
             return {
                 'code': code,
                 'message': "none"
+            }
+        case 5:
+            return {
+                'code': code,
+                'message': msg,
             }

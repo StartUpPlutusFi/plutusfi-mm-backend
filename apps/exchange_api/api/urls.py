@@ -7,5 +7,5 @@ urlpatterns = [
     path("add", ApiKeyAdd.as_view(), name="ApiKeyAdd"),
     path("detail/<int:pk>", ApiKeyDetail.as_view(), name="ApiKeyDetail"),
     path("delete/<int:pk>", ApiKeyDelete.as_view(), name="ApiKeyDelete"),
-    path("update/<int:pk>", ApiKeyUpdate.as_view(), name="ApiKeyUpdate"),    
+    path("update/<int:pk>", ApiKeyUpdate.as_view(), name="ApiKeyUpdate"),
 ]

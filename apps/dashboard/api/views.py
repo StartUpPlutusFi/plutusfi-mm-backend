@@ -14,27 +14,32 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 
-
 class LogStore(APIView):
-    permission_classes = (IsAuthenticated,)  
-    
+    permission_classes = (IsAuthenticated,)
+
     def get(request):
         try:
-            DashboardSysLogs.objects.create(action=request.body.ack, user_id=request.user.id, data=request.body.msg)
-            return Response({
-                "status": "pass",
-                "user_id": request.user.id,
-                "action": request.body.ack,
-                "data": request.body.msg,
-            })
+            DashboardSysLogs.objects.create(
+                action=request.body.ack, user_id=request.user.id, data=request.body.msg
+            )
+            return Response(
+                {
+                    "status": "pass",
+                    "user_id": request.user.id,
+                    "action": request.body.ack,
+                    "data": request.body.msg,
+                }
+            )
         except Exception as e:
 
-            return Response({
-                "status": "pass",
-                "user_id": request.user.id,
-                "action": request.body.ack,
-                "data": request.body.msg,
-            })
+            return Response(
+                {
+                    "status": "pass",
+                    "user_id": request.user.id,
+                    "action": request.body.ack,
+                    "data": request.body.msg,
+                }
+            )
 
 
 # Login
@@ -240,6 +245,3 @@ def market_maker_bot_run_status(request, pk):
         return HttpResponse({"bot_status": "running"})
     else:
         return HttpResponse({"bot_status": "stoped"})
-
-
-

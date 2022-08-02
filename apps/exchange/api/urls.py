@@ -8,7 +8,4 @@ urlpatterns = [
     path("detail/<int:pk>", ExchangeDetail.as_view(), name="ExchangeDetail"),
     path("delete/<int:pk>", ExchangeDelete.as_view(), name="ExchangeDelete"),
     path("update/<int:pk>", ExchangeUpdate.as_view(), name="ExchangeUpdate"),
-
-
-    
 ]

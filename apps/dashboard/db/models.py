@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 
 from apps.account.models import User
 
+
 class Exchange(models.Model):
 
     name = models.CharField(max_length=200)
