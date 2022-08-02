@@ -1,4 +1,5 @@
 # Create your views here.
+from requests import request
 from rest_framework.response import Response
 from rest_framework import generics
 
@@ -26,7 +27,11 @@ class MMbotAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        serializer = MMBotSerializer(data=request.data)
+        data = MMBotSerializer(data=request.data)
+        data = dict(data.initial_data) | {
+            "user": request.user.id
+        }
+        serializer = MMBotSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -51,7 +56,7 @@ class MMbotDelete(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        result = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"))
+        result = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user)
         return result
 
     def delete(self, request, *args, **kwargs):
@@ -71,7 +76,7 @@ class MMbotUpdate(generics.UpdateAPIView):
     serializer_class = MMBotSerializerUpdate
 
     def get_queryset(self):
-        result = MarketMakerBot.objects.filter(id=self.kwargs.get("pk")).first()
+        result = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user).first()
         return result
 
     def put(self, request, *args, **kwargs):
