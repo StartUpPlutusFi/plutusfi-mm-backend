@@ -22,5 +22,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("apps.dashboard.api.urls")),
     path("bid/", include("apps.bid.api.urls")),
+    path("bot/", include("apps.bot.api.urls")),
+    path("api/", include("apps.exchange_api.api.urls")),
+    path("exchange/", include("apps.exchange.api.urls")),
     path("auth/api/token/", include("apps.auth.api.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

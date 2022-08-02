@@ -36,6 +36,9 @@ PROJECT_APPS = [
     "apps.account",
     "apps.dashboard",
     "apps.bid",
+    "apps.bot",
+    "apps.exchange",
+    "apps.exchange_api",
 ]
 
 THIRDPARTY_APPS = [
