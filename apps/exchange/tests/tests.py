@@ -55,6 +55,22 @@ class Testexchanges(TestCase):
         request = self.client.get(reverse("exchange:ExchangeDetail", kwargs={"pk": data.id }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()[0]['name'], data.name )
+    
+    def test_detail_exchange_with_invalid_id(self):
+
+        request = self.client.get(reverse("exchange:ExchangeDetail", kwargs={"pk": 999999999999999999999 }))
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json(), [] )
+
+    def test_update_exchange_with_invalid_paramter(self):
+
+        update = {
+            "clover_fake": "Nwe scam test",
+        }
+
+        request = self.client.put(reverse("exchange:ExchangeUpdate", kwargs={"pk": 99999999999999999999999999 }), data=update)
+        self.assertEqual(request.status_code, 200)
+        self.assertIsNot(request.json(), [])
 
     def test_update_exchange(self):
 

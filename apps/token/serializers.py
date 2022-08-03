@@ -22,7 +22,12 @@ class TokenSerializerUpdate(serializers.Serializer):
         fields = ("pair",)
 
     def update(self, instance, validation_data):
-        for k, v in validation_data.items():
-            setattr(instance, k, v)
-        instance.save()
-        return instance
+        try:
+            for k, v in validation_data.items():
+                setattr(instance, k, v)
+            instance.save()
+            return instance
+
+        except Exception:
+            return None
+

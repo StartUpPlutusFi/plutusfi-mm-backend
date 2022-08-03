@@ -82,6 +82,22 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.json()[0]['description'], data.description)
         self.assertEqual(request.json()[0]['api_key'], data.api_key)
         self.assertEqual(request.json()[0]['user'], data.user.id)
+    
+    def test_detail_apikey_with_invalid_id(self):
+
+        request = self.client.get(reverse("apikey:ApiKeyDetail", kwargs={"pk": 999999999999999999999 }))
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json(), [] )
+
+    def test_update_apikey_with_invalid_paramter(self):
+
+        update = {
+            "clover_fake": "Nwe scam test",
+        }
+
+        request = self.client.put(reverse("apikey:ApiKeyUpdate", kwargs={"pk": 99999999999999999999999999 }), data=update)
+        self.assertEqual(request.status_code, 200)
+        self.assertIsNot(request.json(), [])
 
     def test_update_apikey(self):
 

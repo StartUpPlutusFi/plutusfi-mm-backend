@@ -50,6 +50,12 @@ class TestToken(TestCase):
         self.assertEqual(request.json()[0]['id'], data.id )
         self.assertEqual(request.json()[0]['pair'], data.pair )
 
+    def test_detail_token_with_invalid_id(self):
+
+        request = self.client.get(reverse("token:TokenDetail", kwargs={"pk": 999999999999999999999 }))
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json(), [] )
+
     def test_update_token(self):
 
         data =  BotConfigPairtokens.objects.first()
@@ -61,6 +67,16 @@ class TestToken(TestCase):
         request = self.client.put(reverse("token:TokenUpdate", kwargs={"pk": data.id }), data=update)
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()['pair'], "UpdatedToken" )
+
+    def test_update_token_with_invalid_paramter(self):
+
+        update = {
+            "fake_param": "Nwe scam test",
+        }
+
+        request = self.client.put(reverse("token:TokenUpdate", kwargs={"pk": 99999999999999999999999999 }), data=update)
+        self.assertEqual(request.status_code, 200)
+        self.assertIsNot(request.json(), [])
 
     def test_delete_token(self):
 
