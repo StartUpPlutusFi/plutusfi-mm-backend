@@ -1,4 +1,3 @@
-from logging.config import dictConfig
 from django.shortcuts import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -7,13 +6,7 @@ from apps.account.tests.factories import UserFactory
 from apps.token.tests.factories import TokenFactory
 from apps.dashboard.db.models import BotConfigPairtokens
 
-from django.core.serializers import serialize
-
-import json
-
 # Create your tests here.
-
-
 class TestToken(TestCase):
     def setUp(self) -> None:
         self.user = UserFactory.create(password="abc123@", username="testSS")
