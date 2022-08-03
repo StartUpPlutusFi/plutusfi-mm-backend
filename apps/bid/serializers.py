@@ -42,10 +42,14 @@ class BidBotSerializerUpdate(serializers.Serializer):
         )
 
     def update(self, instance, validation_data):
-        for k, v in validation_data.items():
-            setattr(instance, k, v)
-        instance.save()
-        return instance
+        try:
+            for k, v in validation_data.items():
+                setattr(instance, k, v)
+            instance.save()
+            return instance
+        except Exception as e:
+
+            return None
 
 
 class BidBotSerializerStatusUpdate(serializers.Serializer):
