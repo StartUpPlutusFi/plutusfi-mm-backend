@@ -15,3 +15,4 @@ Create an .env file in the project root and add the following variables for proj
     
     ALLOWED_HOSTS="*," # for allow all hosts
     ALLOWED_HOSTS="127.0.0.1, localhost" # for allow localhost only
+    CORS_ALLOWED_ORIGINS="http://127.0.0.1:8000,"
