@@ -37,6 +37,7 @@ PROJECT_APPS = [
     "apps.dashboard",
     "apps.bid",
     "apps.bot",
+    "apps.token",
     "apps.exchange",
     "apps.exchange_api",
 ]
