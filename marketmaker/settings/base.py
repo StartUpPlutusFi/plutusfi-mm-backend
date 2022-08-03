@@ -39,6 +39,7 @@ PROJECT_APPS = [
 THIRDPARTY_APPS = [
     "rest_framework",
     "corsheaders",
+    "drf_yasg",
 ]
 
 INSTALLED_APPS = (
