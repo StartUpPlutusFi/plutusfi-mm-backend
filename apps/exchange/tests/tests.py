@@ -58,7 +58,7 @@ class Testexchanges(TestCase):
     
     def test_detail_exchange_with_invalid_id(self):
 
-        request = self.client.get(reverse("exchange:ExchangeDetail", kwargs={"pk": 999999999999999999999 }))
+        request = self.client.get(reverse("exchange:ExchangeDetail", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json(), [] )
 
@@ -68,7 +68,7 @@ class Testexchanges(TestCase):
             "clover_fake": "Nwe scam test",
         }
 
-        request = self.client.put(reverse("exchange:ExchangeUpdate", kwargs={"pk": 99999999999999999999999999 }), data=update)
+        request = self.client.put(reverse("exchange:ExchangeUpdate", kwargs={"pk": 922337203685477580 }), data=update)
         self.assertEqual(request.status_code, 200)
         self.assertIsNot(request.json(), [])
 
@@ -92,6 +92,6 @@ class Testexchanges(TestCase):
     
     def test_delete_exchange_with_invalid_id(self):
 
-        request = self.client.delete(reverse("exchange:ExchangeDelete", kwargs={"pk": 99999999999999999999999999 }))
+        request = self.client.delete(reverse("exchange:ExchangeDelete", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()['code'], 5 )

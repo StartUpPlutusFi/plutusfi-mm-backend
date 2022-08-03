@@ -106,7 +106,7 @@ class TestBidBot(TestCase):
 
     def test_detail_bidbot_with_invalid_id(self):
 
-        request = self.client.get(reverse("bidbot:BidDetail", kwargs={"pk": 999999999999999999999 }))
+        request = self.client.get(reverse("bidbot:BidDetail", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json(), [] )
 
@@ -140,7 +140,7 @@ class TestBidBot(TestCase):
             "clover_fake": "Nwe scam test",
         }
 
-        request = self.client.put(reverse("bidbot:BidUpdate", kwargs={"pk": 99999999999999999999999999 }), data=update)
+        request = self.client.put(reverse("bidbot:BidUpdate", kwargs={"pk": 922337203685477580 }), data=update)
         self.assertEqual(request.status_code, 200)
         self.assertIsNot(request.json(), [])
 
@@ -152,6 +152,6 @@ class TestBidBot(TestCase):
     
     def test_delete_bidbot_with_invalid_id(self):
 
-        request = self.client.delete(reverse("bidbot:BidDelete", kwargs={"pk": 99999999999999999999999999 }))
+        request = self.client.delete(reverse("bidbot:BidDelete", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()['code'], 5 )

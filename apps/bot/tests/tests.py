@@ -76,6 +76,6 @@ class Testexchanges(TestCase):
     
     def test_delete_exchange_with_invalid_id(self):
 
-        request = self.client.delete(reverse("exchange:ExchangeDelete", kwargs={"pk": 99999999999999999999999999 }))
+        request = self.client.delete(reverse("exchange:ExchangeDelete", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()['code'], 5 )

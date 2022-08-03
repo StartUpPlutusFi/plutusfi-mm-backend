@@ -52,7 +52,7 @@ class TestToken(TestCase):
 
     def test_detail_token_with_invalid_id(self):
 
-        request = self.client.get(reverse("token:TokenDetail", kwargs={"pk": 999999999999999999999 }))
+        request = self.client.get(reverse("token:TokenDetail", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json(), [] )
 
@@ -74,7 +74,7 @@ class TestToken(TestCase):
             "fake_param": "Nwe scam test",
         }
 
-        request = self.client.put(reverse("token:TokenUpdate", kwargs={"pk": 99999999999999999999999999 }), data=update)
+        request = self.client.put(reverse("token:TokenUpdate", kwargs={"pk": 922337203685477580 }), data=update)
         self.assertEqual(request.status_code, 200)
         self.assertIsNot(request.json(), [])
 
@@ -86,6 +86,6 @@ class TestToken(TestCase):
     
     def test_delete_token_with_invalid_id(self):
 
-        request = self.client.delete(reverse("token:TokenDelete", kwargs={"pk": 99999999999999999999999999 }))
+        request = self.client.delete(reverse("token:TokenDelete", kwargs={"pk": 922337203685477580 }))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()['code'], 5 )
