@@ -85,7 +85,7 @@ jobs:
     - name: Generate Report
       run: |
         pip install coverage
-        coverage -run ./manage.py test
+        coverage run --source='.' manage.py test myapp
       env:
         DATABASE_URL: "sqlite:///db.sqlite3"
         ALLOWED_HOSTS: "*,"
