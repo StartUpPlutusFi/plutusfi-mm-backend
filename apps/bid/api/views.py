@@ -29,10 +29,17 @@ class BidAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        serializer = BidBotSerializer(data=request.data)
+
+        insert_data = dict(request.data) | {
+            "user": request.user.id,
+        }
+
+        serializer = BidBotSerializer(data=insert_data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+            
         return Response(status_code(2))
 
 
@@ -187,14 +194,14 @@ class BidCtrl(generics.UpdateAPIView):
             if data.status == "STOP":
                 result = bid_bot_buy(request, self.kwargs.get("pk"))
                 BidBot.objects.filter(
-                    id=self.kwargs.get("pk"), user_id=request.user
+                    id=self.kwargs.get("pk"), user=request.user
                 ).update(status="START")
 
             else:
                 # Cancel all orders
                 result = bid_bot_cancel(request, self.kwargs.get("pk"))
                 BidBot.objects.filter(
-                    id=self.kwargs.get("pk"), user_id=request.user
+                    id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
             return Response(result)

@@ -4,9 +4,23 @@ from apps.dashboard.db.models import *
 
 
 class BidBotSerializer(serializers.ModelSerializer):
+
+    name = serializers.CharField(required=True)
+    description = serializers.CharField(required=True)
+    order_size = serializers.IntegerField(required=True)
+    number_of_orders = serializers.IntegerField(required=True)
+    budget = serializers.FloatField(required=True)
+    trade_amount = serializers.FloatField(required=True)
+    status = serializers.CharField(required=True)
+
     class Meta:
         model = BidBot
-        fields = "__all__"
+        fields = (
+            "name", "description", "user", "api_key", 
+            "pair_token", "order_size", "number_of_orders", 
+            "budget", "trade_amount", "status",
+        )
+
 
 
 class BidBotSerializerStatus(serializers.ModelSerializer):
@@ -28,7 +42,7 @@ class BidBotSerializerUpdate(serializers.Serializer):
     number_of_orders = serializers.IntegerField(required=False)
     budget = serializers.FloatField(required=False)
     trade_amount = serializers.FloatField(required=False)
-    api_key_id = serializers.IntegerField(required=False)
+    api_key = serializers.IntegerField(required=False)
 
     class Meta:
         fields = (
@@ -38,7 +52,7 @@ class BidBotSerializerUpdate(serializers.Serializer):
             "number_of_orders",
             "budget",
             "trade_amount",
-            "api_key_id",
+            "api_key",
         )
 
     def update(self, instance, validation_data):
