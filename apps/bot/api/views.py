@@ -1,4 +1,5 @@
 # Create your views here.
+from numpy import insert
 from requests import request
 from rest_framework.response import Response
 from rest_framework import generics
@@ -27,13 +28,26 @@ class MMbotAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        data = MMBotSerializer(data=request.data)
-        data = dict(data.initial_data) | {"user": request.user.id}
-        serializer = MMBotSerializer(data=data)
+
+        try:
+            insert_data = dict(request.data) | {
+                "user": request.user.id,
+                "api_key": ApiKeys.objects.filter(user=request.user, id=request.data['api_key']).values('id').first()['id'],
+                "pair_token": BotConfigPairtokens.objects.filter(id=request.data['pair_token']).values('id').first()['id'],
+            }
+
+            print(insert_data)
+            serializer = MarketMakerBot(data=insert_data)
+        
+        except:
+
+            return Response(status_code(5, "Unauthorized key access"))
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(status_code(2))
+
+        return Response(status_code(5, f"Data is invalid { serializer }"))
 
 
 class MMbotDetail(generics.ListAPIView):
@@ -77,7 +91,7 @@ class MMbotUpdate(generics.UpdateAPIView):
 
     def get_queryset(self):
         result = MarketMakerBot.objects.filter(
-            id=self.kwargs.get("pk"), user=self.request.user
+            user=self.request.user, id=self.kwargs.get("pk")
         ).first()
         return result
 

@@ -14,6 +14,36 @@ class MMBotSerializerDetail(serializers.Serializer):
         fields = ("id",)
 
 
+class MMBotSerializerAdd(serializers.Serializer):
+    name = serializers.CharField(required=False)
+    description = serializers.CharField(required=False)
+
+    user = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    api_key = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+    pair_token = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
+
+    trade_qty_range_low = serializers.IntegerField(required=False)
+    trade_qty_range_high = serializers.IntegerField(required=False)
+    trade_candle = serializers.IntegerField(required=False)
+    trade_amount = serializers.FloatField(required=False)
+
+    class Meta:
+        fields = (
+            "name",
+            "description",
+            "user",
+            "api_key",
+            "pair_token",
+            "trade_qty_range_low",
+            "trade_qty_range_high",
+            "trade_candle",
+            "trade_amount",
+        )
+    
+
+
+    
+
 class MMBotSerializerUpdate(serializers.Serializer):
 
     name = serializers.CharField(required=False)

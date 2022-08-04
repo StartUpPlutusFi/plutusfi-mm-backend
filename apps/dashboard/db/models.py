@@ -70,7 +70,6 @@ class MarketMakerBot(models.Model):
         BotConfigPairtokens,
         on_delete=models.DO_NOTHING,
         verbose_name=_("Token pair"),
-        default=1,
     )
     trade_qty_range_low = models.IntegerField(default=0)
     trade_qty_range_high = models.IntegerField(default=0)
