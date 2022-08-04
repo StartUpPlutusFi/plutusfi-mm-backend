@@ -21,15 +21,11 @@ class TestApiKeys(TestCase):
             name = "ScamEx"
         )
 
-        self.token = TokenFactory (
-            pair = "FakeToken"
-        ) 
-
         self.api = ApiKeyFactory.create(
-            description = "2222222222222",
+            description = "test",
             user = self.user,
-            api_key = "222222222222",
-            api_secret = "222222222222",
+            api_key = "0x0000000000",
+            api_secret = "0x11111111",
             default = False,
             exchange = self.exchange
         )
@@ -37,24 +33,22 @@ class TestApiKeys(TestCase):
     def test_add_apikey(self):
         data = {
             "description" : "i have pain",
-            "user" : self.user.id,
             "api_key" : "fake_key000000000000000",
             "api_secret" : "fake0000000000000000",
             "default" : False,
-            "exchange" : self.exchange.id
+            "exchange" : self.exchange.id,
         }
 
         request = self.client.post(reverse("apikey:ApiKeyAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()['description'], data['description'])
+        self.assertEqual(request.json(), data['description'])
         self.assertEqual(request.json()['api_key'], data['api_key'])
         self.assertEqual(request.json()['user'], data['user'])
     
     def test_add_apikey_wth_wrong_parameter(self):
         data = {
             "wrong_name_lmao": "TEST_USDT_FK",
-            "user" : self.user,
             "api_key" : "fake_key000000000000000",
             "api_secret" : "fake0000000000000000",
             "description" : "i have pain",
@@ -65,7 +59,7 @@ class TestApiKeys(TestCase):
         request = self.client.post(reverse("apikey:ApiKeyAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 2)
+        self.assertEqual(request.json()["code"], 5)
 
     def test_get_all_apikeys(self):
 

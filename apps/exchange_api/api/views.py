@@ -1,4 +1,5 @@
 # Create your views here.
+from numpy import insert
 from rest_framework.response import Response
 from rest_framework import generics
 
@@ -26,10 +27,18 @@ class ApiKeyAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        serializer = ApiKeySerializer(data=request.data)
+
+
+        insert_data = dict(request.data) | {
+            "user": request.user.id,
+        }
+
+        serializer = ApiKeySerializer(data=insert_data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+            
         return Response(status_code(2))
 
 
@@ -73,7 +82,7 @@ class ApiKeyUpdate(generics.UpdateAPIView):
     serializer_class = ApiKeySerializerUpdate
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(id=self.kwargs.get("pk")).first()
+        result = ApiKeys.objects.filter(id=self.kwargs.get("pk"), user=self.request.user).first()
         return result
 
     def put(self, request, *args, **kwargs):
