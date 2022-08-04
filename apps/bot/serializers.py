@@ -78,3 +78,21 @@ class MMBotSerializerUpdate(serializers.Serializer):
 
         except Exception:
             return None
+
+
+class MMBotSerializerStatus(serializers.Serializer):
+
+    status = serializers.CharField()
+
+    class Meta:
+        fields = ("status",)
+
+    def update(self, instance, validation_data):
+        try:
+            for k, v in validation_data.items():
+                setattr(instance, k, v)
+            instance.save()
+            return instance
+
+        except Exception:
+            return None

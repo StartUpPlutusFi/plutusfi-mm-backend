@@ -100,3 +100,46 @@ class MMbotUpdate(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.update(self.get_queryset(), validation_data=serializer.data)
         return Response(MMBotSerializer(data).data)
+
+
+class AutoTradeStatus(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MMBotSerializerStatus
+
+    def get_queryset(self):
+        data = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user).values('status')
+        return data
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+# class BotCtrl(generics.UpdateAPIView):
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = MMBotSerializerStatusUpdate
+
+#     def get_queryset(self):
+#         result = BidBot.objects.filter(
+#             user=self.request.user, id=self.kwargs.get("pk")
+#         ).first()
+#         return result
+
+#     def get(self, request, *args, **kwargs):
+#         try:
+#             data = self.get_queryset()
+#             if data.status == "STOP":
+#                 result = bid_bot_buy(request, self.kwargs.get("pk"))
+#                 BidBot.objects.filter(
+#                     id=self.kwargs.get("pk"), user=request.user
+#                 ).update(status="START")
+
+#             else:
+#                 # Cancel all orders
+#                 result = bid_bot_cancel(request, self.kwargs.get("pk"))
+#                 BidBot.objects.filter(
+#                     id=self.kwargs.get("pk"), user=request.user
+#                 ).update(status="STOP")
+
+#             return Response(result)
+#         except Exception as e:
+#             return JsonResponse({"status": "error", "check": str(e)})

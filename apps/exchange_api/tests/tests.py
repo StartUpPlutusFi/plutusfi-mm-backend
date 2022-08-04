@@ -32,11 +32,12 @@ class TestApiKeys(TestCase):
 
     def test_add_apikey(self):
         data = {
-            "description" : "i have pain",
-            "api_key" : "fake_key000000000000000",
-            "api_secret" : "fake0000000000000000",
-            "default" : False,
-            "exchange" : self.exchange.id,
+            "description":"i have pain",
+            "api_key": "fake_key000000000000000",
+            "api_secret": "fake0000000000000000",
+            "default": False,
+            "exchange": self.exchange.id
+
         }
 
         request = self.client.post(reverse("apikey:ApiKeyAdd"), data)
@@ -53,13 +54,13 @@ class TestApiKeys(TestCase):
             "api_secret" : "fake0000000000000000",
             "description" : "i have pain",
             "default" : False,
-            "exchange" : self.exchange
+            "exchange" : self.exchange.id
         }
 
         request = self.client.post(reverse("apikey:ApiKeyAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 5)
+        self.assertEqual(request.json()["code"], 2)
 
     def test_get_all_apikeys(self):
 

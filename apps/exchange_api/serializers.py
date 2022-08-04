@@ -1,6 +1,4 @@
-from numpy import require
 from rest_framework import serializers
-from apps import exchange
 from apps.dashboard.db.models import *
 
 
@@ -13,7 +11,7 @@ class ApiKeySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiKeys
-        fields = ("api_key", "api_secret", "description", "default", "exchange", "user", )
+        fields = ("id", "api_key", "api_secret", "description", "default", "exchange", "user", )
 
 class ApiKeySerializerDetail(serializers.Serializer):
     class Meta:

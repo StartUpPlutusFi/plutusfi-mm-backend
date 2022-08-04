@@ -16,7 +16,7 @@ class BidBotSerializer(serializers.ModelSerializer):
     class Meta:
         model = BidBot
         fields = (
-            "name", "description", "user", "api_key", 
+            "id", "name", "description", "user", "api_key", 
             "pair_token", "order_size", "number_of_orders", 
             "budget", "trade_amount", "status",
         )
@@ -68,13 +68,17 @@ class BidBotSerializerUpdate(serializers.Serializer):
 
 class BidBotSerializerStatusUpdate(serializers.Serializer):
 
-    status = serializers.BooleanField()
+    status = serializers.CharField()
 
     class Meta:
         fields = ("status",)
 
     def update(self, instance, validation_data):
-        for k, v in validation_data.items():
-            setattr(instance, k, v)
-        instance.save()
-        return instance
+        try:
+            for k, v in validation_data.items():
+                setattr(instance, k, v)
+            instance.save()
+            return instance
+
+        except Exception:
+            return None
