@@ -23,6 +23,7 @@ Pillow = "^9.2.0"
 pandas = "^1.4.3"
 dj-inmemorystorage = "^2.1.0"
 requests = "^2.28.1"
+drf-yasg = "^1.21.3"
 
 [tool.poetry.dev-dependencies]
 ipython = "^8.4.0"
