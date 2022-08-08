@@ -34,6 +34,12 @@ ALLOWED_HOSTS = []
 # Application definition
 PROJECT_APPS = [
     "apps.account",
+    "apps.dashboard",
+    "apps.bid",
+    "apps.bot",
+    "apps.token",
+    "apps.exchange",
+    "apps.exchange_api",
 ]
 
 THIRDPARTY_APPS = [
@@ -163,3 +169,14 @@ SIMPLE_JWT = {
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
     "JTI_CLAIM": "jti",
 }
+
+
+# CELERY
+CELERY_BROKER_URL = f"redis://localhost:6379"
+CELERY_RESULT_BACKEND = f"redis://localhost:6379"
+CELERY_TIMEZONE = "Australia/Tasmania"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
