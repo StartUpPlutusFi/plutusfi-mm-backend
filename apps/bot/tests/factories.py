@@ -2,6 +2,7 @@ import factory
 
 from apps.dashboard.db.models import MarketMakerBot
 
+
 class MarketMakerBotFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker("name")
@@ -14,6 +15,6 @@ class MarketMakerBotFactory(factory.django.DjangoModelFactory):
     trade_candle = factory.Faker("trade_candle")
     trade_amount = factory.Faker("trade_amount")
     status = factory.Faker("status")
-    
+
     class Meta:
         model = MarketMakerBot

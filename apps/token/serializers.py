@@ -30,4 +30,3 @@ class TokenSerializerUpdate(serializers.Serializer):
 
         except Exception:
             return None
-

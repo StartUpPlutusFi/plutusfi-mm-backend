@@ -25,9 +25,9 @@ class ApiKeyList(generics.ListAPIView):
 
 class ApiKeyAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = ApiKeySerializer
 
     def post(self, request, *args, **kwargs):
-
 
         insert_data = dict(request.data) | {
             "user": request.user.id,
@@ -38,7 +38,7 @@ class ApiKeyAdd(generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-            
+
         return Response(status_code(2))
 
 
@@ -58,6 +58,7 @@ class ApiKeyDetail(generics.ListAPIView):
 
 class ApiKeyDelete(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = ApiKeySerializerDetail
 
     def get_queryset(self):
         result = ApiKeys.objects.filter(
@@ -82,7 +83,9 @@ class ApiKeyUpdate(generics.UpdateAPIView):
     serializer_class = ApiKeySerializerUpdate
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(id=self.kwargs.get("pk"), user=self.request.user).first()
+        result = ApiKeys.objects.filter(
+            id=self.kwargs.get("pk"), user=self.request.user
+        ).first()
         return result
 
     def put(self, request, *args, **kwargs):

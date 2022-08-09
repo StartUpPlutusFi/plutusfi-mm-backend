@@ -27,6 +27,7 @@ class BidList(generics.ListAPIView):
 
 class BidAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = BidBotSerializer
 
     def post(self, request, *args, **kwargs):
 
@@ -39,7 +40,7 @@ class BidAdd(generics.CreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-            
+
         return Response(status_code(2))
 
 

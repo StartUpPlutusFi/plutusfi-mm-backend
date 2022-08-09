@@ -19,35 +19,30 @@ class TestBidBot(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.exchange = ExchangeFactory(
-            name = "ScamEx"
-        )
+        self.exchange = ExchangeFactory(name="ScamEx")
 
-        self.token = TokenFactory (
-            pair = "FakeToken"
-        ) 
+        self.token = TokenFactory(pair="FakeToken")
 
         self.api = ApiKeyFactory.create(
-            description = "2222222222222",
-            user = self.user,
-            api_key = "222222222222",
-            api_secret = "222222222222",
-            default = False,
-            exchange = self.exchange
+            description="2222222222222",
+            user=self.user,
+            api_key="222222222222",
+            api_secret="222222222222",
+            default=False,
+            exchange=self.exchange,
         )
 
-
         self.bidbot = BidBotFactory(
-            name = "fake_bid_bot",
-            description = "fake_desc",
-            user = self.user,
-            api_key = self.api,
-            pair_token = self.token,
-            order_size = 3300,
-            number_of_orders = 2,
-            budget = 600,
-            trade_amount = 500,
-            status = 0,
+            name="fake_bid_bot",
+            description="fake_desc",
+            user=self.user,
+            api_key=self.api,
+            pair_token=self.token,
+            order_size=3300,
+            number_of_orders=2,
+            budget=600,
+            trade_amount=500,
+            status=0,
         )
 
     def test_add_bidbot(self):
@@ -69,10 +64,10 @@ class TestBidBot(TestCase):
         request = self.client.post(reverse("bidbot:BidAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()['name'], data['name'])
-        self.assertEqual(request.json()['user'], data['user'])
-        self.assertEqual(request.json()['api_key'], data['api_key'])
-    
+        self.assertEqual(request.json()["name"], data["name"])
+        self.assertEqual(request.json()["user"], data["user"])
+        self.assertEqual(request.json()["api_key"], data["api_key"])
+
     # def test_add_bidbot_wth_wrong_parameter(self):
     #     data = {
     #         "wrong_name_lmao": "fake_ex",
@@ -84,7 +79,7 @@ class TestBidBot(TestCase):
     #         "budget": 600.0,
     #         "trade_amount": 500.0,
     #         "status": 0,
-           
+
     #     }
 
     #     request = self.client.post(reverse("bidbot:BidAdd"), data)
@@ -115,7 +110,7 @@ class TestBidBot(TestCase):
     # def test_update_bidbot(self):
 
     #     data =  BidBot.objects.first()
-        
+
     #     update = {
     #         "name": "Nwe scam test",
     #         "description": "fake_desc",
@@ -151,7 +146,7 @@ class TestBidBot(TestCase):
     #     data =  BidBot.objects.first()
     #     request = self.client.delete(reverse("bidbot:BidDelete", kwargs={"pk": data.id }))
     #     self.assertEqual(request.status_code, 204)
-    
+
     # def test_delete_bidbot_with_invalid_id(self):
 
     #     request = self.client.delete(reverse("bidbot:BidDelete", kwargs={"pk": 922337203685477580 }))

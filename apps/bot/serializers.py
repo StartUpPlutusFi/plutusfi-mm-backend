@@ -39,10 +39,7 @@ class MMBotSerializerAdd(serializers.Serializer):
             "trade_candle",
             "trade_amount",
         )
-    
 
-
-    
 
 class MMBotSerializerUpdate(serializers.Serializer):
 

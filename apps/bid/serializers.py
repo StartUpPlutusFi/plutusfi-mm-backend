@@ -16,11 +16,18 @@ class BidBotSerializer(serializers.ModelSerializer):
     class Meta:
         model = BidBot
         fields = (
-            "id", "name", "description", "user", "api_key", 
-            "pair_token", "order_size", "number_of_orders", 
-            "budget", "trade_amount", "status",
+            "id",
+            "name",
+            "description",
+            "user",
+            "api_key",
+            "pair_token",
+            "order_size",
+            "number_of_orders",
+            "budget",
+            "trade_amount",
+            "status",
         )
-
 
 
 class BidBotSerializerStatus(serializers.ModelSerializer):

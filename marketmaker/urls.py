@@ -39,6 +39,8 @@ urlpatterns = [
     path("", include("apps.dashboard.api.urls")),
     path("bid/", include("apps.bid.api.urls")),
     path("bot/", include("apps.bot.api.urls")),
+    path("autotrade/", include("apps.token.api.urls")),
+    path("bookfiller/", include("apps.token.api.urls")),
     path("apikeys/", include("apps.exchange_api.api.urls")),
     path("exchange/", include("apps.exchange.api.urls")),
     path("token/", include("apps.token.api.urls")),

@@ -11,7 +11,16 @@ class ApiKeySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiKeys
-        fields = ("id", "api_key", "api_secret", "description", "default", "exchange", "user", )
+        fields = (
+            "id",
+            "api_key",
+            "api_secret",
+            "description",
+            "default",
+            "exchange",
+            "user",
+        )
+
 
 class ApiKeySerializerDetail(serializers.Serializer):
     class Meta:

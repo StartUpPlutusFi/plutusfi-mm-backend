@@ -2,6 +2,7 @@ import factory
 
 from apps.dashboard.db.models import BidBot
 
+
 class BidBotFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker("name")

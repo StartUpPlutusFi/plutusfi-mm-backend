@@ -10,9 +10,10 @@ class ApiKeyFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("description")
     default = factory.Faker("default")
     exchange = factory.Faker("exchange")
-    
+
     class Meta:
         model = ApiKeys
+
 
 class ExchangeFactory(factory.django.DjangoModelFactory):
 

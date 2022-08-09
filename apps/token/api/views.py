@@ -24,6 +24,7 @@ class TokenList(generics.ListAPIView):
 
 class TokenAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = TokenSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = TokenSerializer(data=request.data)

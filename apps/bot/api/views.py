@@ -26,23 +26,32 @@ class MMbotList(generics.ListAPIView):
 
 class MMbotAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = MMBotSerializer
 
     def post(self, request, *args, **kwargs):
 
         try:
             insert_data = dict(request.data) | {
                 "user": request.user.id,
-                "api_key": ApiKeys.objects.filter(user=request.user, id=request.data['api_key']).values('id').first()['id'],
-                "pair_token": BotConfigPairtokens.objects.filter(id=request.data['pair_token']).values('id').first()['id'],
+                "api_key": ApiKeys.objects.filter(
+                    user=request.user, id=request.data["api_key"]
+                )
+                .values("id")
+                .first()["id"],
+                "pair_token": BotConfigPairtokens.objects.filter(
+                    id=request.data["pair_token"]
+                )
+                .values("id")
+                .first()["id"],
             }
 
             print(insert_data)
             serializer = MarketMakerBot(data=insert_data)
-        
+
         except:
 
             return Response(status_code(5, "Unauthorized key access"))
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -107,7 +116,9 @@ class AutoTradeStatus(generics.ListAPIView):
     serializer_class = MMBotSerializerStatus
 
     def get_queryset(self):
-        data = MarketMakerBot.objects.filter(id=self.kwargs.get("pk"), user=self.request.user).values('status')
+        data = MarketMakerBot.objects.filter(
+            id=self.kwargs.get("pk"), user=self.request.user
+        ).values("status")
         return data
 
     def get(self, request, *args, **kwargs):

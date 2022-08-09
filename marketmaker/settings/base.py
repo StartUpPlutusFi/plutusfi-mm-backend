@@ -40,6 +40,8 @@ PROJECT_APPS = [
     "apps.token",
     "apps.exchange",
     "apps.exchange_api",
+    "apps.autotrade",
+    "apps.bookfiller",
 ]
 
 THIRDPARTY_APPS = [

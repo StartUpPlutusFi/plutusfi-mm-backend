@@ -23,6 +23,7 @@ class ExchangeList(generics.ListAPIView):
 
 class ExchangeAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = ExchangeSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = ExchangeSerializer(data=request.data)

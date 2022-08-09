@@ -1,6 +1,5 @@
 def status_code(code, msg=""):
 
-
     if code == 0:
         return {"code": code, "message": "success"}
     elif code == 1:
@@ -21,4 +20,3 @@ def status_code(code, msg=""):
             "code": 900,
             "message": "Invalid error code",
         }
-

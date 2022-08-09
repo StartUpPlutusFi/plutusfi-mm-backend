@@ -16,19 +16,15 @@ class TestToken(TestCase):
         self.token = TokenFactory.create(pair="TestUSDT")
 
     def test_add_token(self):
-        data = {
-            "pair": "TEST_USDT_FK"
-        }
+        data = {"pair": "TEST_USDT_FK"}
 
         request = self.client.post(reverse("token:TokenAdd"), data)
 
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()["pair"], "TEST_USDT_FK")
-    
+
     def test_add_token_wth_wrong_parameter(self):
-        data = {
-            "wrong_name_lmao": "TEST_USDT_FK"
-        }
+        data = {"wrong_name_lmao": "TEST_USDT_FK"}
 
         request = self.client.post(reverse("token:TokenAdd"), data)
 
@@ -37,36 +33,40 @@ class TestToken(TestCase):
 
     def test_get_all_tokens(self):
 
-        data =  list(BotConfigPairtokens.objects.all().values())
+        data = list(BotConfigPairtokens.objects.all().values())
         request = self.client.get(reverse("token:TokenList"))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(len(request.json()), len(data))
 
     def test_detail_token(self):
 
-        data =  BotConfigPairtokens.objects.first()
-        request = self.client.get(reverse("token:TokenDetail", kwargs={"pk": data.id }))
+        data = BotConfigPairtokens.objects.first()
+        request = self.client.get(reverse("token:TokenDetail", kwargs={"pk": data.id}))
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()[0]['id'], data.id )
-        self.assertEqual(request.json()[0]['pair'], data.pair )
+        self.assertEqual(request.json()[0]["id"], data.id)
+        self.assertEqual(request.json()[0]["pair"], data.pair)
 
     def test_detail_token_with_invalid_id(self):
 
-        request = self.client.get(reverse("token:TokenDetail", kwargs={"pk": 922337203685477580 }))
+        request = self.client.get(
+            reverse("token:TokenDetail", kwargs={"pk": 922337203685477580})
+        )
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json(), [] )
+        self.assertEqual(request.json(), [])
 
     def test_update_token(self):
 
-        data =  BotConfigPairtokens.objects.first()
-        
+        data = BotConfigPairtokens.objects.first()
+
         update = {
             "pair": "UpdatedToken",
         }
 
-        request = self.client.put(reverse("token:TokenUpdate", kwargs={"pk": data.id }), data=update)
+        request = self.client.put(
+            reverse("token:TokenUpdate", kwargs={"pk": data.id}), data=update
+        )
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()['pair'], "UpdatedToken" )
+        self.assertEqual(request.json()["pair"], "UpdatedToken")
 
     def test_update_token_with_invalid_paramter(self):
 
@@ -74,18 +74,24 @@ class TestToken(TestCase):
             "fake_param": "Nwe scam test",
         }
 
-        request = self.client.put(reverse("token:TokenUpdate", kwargs={"pk": 922337203685477580 }), data=update)
+        request = self.client.put(
+            reverse("token:TokenUpdate", kwargs={"pk": 922337203685477580}), data=update
+        )
         self.assertEqual(request.status_code, 200)
         self.assertIsNot(request.json(), [])
 
     def test_delete_token(self):
 
-        data =  BotConfigPairtokens.objects.first()
-        request = self.client.delete(reverse("token:TokenDelete", kwargs={"pk": data.id }))
+        data = BotConfigPairtokens.objects.first()
+        request = self.client.delete(
+            reverse("token:TokenDelete", kwargs={"pk": data.id})
+        )
         self.assertEqual(request.status_code, 204)
-    
+
     def test_delete_token_with_invalid_id(self):
 
-        request = self.client.delete(reverse("token:TokenDelete", kwargs={"pk": 922337203685477580 }))
+        request = self.client.delete(
+            reverse("token:TokenDelete", kwargs={"pk": 922337203685477580})
+        )
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()['code'], 5 )
+        self.assertEqual(request.json()["code"], 5)
