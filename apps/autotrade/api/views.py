@@ -81,23 +81,11 @@ def get_secretkey():
     SECRET_KEY = ''#GET THE SECRET KEY
     return SECRET_KEY
 
-def create_bid(bid_price, bid_quantity):
-    params = {"asset_pair_name":coin,
-              "side":"BID",
-              "price":str(bid_price),
-              "amount":str(bid_quantity), 
-              "type":"LIMIT"
-              }
 
-    json_params = json.dumps(params, indent=4)
-    r = requests.post(get_order_url(), headers=get_order_header_encoded(), data=json_params)
-    response_json = r.json()
-    print (response_json)
-
-def create_ask(ask_price, ask_quantity):
+def create_order(ask_price, ask_quantity, side):
 
     params = {"asset_pair_name":coin,
-              "side":"ASK",
+              "side":str(side),
               "price":str(ask_price),
               "amount":str(ask_quantity),  
               "type":"LIMIT"
@@ -148,20 +136,20 @@ def random_bid_ask_order(user_ref_price, user_side_choice):
       if order == 1:
         quantity, price = ref_value(user_ref_price, user_side_choice)
         print(f"Creating an order with bid quantity: {quantity} bid price: {price}")
-        #create_bid(price, quantity)
+        #create_order(price, quantity, side="BID")
         time.sleep(10)
         print("Order created")
         print(f"Creating an order with ask quantity: {quantity} ask price: {price}")
-        #create_ask(price, quantity)
+        #create_order(price, quantity, side ="ASK")
         print("Order created")
       if order == 2:
         quantity, price = ref_value(user_ref_price, user_side_choice)
         print(f"Creating an order with ask quantity: {quantity} ask price: {price}")
-        #create_ask(price, quantity)
+        #create_order(price, quantity, side ="ASK")
         print("Order created")
         time.sleep(2)
         print(f"Creating an order with bid quantity: {quantity} bid price: {price}")
-        #reate_bid(price, quantity)
+        #create_order(price, quantity, side="BID")
         print("Order created")
       time.sleep(user_max_time*60)
 
