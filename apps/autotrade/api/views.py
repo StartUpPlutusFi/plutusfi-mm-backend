@@ -1,15 +1,7 @@
-from django.shortcuts import render
-
-
-# modulos
-
-# modulos
 import jwt
-from urllib.parse import urljoin, urlencode
 import requests
 import random
 import time
-import json
 
 
 def ping():
@@ -93,39 +85,7 @@ def get_secretkey():
     SECRET_KEY = ''  # GET THE SECRET KEY
     return SECRET_KEY
 
-
-# def create_bid(bid_price, bid_quantity):
-#     params = {"asset_pair_name": coin,
-#               "side": "BID",
-#               "price": str(bid_price),
-#               "amount": str(bid_quantity),
-#               "type": "LIMIT"
-#               }
-
-#     json_params = json.dumps(params, indent=4)
-#     r = requests.post(
-#         get_order_url(), headers=get_order_header_encoded(), data=json_params)
-#     response_json = r.json()
-#     print(response_json)
-
-
-# def create_ask(ask_price, ask_quantity):
-
-#     params = {"asset_pair_name": coin,
-#               "side": "ASK",
-#               "price": str(ask_price),
-#               "amount": str(ask_quantity),
-#               "type": "LIMIT"
-#               }
-
-#     json_params = json.dumps(params, indent=4)
-#     r = requests.post(
-#         get_order_url(), headers=get_order_header_encoded(), data=json_params)
-#     response_json = r.json()
-#     print(response_json)
-
-
-def ref_value(user_ref_price, user_side_choice):
+def ref_value(user_ref_price, user_side_choice, user_max_order_value):
     ask = False
     smallest_ask = 0.0
     price = 0.0
@@ -158,12 +118,12 @@ def ref_value(user_ref_price, user_side_choice):
     return quantity, price
 
 
-def random_bid_ask_order(user_ref_price, user_side_choice):
+def random_bid_ask_order(user_ref_price, user_side_choice, user_max_order_value):
     while True:
         order = random.randint(1, 2)
 
         if order == 1:
-            quantity, price = ref_value(user_ref_price, user_side_choice)
+            quantity, price = ref_value(user_ref_price, user_side_choice, user_max_order_value)
             print(
                 f"Creating an order with bid quantity: {quantity} bid price: {price}")
             #create_bid(price, quantity)
@@ -174,7 +134,7 @@ def random_bid_ask_order(user_ref_price, user_side_choice):
             #create_ask(price, quantity)
             print("Order created")
         if order == 2:
-            quantity, price = ref_value(user_ref_price, user_side_choice)
+            quantity, price = ref_value(user_ref_price, user_side_choice, user_max_order_value)
             print(
                 f"Creating an order with ask quantity: {quantity} ask price: {price}")
             #create_ask(price, quantity)
@@ -188,14 +148,8 @@ def random_bid_ask_order(user_ref_price, user_side_choice):
 
 
 if __name__ == '__main__':
-    user_side_choice = 0
-    user_max_order_value = 0
-    while 12 > user_max_order_value:
-        try:
-            user_max_order_value = int(
-                input("Please input a max value for the total order that is bigger than 12:  "))
-        except ValueError:
-            print("Invalid value")
+
+    user_max_order_value = 12 # Order amont
 
     user_max_time = int(input(
         "Please input a max value of time in minutes for the app to redo the order:  "))
@@ -224,4 +178,6 @@ if __name__ == '__main__':
             except ValueError:
                 print("Invalid value")
 
-    random_bid_ask_order(user_ref_price, user_side_choice)
+    
+
+    random_bid_ask_order(user_ref_price, user_side_choice, user_max_order_value)
