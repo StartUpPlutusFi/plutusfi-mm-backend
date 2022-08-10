@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework import generics
 
@@ -6,11 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 
 from apps.dashboard.db.models import *
 from apps.dashboard.db.forms import *
-from apps.dashboard.ex.biconomy import *
 from apps.dashboard.helper.helper import *
 from apps.bid.serializers import *
 
+from apps.dashboard.ex.biconomy import *
+
 import time
+
 
 
 class BidList(generics.ListAPIView):
@@ -207,4 +208,4 @@ class BidCtrl(generics.UpdateAPIView):
 
             return Response(result)
         except Exception as e:
-            return JsonResponse({"status": "error", "check": str(e)})
+            return Response({"status": "error", "check": str(e)})

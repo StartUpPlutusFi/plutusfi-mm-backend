@@ -71,8 +71,8 @@ class MarketMakerBot(models.Model):
         on_delete=models.DO_NOTHING,
         verbose_name=_("Token pair"),
     )
-    trade_qty_range_low = models.IntegerField(default=0)
-    trade_qty_range_high = models.IntegerField(default=0)
+    user_ref_price = models.FloatField(default=0)
+    side = models.IntegerField(default=0, max_length=1)
     trade_candle = models.IntegerField(default=10)
     trade_amount = models.FloatField(default=0)
     status = models.CharField(max_length=16, default="STOP")

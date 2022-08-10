@@ -1,6 +1,6 @@
 # Create your views here.
-from numpy import insert
-from requests import request
+from random import randint
+from unittest import result
 from rest_framework.response import Response
 from rest_framework import generics
 
@@ -10,6 +10,8 @@ from apps.dashboard.db.models import *
 from apps.dashboard.db.forms import *
 from apps.dashboard.helper.helper import *
 from apps.bot.serializers import *
+
+from apps.autotrade.api.views import *
 
 
 class MMbotList(generics.ListAPIView):
@@ -38,6 +40,7 @@ class MMbotAdd(generics.CreateAPIView):
                 )
                 .values("id")
                 .first()["id"],
+
                 "pair_token": BotConfigPairtokens.objects.filter(
                     id=request.data["pair_token"]
                 )
@@ -46,11 +49,11 @@ class MMbotAdd(generics.CreateAPIView):
             }
 
             print(insert_data)
-            serializer = MarketMakerBot(data=insert_data)
+            serializer = MMBotSerializer(data=insert_data)
 
-        except:
+        except Exception as e:
 
-            return Response(status_code(5, "Unauthorized key access"))
+            return Response(str(e) )
 
         if serializer.is_valid():
             serializer.save()
@@ -125,32 +128,51 @@ class AutoTradeStatus(generics.ListAPIView):
         return self.list(request, *args, **kwargs)
 
 
-# class BotCtrl(generics.UpdateAPIView):
-#     permission_classes = (IsAuthenticated,)
-#     serializer_class = MMBotSerializerStatusUpdate
+class BotCtrl(generics.UpdateAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = MMBotSerializerUpdate
 
-#     def get_queryset(self):
-#         result = BidBot.objects.filter(
-#             user=self.request.user, id=self.kwargs.get("pk")
-#         ).first()
-#         return result
+    def get_queryset(self):
+        try:
+            result = MarketMakerBot.objects.filter(
+            user=self.request.user, id=self.kwargs.get("pk")
+            ).first()
+            return result
+        except Exception:
+            return {}
 
-#     def get(self, request, *args, **kwargs):
-#         try:
-#             data = self.get_queryset()
-#             if data.status == "STOP":
-#                 result = bid_bot_buy(request, self.kwargs.get("pk"))
-#                 BidBot.objects.filter(
-#                     id=self.kwargs.get("pk"), user=request.user
-#                 ).update(status="START")
+    def get(self, request, *args, **kwargs):
+        try:
 
-#             else:
-#                 # Cancel all orders
-#                 result = bid_bot_cancel(request, self.kwargs.get("pk"))
-#                 BidBot.objects.filter(
-#                     id=self.kwargs.get("pk"), user=request.user
-#                 ).update(status="STOP")
+            data = self.get_queryset()
+            
+            apikey = data.api_key.api_key
+            apisec = data.api_key.api_secret
 
-#             return Response(result)
-#         except Exception as e:
-#             return JsonResponse({"status": "error", "check": str(e)})
+
+            user_side_choice = randint(1,2)
+            user_max_order_value = data.trade_amount
+            token = data.pair_token.pair
+
+            user_ref_price = 0
+            exit = check_ref_price(token)
+
+            # check_ref_price(token)
+
+            result = random_bid_ask_order(user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token)
+
+            return Response({
+                "reference_price": exit[0],
+                "user_ref_price": user_ref_price, 
+                "user_side_choice": user_side_choice, 
+                "user_max_order_value": user_max_order_value, 
+                "token": token, 
+                "side": data.side, 
+                "status": data.status,
+                "random_bid_ask_order_result": result,
+            })
+
+            # return result
+
+        except Exception as e:
+            return Response({"status": "error", "check": str(e)})
