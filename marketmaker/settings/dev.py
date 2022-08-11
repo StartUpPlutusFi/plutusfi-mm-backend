@@ -16,6 +16,8 @@ JWT_SIG_KEY = env("JWT_SIG_KEY")
 
 DATABASES = {"default": env.db()}
 
+print(DATABASES)
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")

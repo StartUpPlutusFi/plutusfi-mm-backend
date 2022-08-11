@@ -189,10 +189,11 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
     ask = False
     smallest_ask = 0.0
     price = 0.0
+    random_operation = 0
 
     if user_ref_price == 0:
         ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
-        
+
         if user_side_choice == 1:
             price = random.uniform(ref_price, smallest_ask)
         elif user_side_choice == 2:

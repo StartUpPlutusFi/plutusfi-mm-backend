@@ -111,6 +111,27 @@ class MarketMakerBotOrderHistory(models.Model):
         db_table = "market_maker_bot_order_history"
 
 
+class MarketMakerBotAutoTradeQueue(models.Model):
+
+    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING, blank=True, null=True)
+    price = models.FloatField(default=0)
+    quantity = models.IntegerField(default=0)
+    side = models.CharField(default="FILL")
+    status = models.CharField(default="FINISHED")
+    candle = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.bot.id)
+    
+    class Meta:
+        db_table = "dashboard_marketmakerbotautotradequeue"
+
+
+        
+
+
 class BidBot(models.Model):
 
     name = models.CharField(max_length=32, default="None")

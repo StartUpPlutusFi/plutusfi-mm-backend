@@ -1,5 +1,6 @@
 # Create your views here.
 from random import randint
+from threading import Thread
 from unittest import result
 from rest_framework.response import Response
 from rest_framework import generics
@@ -53,7 +54,7 @@ class MMbotAdd(generics.CreateAPIView):
 
         except Exception as e:
 
-            return Response(str(e) )
+            return Response(str(e))
 
         if serializer.is_valid():
             serializer.save()
@@ -110,7 +111,8 @@ class MMbotUpdate(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+        data = serializer.update(
+            self.get_queryset(), validation_data=serializer.data)
         return Response(MMBotSerializer(data).data)
 
 
@@ -135,7 +137,7 @@ class BotCtrl(generics.UpdateAPIView):
     def get_queryset(self):
         try:
             result = MarketMakerBot.objects.filter(
-            user=self.request.user, id=self.kwargs.get("pk")
+                user=self.request.user, id=self.kwargs.get("pk")
             ).first()
             return result
         except Exception:
@@ -145,12 +147,11 @@ class BotCtrl(generics.UpdateAPIView):
         try:
 
             data = self.get_queryset()
-            
+
             apikey = data.api_key.api_key
             apisec = data.api_key.api_secret
 
-
-            user_side_choice = randint(1,2)
+            user_side_choice = randint(1, 2)
             user_max_order_value = data.trade_amount
             token = data.pair_token.pair
 
@@ -159,15 +160,17 @@ class BotCtrl(generics.UpdateAPIView):
 
             # check_ref_price(token)
 
-            result = random_bid_ask_order(user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token)
+            result = (
+                user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token,
+                )
 
             return Response({
                 "reference_price": exit[0],
-                "user_ref_price": user_ref_price, 
-                "user_side_choice": user_side_choice, 
-                "user_max_order_value": user_max_order_value, 
-                "token": token, 
-                "side": data.side, 
+                "user_ref_price": user_ref_price,
+                "user_side_choice": user_side_choice,
+                "user_max_order_value": user_max_order_value,
+                "token": token,
+                "side": data.side,
                 "status": data.status,
                 "random_bid_ask_order_result": result,
             })
@@ -176,3 +179,74 @@ class BotCtrl(generics.UpdateAPIView):
 
         except Exception as e:
             return Response({"status": "error", "check": str(e)})
+
+
+def bigone_autotrade_open(candle):
+
+    bots = MarketMakerBot.objects.filter(status="START", trade_candle=candle)
+
+    result = []
+
+    for data in bots:
+
+
+        bot_id = data.id
+        apikey = data.api_key.api_key
+        apisec = data.api_key.api_secret
+        user_side_choice = data.side
+        user_max_order_value = data.trade_amount
+        token = data.pair_token.pair
+        user_ref_price = 0
+        ref = check_ref_price(token)
+
+
+        exit = auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token, bot_id, candle,op=3)
+
+        result.append({
+            "reference_price": ref,
+            "user_ref_price": user_ref_price,
+            "user_side_choice": user_side_choice,
+            "user_max_order_value": user_max_order_value,
+            "token": token,
+            "side": data.side,
+            "status": data.status,
+            "bot_id": bot_id,
+            "candle": candle,
+            "autotrade": exit,
+        })
+
+    print("bigone_autotrade_open:: :: ", result)
+    return result
+    
+
+
+def bigone_autotrade_close(candle):
+
+    open_orders = MarketMakerBotAutoTradeQueue.objects.filter(status="OPEN", candle=candle)
+
+    for order in open_orders:
+
+        price = order.price 
+        quantity = order.quantity 
+        side = order.side 
+        apikey = order.bot.api_key.api_key 
+        apisec = order.bot.api_key.api_secret 
+        token = order.bot.pair_token.pair 
+
+        order_id = order.id
+
+        print("bigone_autotrade_close :: :: ", price, quantity, side,  apikey, apisec, token,)
+
+        exit = auto_trade_order_close(price, quantity, side,  apikey, apisec, token)
+
+        if exit['status'] == "success":
+
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(status="DONE")
+        
+        else:
+
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(status="CLOSE")
+    
+    return {
+        "status": "success"
+    }
