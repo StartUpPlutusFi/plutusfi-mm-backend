@@ -115,7 +115,7 @@ class MarketMakerBotAutoTradeQueue(models.Model):
 
     bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING, blank=True, null=True)
     price = models.FloatField(default=0)
-    quantity = models.IntegerField(default=0)
+    quantity = models.FloatField(default=0)
     side = models.CharField(default="FILL")
     status = models.CharField(default="FINISHED")
     candle = models.IntegerField(default=0)

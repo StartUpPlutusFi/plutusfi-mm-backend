@@ -5,20 +5,25 @@ from apps.bot.api.views import bigone_autotrade_open, bigone_autotrade_close
 
 # 1m, 5m, 15m, 30m, 1h, 4h, 12h, 1d
 
-@shared_task
-def data_processing_1m():
-    print(" -------------- Run BigOne autotrade with candle of 1m")
-    return bigone_autotrade_open(1)
+# @shared_task
+# def data_processing_1m():
+#     print(" -------------- Run BigOne autotrade with candle of 1m")
+#     return bigone_autotrade_open(1)
 
 
 @shared_task
 def data_processing_5m():
-    print(" -------------- Run BigOne autotrade with candle of 5m")
-    a = bigone_autotrade_open(5)
-    b = bigone_autotrade_close(5)
+    print(" -------------- Run BigOne autotrade OPEN 5m")
+    var = bigone_autotrade_open(5)
+    print(var)
+    return var
 
-    return (a,b,)
-
+@shared_task
+def data_close_5m():
+    print(" -------------- Run BigOne autotrade CLOSE 5m")
+    var = bigone_autotrade_close(5)
+    print(var)
+    return var
 
 # @shared_task
 # def data_processing_15m():

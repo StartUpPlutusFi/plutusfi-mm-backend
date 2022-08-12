@@ -18,11 +18,25 @@ app.autodiscover_tasks()
 # }
 
 app.conf.beat_schedule = {
-    "run-every-5-min": {
+    "run-open-every-5-min": {
         "task": "apps.bot.tasks.data_processing_5m",
         "schedule": 5.0,
     },
+    "run-close-every-5-min": {
+        "task": "apps.bot.tasks.data_close_5m",
+        "schedule": 5.0,
+    },
 }
+
+# app.conf.beat_schedule = {
+#     "run-close-every-5-min": {
+#         "task": "apps.bot.tasks.data_close_5m",
+#         "schedule": 5.0,
+#     },
+# }
+
+
+
 
 # app.conf.beat_schedule = {
 #     "run-every-15-min": {

@@ -189,7 +189,6 @@ def bigone_autotrade_open(candle):
 
     for data in bots:
 
-
         bot_id = data.id
         apikey = data.api_key.api_key
         apisec = data.api_key.api_secret
@@ -202,7 +201,7 @@ def bigone_autotrade_open(candle):
 
         exit = auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token, bot_id, candle,op=3)
 
-        result.append({
+        edata = {
             "reference_price": ref,
             "user_ref_price": user_ref_price,
             "user_side_choice": user_side_choice,
@@ -213,9 +212,11 @@ def bigone_autotrade_open(candle):
             "bot_id": bot_id,
             "candle": candle,
             "autotrade": exit,
-        })
+        }
 
-    print("bigone_autotrade_open:: :: ", result)
+        result.append(edata)
+        print(f"bigone_autotrade_open:: :: {edata}")
+
     return result
     
 
@@ -235,7 +236,7 @@ def bigone_autotrade_close(candle):
 
         order_id = order.id
 
-        print("bigone_autotrade_close :: :: ", price, quantity, side,  apikey, apisec, token,)
+        print(f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}")
 
         exit = auto_trade_order_close(price, quantity, side,  apikey, apisec, token)
 
