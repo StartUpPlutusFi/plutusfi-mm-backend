@@ -9,5 +9,5 @@ urlpatterns = [
     path("delete/<int:pk>", MMbotDelete.as_view(), name="MMbotDelete"),
     path("update/<int:pk>", MMbotUpdate.as_view(), name="MMbotUpdate"),
     path("status/<int:pk>", AutoTradeStatus.as_view(), name="AutoTradeStatus"),
-    path("ctrl/<int:pk>", BotCtrl.as_view(), name="MMbotCtrl"),
+    path("ctrl/<int:pk>", AutoTradeBotCtrl.as_view(), name="MMbotCtrl"),
 ]
