@@ -7,7 +7,7 @@ from apps.dashboard.db.models import *
 def auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token, bot_id, candle, op=3):
     
     order = op
-    if op != 1 or op != 2:
+    if op != 1 and op != 2:
         order = random.randint(1, 2)
 
     if order == 1:
