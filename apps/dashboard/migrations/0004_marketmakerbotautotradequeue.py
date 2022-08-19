@@ -32,8 +32,6 @@ class Migration(migrations.Migration):
                 (
                     "bot",
                     models.ForeignKey(
-                        blank=True,
-                        null=True,
                         on_delete=django.db.models.deletion.DO_NOTHING,
                         to="dashboard.marketmakerbot",
                     ),
