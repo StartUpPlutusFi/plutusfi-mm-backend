@@ -1,18 +1,10 @@
 # Create your views here.
-from random import randint
-from threading import Thread
-from unittest import result
-from rest_framework.response import Response
 from rest_framework import generics
-
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from apps.dashboard.db.models import *
-from apps.dashboard.db.forms import *
-from apps.dashboard.helper.helper import *
 from apps.bot.serializers import *
-
-from apps.autotrade.api.views import *
+from apps.dashboard.helper.helper import *
 
 
 class MMbotList(generics.ListAPIView):
@@ -169,80 +161,3 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
                 "status": "error",
                 "code": str(e),
             })
-
-
-def bigone_autotrade_open(candle):
-
-    bots = MarketMakerBot.objects.filter(status="START", trade_candle=candle)
-
-    result = []
-
-    for data in bots:
-
-        bot_id = data.id
-        apikey = data.api_key.api_key
-        apisec = data.api_key.api_secret
-        user_side_choice = data.side
-        user_max_order_value = data.trade_amount
-        token = data.pair_token.pair
-        user_ref_price = data.user_ref_price
-        op = data.side
-        ref = check_ref_price(token)
-
-        exit = auto_trade_order_open(user_ref_price, user_side_choice,
-                                     user_max_order_value, apikey, apisec, token, bot_id, candle, op)
-
-        edata = {
-            "reference_price": ref,
-            "user_ref_price": user_ref_price,
-            "user_side_choice": user_side_choice,
-            "user_max_order_value": user_max_order_value,
-            "token": token,
-            "side": data.side,
-            "status": data.status,
-            "bot_id": bot_id,
-            "candle": candle,
-            "autotrade": exit,
-        }
-
-        result.append(edata)
-        print(f"bigone_autotrade_open:: :: {edata}")
-
-    return result
-
-
-def bigone_autotrade_close(candle):
-
-    open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
-        status="OPEN", candle=candle)
-
-    for order in open_orders:
-
-        price = order.price
-        quantity = order.quantity
-        side = order.side
-        apikey = order.bot.api_key.api_key
-        apisec = order.bot.api_key.api_secret
-        token = order.bot.pair_token.pair
-
-        order_id = order.id
-
-        print(
-            f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}")
-
-        exit = auto_trade_order_close(
-            price, quantity, side,  apikey, apisec, token)
-
-        if exit['status'] == "success":
-
-            MarketMakerBotAutoTradeQueue.objects.filter(
-                id=order_id).update(status="DONE")
-
-        else:
-
-            MarketMakerBotAutoTradeQueue.objects.filter(
-                id=order_id).update(status="CLOSE")
-
-    return {
-        "status": "success"
-    }
