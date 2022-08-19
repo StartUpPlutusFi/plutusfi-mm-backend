@@ -92,7 +92,7 @@ class MarketMakerBot(models.Model):
 
 class MarketMakerBotOrderHistory(models.Model):
 
-    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING, blank=True, null=True)
+    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
     pair_token = models.CharField(max_length=16, default="DUMMY_TK")
     spreed = models.IntegerField(default=0)
     status = models.CharField(max_length=16, default="STOP")
@@ -113,7 +113,7 @@ class MarketMakerBotOrderHistory(models.Model):
 
 class MarketMakerBotAutoTradeQueue(models.Model):
 
-    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING, blank=True, null=True)
+    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
     price = models.FloatField(default=0)
     quantity = models.FloatField(default=0)
     side = models.CharField(default="FILL", max_length=64)
@@ -160,7 +160,7 @@ class BidBot(models.Model):
 
 
 class BidBotOrderHistory(models.Model):
-    bid_bot = models.ForeignKey(BidBot, models.DO_NOTHING, blank=True, null=True)
+    bid_bot = models.ForeignKey(BidBot, models.DO_NOTHING)
     pair_token = models.CharField(max_length=16, default="DUMMY_TK")
     order_size = models.IntegerField(default=0)
     number_of_orders = models.IntegerField(default=0)
@@ -176,7 +176,7 @@ class BidBotOrderHistory(models.Model):
 
 
 class CancelOrderBookBID(models.Model):
-    bid_bot = models.ForeignKey(BidBot, models.DO_NOTHING, blank=True, null=True)
+    bid_bot = models.ForeignKey(BidBot, models.DO_NOTHING)
     cancel_order_list = models.CharField(max_length=512)
     order_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -190,7 +190,7 @@ class CancelOrderBookBID(models.Model):
 
 
 class CancelOrderBookBot(models.Model):
-    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING, blank=True, null=True)
+    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
     cancel_order_id = models.CharField(max_length=64)
     order_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
