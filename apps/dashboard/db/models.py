@@ -134,8 +134,8 @@ class MarketMakerBotAutoTradeQueue(models.Model):
 
 class BidBot(models.Model):
 
-    name = models.CharField(max_length=32, default="None")
-    description = models.CharField(max_length=256, default="None")
+    name = models.CharField(max_length=32, default="nil")
+    description = models.CharField(max_length=256, default="nil")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     api_key = models.ForeignKey(ApiKeys, on_delete=models.DO_NOTHING)
     pair_token = models.ForeignKey(
