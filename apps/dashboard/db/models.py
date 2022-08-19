@@ -8,7 +8,6 @@ from apps.account.models import User
 
 
 class Exchange(models.Model):
-
     name = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -31,7 +30,6 @@ class ApiKeys(models.Model):
         return self.description
 
     class Meta:
-
         db_table = "api_keys_store"
 
 
@@ -43,12 +41,10 @@ class DashboardSysLogs(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-
         db_table = "dashboard_sys_logs"
 
 
 class BotConfigPairtokens(models.Model):
-
     pair = models.CharField("token", max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -61,7 +57,6 @@ class BotConfigPairtokens(models.Model):
 
 
 class MarketMakerBot(models.Model):
-
     name = models.CharField(max_length=32)
     description = models.CharField(max_length=256)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
@@ -91,7 +86,6 @@ class MarketMakerBot(models.Model):
 
 
 class MarketMakerBotOrderHistory(models.Model):
-
     bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
     pair_token = models.CharField(max_length=16, default="DUMMY_TK")
     spreed = models.IntegerField(default=0)
@@ -112,7 +106,6 @@ class MarketMakerBotOrderHistory(models.Model):
 
 
 class MarketMakerBotAutoTradeQueue(models.Model):
-
     bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
     price = models.FloatField(default=0)
     quantity = models.FloatField(default=0)
@@ -124,16 +117,12 @@ class MarketMakerBotAutoTradeQueue(models.Model):
 
     def __str__(self):
         return str(self.bot.id)
-    
+
     class Meta:
         db_table = "dashboard_marketmakerbotautotradequeue"
 
 
-        
-
-
-class BidBot(models.Model):
-
+class BookFiller(models.Model):
     name = models.CharField(max_length=32, default="nil")
     description = models.CharField(max_length=256, default="nil")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
@@ -156,11 +145,11 @@ class BidBot(models.Model):
         return str(self.id)
 
     class Meta:
-        db_table = "market_maker_bid_bot"
+        db_table = "market_maker_bookfiller"
 
 
-class BidBotOrderHistory(models.Model):
-    bid_bot = models.ForeignKey(BidBot, models.DO_NOTHING)
+class BookFillerOrderHistory(models.Model):
+    bid_bot = models.ForeignKey(BookFiller, models.DO_NOTHING)
     pair_token = models.CharField(max_length=16, default="DUMMY_TK")
     order_size = models.IntegerField(default=0)
     number_of_orders = models.IntegerField(default=0)
@@ -175,8 +164,8 @@ class BidBotOrderHistory(models.Model):
         db_table = "bid_bot_order_history"
 
 
-class CancelOrderBookBID(models.Model):
-    bid_bot = models.ForeignKey(BidBot, models.DO_NOTHING)
+class CancelOrderBookBookFiller(models.Model):
+    bid_bot = models.ForeignKey(BookFiller, models.DO_NOTHING)
     cancel_order_list = models.CharField(max_length=512)
     order_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
