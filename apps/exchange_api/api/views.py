@@ -6,7 +6,6 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from apps.dashboard.db.models import *
-from apps.dashboard.db.forms import *
 from apps.dashboard.helper.helper import *
 from apps.exchange_api.serializers import *
 
