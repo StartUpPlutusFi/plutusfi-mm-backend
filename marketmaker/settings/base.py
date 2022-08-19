@@ -35,7 +35,6 @@ ALLOWED_HOSTS = []
 PROJECT_APPS = [
     "apps.account",
     "apps.dashboard",
-    "apps.bid",
     "apps.bot",
     "apps.token",
     "apps.exchange",
