@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ),
                 ("price", models.FloatField(default=0)),
                 ("quantity", models.IntegerField(default=0)),
-                ("side", models.CharField(default="None")),
+                ("side", models.CharField(default="Nil")),
                 ("status", models.CharField(default="FINISHED")),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),

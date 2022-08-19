@@ -96,7 +96,7 @@ class MarketMakerBotOrderHistory(models.Model):
     pair_token = models.CharField(max_length=16, default="DUMMY_TK")
     spreed = models.IntegerField(default=0)
     status = models.CharField(max_length=16, default="STOP")
-    side = models.CharField(max_length=4)
+    side = models.CharField(max_length=4, default="Nil")
     trade_qty_low = models.IntegerField(default=0)
     trade_qty_high = models.IntegerField(default=0)
     trade_candle = models.IntegerField(default=0)
