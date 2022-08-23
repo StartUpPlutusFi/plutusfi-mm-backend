@@ -198,18 +198,18 @@ class BookFillerCtrl(generics.UpdateAPIView):
         if True:
             data = self.get_queryset()
             bot_ex = data.api_key.exchange.name
-            all_ex = Exchange.objects.all().values('name')
+            all_ex = Exchange.objects.all().values("name")
 
             if data.status == "STOP":
 
                 for ex in all_ex:
-                
-                    if ex['name'] == bot_ex:
+
+                    if ex["name"] == bot_ex:
                         # op_result = biconomy_bookfiller.biconomy_init_bookbot(data)
                         return Response("pass")
                     else:
                         pass
-                
+
                 # EndFor
 
                 BookFiller.objects.filter(
@@ -217,7 +217,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 ).update(status="START")
 
             else:
-                
+
                 # Cancel all orders
                 # biconomy_bookfiller.biconomy_cancel_all_orders(data.id)
 
@@ -225,8 +225,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
-
             return Response("pass two")
-            
+
         # except Exception as e:
         #     return Response({"status": "error", "check": str(e)})
