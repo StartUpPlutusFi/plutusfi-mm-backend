@@ -5,11 +5,10 @@ from apps.dashboard.db.models import *
 class BookFillerSerializer(serializers.ModelSerializer):
 
     name = serializers.CharField(required=True)
-    description = serializers.CharField(required=True)
     order_size = serializers.IntegerField(required=True)
     number_of_orders = serializers.IntegerField(required=True)
     budget = serializers.FloatField(required=True)
-    trade_amount = serializers.FloatField(required=True)
+    user_ref_price = serializers.FloatField(required=True)
     status = serializers.CharField(required=True)
 
     class Meta:
@@ -17,14 +16,13 @@ class BookFillerSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "description",
             "user",
             "api_key",
             "pair_token",
             "order_size",
             "number_of_orders",
             "budget",
-            "trade_amount",
+            "user_ref_price",
             "status",
         )
 
@@ -43,21 +41,19 @@ class BookFillerSerializerDetail(serializers.Serializer):
 class BookFillerSerializerUpdate(serializers.Serializer):
 
     name = serializers.CharField(required=False)
-    description = serializers.CharField(required=False)
     order_size = serializers.IntegerField(required=False)
     number_of_orders = serializers.IntegerField(required=False)
     budget = serializers.FloatField(required=False)
-    trade_amount = serializers.FloatField(required=False)
+    user_ref_price = serializers.FloatField(required=False)
     api_key = serializers.IntegerField(required=False)
 
     class Meta:
         fields = (
             "name",
-            "description",
             "order_size",
             "number_of_orders",
             "budget",
-            "trade_amount",
+            "user_ref_price",
             "api_key",
         )
 

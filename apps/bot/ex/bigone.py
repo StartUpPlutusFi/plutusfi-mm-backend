@@ -99,8 +99,9 @@ def bigone_view_acount():
         "json": response.json(),
     }
 
+
 def ping():
-    PING_URL = 'https://big.one/api/v3/ping'
+    PING_URL = "https://big.one/api/v3/ping"
     ping = requests.get(PING_URL)
     ping_json = ping.json()
     TIMESTAMP = ping_json["data"]["Timestamp"]
@@ -109,12 +110,11 @@ def ping():
 
 def get_order_header_encoded(apikey, apisec):
 
-
     payload = {
-        'type': 'OpenAPIV2',
-        'sub': apikey,
-        'nonce': str(ping()),
-        'recv_window': '50'
+        "type": "OpenAPIV2",
+        "sub": apikey,
+        "nonce": str(ping()),
+        "recv_window": "50",
     }
     token = jwt.encode(
         headers=get_headers(),
@@ -122,68 +122,82 @@ def get_order_header_encoded(apikey, apisec):
         key=apisec,
     )
     header_encoded = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
     }
     return header_encoded
 
 
 def get_order_url():
-    BASE_URL = 'https://big.one/api/v3/viewer/orders'
+    BASE_URL = "https://big.one/api/v3/viewer/orders"
     return BASE_URL
+
 
 def check_ref_price(token):
     smallest_ask = 0.0
     highest_bid = 0.0
     ask = False
 
-    BASE_URL = f'https://big.one/api/v3/asset_pairs/{token}/depth'
+    BASE_URL = f"https://big.one/api/v3/asset_pairs/{token}/depth"
     r = requests.get(BASE_URL)
     response_json = r.json()
 
-    if not response_json['data']['bids']:
-        ref_price = float(response_json['data']['asks'][0]['price'])
+    if not response_json["data"]["bids"]:
+        ref_price = float(response_json["data"]["asks"][0]["price"])
         ask = True
-        print(
-            f"There is no bids so the ref price value is the lowest ask: {ref_price}")
+        # print(f"There is no bids so the ref price value is the lowest ask: {ref_price}")
         return ref_price, ask, smallest_ask, highest_bid
-    if not response_json['data']['asks']:
-        ref_price = float(response_json['data']['bids'][0]['price'])
-        print(
-            f"There is no asks so the ref price value is the highest bid: {ref_price}")
+    if not response_json["data"]["asks"]:
+        ref_price = float(response_json["data"]["bids"][0]["price"])
+        # print(
+        #     f"There is no asks so the ref price value is the highest bid: {ref_price}"
+        # )
         return ref_price, ask, smallest_ask, highest_bid
-    ref_price = (float(response_json['data']['bids'][0]['price']) +
-                 float(response_json['data']['asks'][0]['price']))/2
-    smallest_ask = float(response_json['data']['asks'][0]['price'])
-    highest_bid = float(response_json['data']['bids'][0]['price'])
+    ref_price = (
+        float(response_json["data"]["bids"][0]["price"])
+        + float(response_json["data"]["asks"][0]["price"])
+    ) / 2
+    smallest_ask = float(response_json["data"]["asks"][0]["price"])
+    highest_bid = float(response_json["data"]["bids"][0]["price"])
 
     return ref_price, ask, smallest_ask, highest_bid
 
 
 def get_headers():
     headers = {
-        'alg': 'HS256',
-        'typ': 'JWT',
+        "alg": "HS256",
+        "typ": "JWT",
     }
     return headers
 
 
 def create_order(price, quantity, side, token, apikey, apisec):
 
-    params = {
-        "asset_pair_name": token,
-        "side": side,
-        "price": str(price),
-        "amount": str(quantity),
-        "type": "LIMIT",
-    }
+    try:
+        params = {
+            "asset_pair_name": token,
+            "side": side,
+            "price": str(price),
+            "amount": str(quantity),
+            "type": "LIMIT",
+        }
 
-    json_params = json.dumps(params, indent=4)
-    r = requests.post(
-        get_order_url(), headers=get_order_header_encoded(apikey, apisec), data=json_params
-    )
-   
-    return r.json()
+        json_params = json.dumps(params, indent=4)
+        r = requests.post(
+            get_order_url(),
+            headers=get_order_header_encoded(apikey, apisec),
+            data=json_params,
+        )
+
+        return r.json()
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "code": str(e),
+        }
+
 
 def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
     ask = False
@@ -209,15 +223,15 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
     total_order = 0
 
     total_order = random.randint(12, user_max_order_value)
-    print(f"Total order value in USDT: {total_order}")
+    # print(f"Total order value in USDT: {total_order}")
     # Gets the price and quantity necessary to make an order from (reference price * 1.02) or * 0.98
     if ask or user_side_choice == 1 or random_operation == smallest_ask:
         price = 0.98 * price
     else:
-        price = ((1.02) * price)
-    print(f"Price {price}")
-    quantity = total_order/price
-    print(f"Quantity {quantity}")
+        price = (1.02) * price
+    # print(f"Price {price}")
+    quantity = total_order / price
+    # print(f"Quantity {quantity}")
     return quantity, price
 
 
@@ -230,6 +244,3 @@ def get_budget(coin, side, apikey, apisec):
             return x["balance"]
         if x["asset_symbol"] == coin and side == "ASK":
             return x["balance"]
-
-
-

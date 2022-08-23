@@ -124,7 +124,7 @@ class MarketMakerBotAutoTradeQueue(models.Model):
 
 class BookFiller(models.Model):
     name = models.CharField(max_length=32, default="nil")
-    description = models.CharField(max_length=256, default="nil")
+    side = models.CharField(max_length=5, default="nil")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     api_key = models.ForeignKey(ApiKeys, on_delete=models.DO_NOTHING)
     pair_token = models.ForeignKey(
@@ -136,7 +136,7 @@ class BookFiller(models.Model):
     order_size = models.IntegerField(default=0)
     number_of_orders = models.IntegerField(default=0)
     budget = models.FloatField(default=0)
-    trade_amount = models.FloatField(default=0)
+    user_ref_price = models.FloatField(default=0)
     status = models.CharField(max_length=16, default="STOP")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

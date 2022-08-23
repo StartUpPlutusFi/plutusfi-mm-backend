@@ -6,6 +6,7 @@ from apps.dashboard.db.models import *
 from apps.dashboard.helper.helper import status_code
 from apps.bookfiller.serializers import *
 from apps.bot.ex.biconomy import *
+from apps.bookfiller.biconomy import biconomy_bookfiller
 
 
 import time
@@ -16,7 +17,9 @@ class BookFillerList(generics.ListAPIView):
     serializer_class = BookFillerSerializer
 
     def get_queryset(self):
-        result = BookFiller.objects.filter(user=self.request.user).order_by("-updated_at")
+        result = BookFiller.objects.filter(user=self.request.user).order_by(
+            "-updated_at"
+        )
         return result
 
     def get(self, request, *args, **kwargs):
@@ -46,7 +49,9 @@ class BookFillerDetail(generics.ListAPIView):
     serializer_class = BookFillerSerializer
 
     def get_queryset(self):
-        result = BookFiller.objects.filter(user=self.request.user, id=self.kwargs.get("pk"))
+        result = BookFiller.objects.filter(
+            user=self.request.user, id=self.kwargs.get("pk")
+        )
         return result
 
     def get(self, request, *args, **kwargs):
@@ -57,7 +62,9 @@ class BookFillerDelete(generics.DestroyAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        result = BookFiller.objects.filter(user=self.request.user, id=self.kwargs.get("pk"))
+        result = BookFiller.objects.filter(
+            user=self.request.user, id=self.kwargs.get("pk")
+        )
         return result
 
     def delete(self, request, *args, **kwargs):
@@ -94,7 +101,9 @@ class BookFillerStatus(generics.ListAPIView):
     serializer_class = BookFillerSerializerStatus
 
     def get_queryset(self):
-        data = BookFiller.objects.filter(id=self.kwargs.get("pk"), user=self.request.user)
+        data = BookFiller.objects.filter(
+            id=self.kwargs.get("pk"), user=self.request.user
+        )
         return data
 
     def get(self, request, *args, **kwargs):
@@ -105,7 +114,7 @@ def BookFiller_bot_buy(request, pk):
     bookfiller = BookFiller.objects.get(id=pk, user_id=request.user.id)
     limit = bookfiller.number_of_orders
     symbol = bookfiller.pair_token.pair
-    price = bookfiller.trade_amount
+    price = bookfiller.budget
 
     order_book = bid_order_creator(limit, price, symbol)
     order_book = order_book["order_pair"]
@@ -164,8 +173,10 @@ def BookFiller_bot_cancel(request, pk):
 
         try:
             result = cancel_order(params)
-            CancelOrderBookBookFiller.objects.filter(id=code["id"]).update(order_status=False)
-            print(result)
+            CancelOrderBookBookFiller.objects.filter(id=code["id"]).update(
+                order_status=False
+            )
+            # print(result)
         except Exception as e:
             pass
         time.sleep(0.25)
@@ -184,22 +195,38 @@ class BookFillerCtrl(generics.UpdateAPIView):
         return result
 
     def get(self, request, *args, **kwargs):
-        try:
+        if True:
             data = self.get_queryset()
+            bot_ex = data.api_key.exchange.name
+            all_ex = Exchange.objects.all().values('name')
+
             if data.status == "STOP":
-                result = BookFiller_bot_buy(request, self.kwargs.get("pk"))
+
+                for ex in all_ex:
+                
+                    if ex['name'] == bot_ex:
+                        # op_result = biconomy_bookfiller.biconomy_init_bookbot(data)
+                        return Response("pass")
+                    else:
+                        pass
+                
+                # EndFor
+
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="START")
 
             else:
+                
                 # Cancel all orders
-                result = BookFiller_bot_cancel(request, self.kwargs.get("pk"))
+                # biconomy_bookfiller.biconomy_cancel_all_orders(data.id)
+
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
-            return Response(result)
-        except Exception as e:
-            return Response({"status": "error", "check": str(e)})
 
+            return Response("pass two")
+            
+        # except Exception as e:
+        #     return Response({"status": "error", "check": str(e)})

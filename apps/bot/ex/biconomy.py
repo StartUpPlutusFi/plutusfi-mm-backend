@@ -53,13 +53,13 @@ def make_request(params, URL):
     headers = biconomy_default_header()
 
     query_string = urlencode(params)
-    print(query_string)
+    # print(query_string)
     md5_params = encript_string(query_string)
     params.pop("secret_key")
     params["sign"] = md5_params
     r = requests.post(URL, headers=headers, data=params)
     response_json = r.json()
-    print(response_json, params["sign"])
+    # print(response_json, params["sign"])
     return response_json
 
 

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import *
+from apps.token.api.views import *
 
 app_name = "token"
 urlpatterns = [

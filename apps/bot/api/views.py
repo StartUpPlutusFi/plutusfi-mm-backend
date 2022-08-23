@@ -33,7 +33,6 @@ class MMbotAdd(generics.CreateAPIView):
                 )
                 .values("id")
                 .first()["id"],
-
                 "pair_token": BotConfigPairtokens.objects.filter(
                     id=request.data["pair_token"]
                 )
@@ -41,7 +40,7 @@ class MMbotAdd(generics.CreateAPIView):
                 .first()["id"],
             }
 
-            print(insert_data)
+            # print(insert_data)
             serializer = MMBotSerializer(data=insert_data)
 
         except Exception as e:
@@ -103,8 +102,7 @@ class MMbotUpdate(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.update(
-            self.get_queryset(), validation_data=serializer.data)
+        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
         return Response(MMBotSerializer(data).data)
 
 
@@ -151,13 +149,17 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
                 ).update(status="STOP")
                 exit = "STOP"
 
-            return Response({
-                "status": "success",
-                "auto_trade_bot_status": exit,
-            })
+            return Response(
+                {
+                    "status": "success",
+                    "auto_trade_bot_status": exit,
+                }
+            )
 
         except Exception as e:
-            return Response({
-                "status": "error",
-                "code": str(e),
-            })
+            return Response(
+                {
+                    "status": "error",
+                    "code": str(e),
+                }
+            )

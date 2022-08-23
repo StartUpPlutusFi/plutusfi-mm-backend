@@ -2,8 +2,17 @@ from apps.bot.ex.bigone import *
 from apps.dashboard.db.models import *
 
 
-def auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value, apikey, apisec, token, bot_id, candle,
-                          op=3):
+def auto_trade_order_open(
+    user_ref_price,
+    user_side_choice,
+    user_max_order_value,
+    apikey,
+    apisec,
+    token,
+    bot_id,
+    candle,
+    op=3,
+):
     order = op
     if op != 1 and op != 2:
         order = random.randint(1, 2)
@@ -11,17 +20,19 @@ def auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value
     if order == 1:
 
         quantity, price = ref_value(
-            user_ref_price, user_side_choice, user_max_order_value, token)
+            user_ref_price, user_side_choice, user_max_order_value, token
+        )
 
-        exit_code = create_order(price, quantity, side="BID",
-                                 token=token, apikey=apikey, apisec=apisec)
+        exit_code = create_order(
+            price, quantity, side="BID", token=token, apikey=apikey, apisec=apisec
+        )
         log = MarketMakerBotAutoTradeQueue.objects.create(
             bot_id=bot_id,
             price=price,
             quantity=quantity,
             side="BID",
             status="OPEN",
-            candle=candle
+            candle=candle,
         )
 
         log.save()
@@ -29,10 +40,12 @@ def auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value
     else:
 
         quantity, price = ref_value(
-            user_ref_price, user_side_choice, user_max_order_value, token)
+            user_ref_price, user_side_choice, user_max_order_value, token
+        )
 
-        exit_code = create_order(price, quantity, side="ASK",
-                                 token=token, apikey=apikey, apisec=apisec)
+        exit_code = create_order(
+            price, quantity, side="ASK", token=token, apikey=apikey, apisec=apisec
+        )
 
         log = MarketMakerBotAutoTradeQueue.objects.create(
             bot_id=bot_id,
@@ -40,14 +53,14 @@ def auto_trade_order_open(user_ref_price, user_side_choice, user_max_order_value
             quantity=quantity,
             side="ASK",
             status="OPEN",
-            candle=candle
+            candle=candle,
         )
 
         log.save()
 
     return {
         "name": "auto_trade_order_open",
-        'status': "success",
+        "status": "success",
         "data": exit_code,
     }
 
@@ -57,27 +70,29 @@ def auto_trade_order_close(price, quantity, side, apikey, apisec, token):
 
         if side == "ASK":
             side = "BID"
-            exit_code = create_order(price, quantity, side,
-                                     token=token, apikey=apikey, apisec=apisec)
+            exit_code = create_order(
+                price, quantity, side, token=token, apikey=apikey, apisec=apisec
+            )
 
         elif side == "BID":
             side = "ASK"
-            exit_code = create_order(price, quantity, side,
-                                     token=token, apikey=apikey, apisec=apisec)
+            exit_code = create_order(
+                price, quantity, side, token=token, apikey=apikey, apisec=apisec
+            )
 
         else:
             exit_code = "Invalid side at auto_trade_order_close"
 
         return {
             "name": "auto_trade_order_close",
-            'status': "success",
+            "status": "success",
             "data": exit_code,
         }
     except Exception as e:
 
         return {
             "name": "auto_trade_order_close",
-            'status': "error",
+            "status": "error",
             "error": f"ERROR at auto_trade_order_close → {str(e)}",
         }
 
@@ -98,8 +113,17 @@ def bigone_autotrade_open(candle):
         op = data.side
         ref = check_ref_price(token)
 
-        exit_code = auto_trade_order_open(user_ref_price, user_side_choice,
-                                          user_max_order_value, apikey, apisec, token, bot_id, candle, op)
+        exit_code = auto_trade_order_open(
+            user_ref_price,
+            user_side_choice,
+            user_max_order_value,
+            apikey,
+            apisec,
+            token,
+            bot_id,
+            candle,
+            op,
+        )
 
         edata = {
             "reference_price": ref,
@@ -115,14 +139,15 @@ def bigone_autotrade_open(candle):
         }
 
         result.append(edata)
-        print(f"bigone_autotrade_open:: :: {edata}")
+        # print(f"bigone_autotrade_open:: :: {edata}")
 
     return result
 
 
 def bigone_autotrade_close(candle):
     open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
-        status="OPEN", candle=candle)
+        status="OPEN", candle=candle
+    )
 
     for order in open_orders:
 
@@ -135,22 +160,22 @@ def bigone_autotrade_close(candle):
 
         order_id = order.id
 
-        print(
-            f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}")
+        # print(
+        #     f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
+        # )
 
-        exit_code = auto_trade_order_close(
-            price, quantity, side, apikey, apisec, token)
+        exit_code = auto_trade_order_close(price, quantity, side, apikey, apisec, token)
 
-        if exit_code['status'] == "success":
+        if exit_code["status"] == "success":
 
-            MarketMakerBotAutoTradeQueue.objects.filter(
-                id=order_id).update(status="DONE")
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
+                status="DONE"
+            )
 
         else:
 
-            MarketMakerBotAutoTradeQueue.objects.filter(
-                id=order_id).update(status="CLOSE")
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
+                status="CLOSE"
+            )
 
-    return {
-        "status": "success"
-    }
+    return {"status": "success"}

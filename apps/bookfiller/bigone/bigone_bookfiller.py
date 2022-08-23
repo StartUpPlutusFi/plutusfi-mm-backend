@@ -14,14 +14,16 @@ def bookfiller_check_ref_price(token):
         ref_price = float(response_json["data"]["bids"][0]["price"])
         return ref_price, ask
     ref_price = (
-                        float(response_json["data"]["bids"][0]["price"])
-                        + float(response_json["data"]["asks"][0]["price"])
-                ) / 2
+        float(response_json["data"]["bids"][0]["price"])
+        + float(response_json["data"]["asks"][0]["price"])
+    ) / 2
     return ref_price, ask
 
 
 # Gets the price and quantity necessary to make an order from (reference price * 1.02)
-def book_generator(order_quantity, token, user_ref_price, user_max_order_value, side, apikey, apisec):
+def book_generator(
+    order_quantity, token, user_ref_price, user_max_order_value, side, apikey, apisec
+):
     if user_ref_price is None:
         price = bookfiller_check_ref_price(token)
     else:
