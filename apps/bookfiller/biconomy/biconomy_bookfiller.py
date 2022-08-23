@@ -107,10 +107,10 @@ def book_generator(
         quantitys.append(quantity)
         time.sleep(0.2)
         code = create_order(price, quantity, token, user_side_choice, api_key, api_sec)
-        code.append(code["result"]["id"])
+        cancel_codes.append(code["result"]["id"])
 
         CancelOrderBookBot.objects.create(
-            bot_id=bookbot_id, cancel_order_id=code, order_status=True
+            bot_id=bookbot_id, cancel_order_id=code["result"]["id"], order_status=True
         )
 
     return cancel_codes
@@ -127,21 +127,23 @@ def get_budget(token, side):
             return x["available"]
 
 
-def biconomy_cancel_all_orders(bot_id):
+def biconomy_cancel_all_orders(bookbot):
 
     responses = []
 
+
+    bot_id = bookbot.id
     cancel_list = CancelOrderBookBot.objects.filter(
         order_status=True, bot_id=bot_id
-    ).values()
+    ).values("id", "bot", "cancel_order_id")
 
     for bot in cancel_list:
 
         params = {
-            "api_key": bot.api_key.api_key,
-            "market": bot.pair_token.name,
-            "order_id": bot.cancel_order_id,
-            "secret_key": bot.api_key.api_secret,
+            "api_key": bookbot.api_key.api_key,
+            "market": bookbot.pair_token.pair,
+            "order_id": bot["cancel_order_id"],
+            "secret_key": bookbot.api_key.api_secret,
         }
 
         query_string = urlencode(params)
@@ -153,7 +155,7 @@ def biconomy_cancel_all_orders(bot_id):
         response_json = r.json()
         responses.append(response_json)
 
-        CancelOrderBookBot.objects.filter(id=bot.id).update(cancel_order_id=False)
+        CancelOrderBookBot.objects.filter(bot_id=bot_id).update(order_status=False)
 
     return responses
 
@@ -167,12 +169,13 @@ def biconomy_init_bookbot(data):
     user_side_choice = data.side
     api_key = data.api_key.api_key
     api_sec = data.api_key.api_secret
+    bookbot_id = data.id
 
     # salva id da ordem criada
     if data.side == "ASK":
         user_side_choice = 1
     else:
-        user_side_choice = 21
+        user_side_choice = 2
 
     if user_ref_price == 0:
         user_ref_price = check_ref_price(token)
@@ -185,8 +188,10 @@ def biconomy_init_bookbot(data):
         user_side_choice,
         api_key,
         api_sec,
+        bookbot_id,
     )
 
     return {
+        "number_of_orders": len(cancel_codes),
         "cancel_codes": cancel_codes,
     }

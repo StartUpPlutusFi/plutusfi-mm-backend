@@ -205,10 +205,15 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 for ex in all_ex:
 
                     if ex["name"] == bot_ex:
-                        # op_result = biconomy_bookfiller.biconomy_init_bookbot(data)
-                        return Response("pass")
+                        op_result = biconomy_bookfiller.biconomy_init_bookbot(data)
                     else:
                         pass
+                
+                # return Response({
+                #             "status": "fail",
+                #             "code": "Exchange from bookfiller bot config din't mach to any registred exchange",
+                #             "exit": f"{ex['name']} :: {bot_ex}"
+                #         })
 
                 # EndFor
 
@@ -216,16 +221,24 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="START")
 
+                return Response({
+                    "status": "success",
+                    "op": op_result,
+                })
+
             else:
 
                 # Cancel all orders
-                # biconomy_bookfiller.biconomy_cancel_all_orders(data.id)
+                exit_codes = biconomy_bookfiller.biconomy_cancel_all_orders(data)
 
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
-            return Response("pass two")
+            return Response({
+                "status": "success",
+                "exit_codes": exit_codes,
+            })
 
         # except Exception as e:
         #     return Response({"status": "error", "check": str(e)})

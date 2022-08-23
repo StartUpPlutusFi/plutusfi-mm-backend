@@ -5,6 +5,7 @@ from apps.dashboard.db.models import *
 class BookFillerSerializer(serializers.ModelSerializer):
 
     name = serializers.CharField(required=True)
+    side = serializers.CharField(required=True)
     order_size = serializers.IntegerField(required=True)
     number_of_orders = serializers.IntegerField(required=True)
     budget = serializers.FloatField(required=True)
@@ -16,6 +17,7 @@ class BookFillerSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "side", 
             "user",
             "api_key",
             "pair_token",
