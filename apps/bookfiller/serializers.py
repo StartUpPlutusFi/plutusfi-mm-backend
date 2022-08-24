@@ -1,9 +1,8 @@
 from rest_framework import serializers
-from apps.dashboard.db.models import *
+from apps.bookfiller.db.models import *
 
 
 class BookFillerSerializer(serializers.ModelSerializer):
-
     name = serializers.CharField(required=True)
     side = serializers.CharField(required=True)
     order_size = serializers.IntegerField(required=True)
@@ -17,7 +16,7 @@ class BookFillerSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
-            "side", 
+            "side",
             "user",
             "api_key",
             "pair_token",
@@ -41,7 +40,6 @@ class BookFillerSerializerDetail(serializers.Serializer):
 
 
 class BookFillerSerializerUpdate(serializers.Serializer):
-
     name = serializers.CharField(required=False)
     order_size = serializers.IntegerField(required=False)
     number_of_orders = serializers.IntegerField(required=False)
@@ -71,7 +69,6 @@ class BookFillerSerializerUpdate(serializers.Serializer):
 
 
 class BookFillerSerializerStatusUpdate(serializers.Serializer):
-
     status = serializers.CharField()
 
     class Meta:

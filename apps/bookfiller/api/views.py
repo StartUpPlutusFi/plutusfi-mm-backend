@@ -2,12 +2,12 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from apps.dashboard.db.models import *
-from apps.dashboard.helper.helper import status_code
+from apps.exchange.helper.helper import status_code
 from apps.bookfiller.serializers import *
-from apps.bot.ex.biconomy import *
-from apps.bookfiller.biconomy import biconomy_bookfiller
+from apps.bookfiller.db.models import *
 
+from apps.exchange.services.bigone.bigone_core import *
+from apps.exchange.services.biconomy.biconomy_core import *
 
 import time
 
@@ -136,8 +136,8 @@ def BookFiller_bot_buy(request, pk):
 
         code = create_order(params)
         exit_code.append(code)
-        cancel_order_list = CancelOrderBookBookFiller(
-            BookFiller_bot_id=pk, cancel_order_list=code, order_status=True
+        cancel_order_list = CancelOrderBookBot(
+            bot_id=pk, cancel_order_id=code, order_status=True
         )
         cancel_order_list.save()
         time.sleep(0.3)
@@ -151,8 +151,8 @@ def BookFiller_bot_cancel(request, pk):
     data = BookFiller.objects.get(id=pk, user_id=request.user.id)
 
     cancel_codes = (
-        CancelOrderBookBookFiller.objects.exclude(order_status=False)
-        .filter(BookFiller_bot_id=pk, BookFiller_bot__user_id=request.user.id)
+        CancelOrderBookBot.objects.exclude(order_status=False)
+        .filter(bot_id=pk, bot_id__user_id=request.user.id)
         .values()
     )
 
@@ -173,7 +173,7 @@ def BookFiller_bot_cancel(request, pk):
 
         try:
             result = cancel_order(params)
-            CancelOrderBookBookFiller.objects.filter(id=code["id"]).update(
+            CancelOrderBookBot.objects.filter(id=code["id"]).update(
                 order_status=False
             )
             # print(result)
@@ -205,13 +205,13 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 for ex in all_ex:
 
                     if ex["name"] == bot_ex:
-                        op_result = biconomy_bookfiller.biconomy_init_bookbot(data)
+                        op_result = biconomy_init_bookbot(data)
                     else:
                         pass
-                
+
                 # return Response({
                 #             "status": "fail",
-                #             "code": "Exchange from bookfiller bot config din't mach to any registred exchange",
+                #             "code": "Exchange from book filler bot config din't mach to any registered exchange",
                 #             "exit": f"{ex['name']} :: {bot_ex}"
                 #         })
 
@@ -229,7 +229,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
             else:
 
                 # Cancel all orders
-                exit_codes = biconomy_bookfiller.biconomy_cancel_all_orders(data)
+                exit_codes = biconomy_cancel_all_orders(data)
 
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
