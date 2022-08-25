@@ -1,4 +1,4 @@
-from apps.exchange.db.models import *
+from apps.exchange.models.models import *
 from apps.account.models import User
 from django.db import models
 

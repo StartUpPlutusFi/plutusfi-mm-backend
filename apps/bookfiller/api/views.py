@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from apps.exchange.helper.helper import status_code
 from apps.bookfiller.serializers import *
-from apps.bookfiller.db.models import *
+from apps.bookfiller.models.models import *
 
 from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *

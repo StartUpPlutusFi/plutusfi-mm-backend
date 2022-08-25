@@ -1,6 +1,6 @@
 from django.db import models
-from apps.autotrade.db.models import MarketMakerBot
-from apps.exchange.db.models import ApiKeys
+from apps.autotrade.models.models import MarketMakerBot
+from apps.exchange.models.models import ApiKeys
 from apps.account.models import User
 
 

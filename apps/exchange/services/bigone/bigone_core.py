@@ -1,5 +1,5 @@
-from apps.autotrade.db.models import *
-from apps.bookfiller.db.models import *
+from apps.autotrade.models.models import *
+from apps.bookfiller.models.models import *
 
 import requests
 import time

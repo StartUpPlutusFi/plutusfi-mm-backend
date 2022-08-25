@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.autotrade.serializers import *
-from apps.autotrade.db.models import *
+from apps.autotrade.models.models import *
 
 
 class MMbotList(generics.ListAPIView):

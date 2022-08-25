@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.bookfiller.db.models import *
+from apps.bookfiller.models.models import *
 
 
 class BookFillerSerializer(serializers.ModelSerializer):

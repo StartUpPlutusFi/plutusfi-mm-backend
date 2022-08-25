@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from apps.exchange.serializers import *
 from apps.exchange.helper.helper import status_code
-from apps.exchange.db.models import *
+from apps.exchange.models.models import *
 
 
 # ----------------------------------------------------- #

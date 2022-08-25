@@ -8,8 +8,8 @@ import requests
 import random
 import time
 
-from apps.autotrade.db.models import *
-from apps.bookfiller.db.models import *
+from apps.autotrade.models.models import *
+from apps.bookfiller.models.models import *
 
 
 # função de encriptação do header

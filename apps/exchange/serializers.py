@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from apps.exchange.models.models import *
 
 
+# ------------------------------------------------------------------------------------ #
 # ApiKey Serializer
 class ApiKeySerializer(serializers.ModelSerializer):
     api_key = serializers.CharField(required=True, allow_null=False)

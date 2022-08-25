@@ -36,12 +36,9 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("apps.dashboard.api.urls")),
-    path("bot/", include("apps.bot.api.urls")),
+    path("autotrade/", include("apps.autotrade.api.urls")),
     path("bookfiller/", include("apps.bookfiller.api.urls")),
-    path("apikeys/", include("apps.exchange_api.api.urls")),
-    path("exchange/", include("apps.exchange.api.urls")),
-    path("token/", include("apps.token.api.urls")),
+    path("", include("apps.exchange.api.urls")),
     path("auth/api/token/", include("apps.auth.api.urls")),
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",
@@ -55,3 +52,6 @@ urlpatterns = [
     ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
