@@ -18,7 +18,7 @@ class BookFillerList(generics.ListAPIView):
 
     def get_queryset(self):
         result = BookFiller.objects.filter(user=self.request.user).order_by(
-            "-updated_at"
+            "-created_at"
         )
         return result
 
@@ -32,7 +32,7 @@ class BookFillerAdd(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         insert_data = dict(request.data) | {
-            "user": request.user.id,
+            "user_id": request.user.id,
         }
 
         serializer = BookFillerSerializer(data=insert_data)

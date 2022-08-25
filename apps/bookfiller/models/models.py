@@ -1,5 +1,4 @@
 from django.db import models
-from apps.autotrade.models.models import MarketMakerBot
 from apps.exchange.models.models import ApiKeys
 from apps.account.models import User
 
@@ -38,7 +37,7 @@ class BookFillerOrderHistory(models.Model):
 
 
 class CancelOrderBookBot(models.Model):
-    bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
+    bot = models.ForeignKey(BookFiller, models.DO_NOTHING)
     cancel_order_id = models.CharField(max_length=64)
     order_status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

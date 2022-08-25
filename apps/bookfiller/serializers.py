@@ -5,11 +5,15 @@ from apps.bookfiller.models.models import *
 class BookFillerSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     side = serializers.CharField(required=True)
+    user_id = serializers.IntegerField(required=True)
     order_size = serializers.IntegerField(required=True)
+    api_key_id = serializers.IntegerField(required=True)
+    pair_token = serializers.CharField(required=True)
     number_of_orders = serializers.IntegerField(required=True)
     budget = serializers.FloatField(required=True)
     user_ref_price = serializers.FloatField(required=True)
     status = serializers.CharField(required=True)
+
 
     class Meta:
         model = BookFiller
@@ -17,8 +21,8 @@ class BookFillerSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "side",
-            "user",
-            "api_key",
+            "user_id",
+            "api_key_id",
             "pair_token",
             "order_size",
             "number_of_orders",
@@ -40,21 +44,26 @@ class BookFillerSerializerDetail(serializers.Serializer):
 
 
 class BookFillerSerializerUpdate(serializers.Serializer):
-    name = serializers.CharField(required=False)
-    order_size = serializers.IntegerField(required=False)
-    number_of_orders = serializers.IntegerField(required=False)
-    budget = serializers.FloatField(required=False)
-    user_ref_price = serializers.FloatField(required=False)
-    api_key = serializers.IntegerField(required=False)
+    name = serializers.CharField(required=True)
+    side = serializers.CharField(required=True)
+    order_size = serializers.IntegerField(required=True)
+    number_of_orders = serializers.IntegerField(required=True)
+    budget = serializers.FloatField(required=True)
+    user_ref_price = serializers.FloatField(required=True)
+    status = serializers.CharField(required=True)
+    api_key_id = serializers.IntegerField(required=True)
 
     class Meta:
         fields = (
             "name",
+            "side",
+            "api_key_id",
+            "pair_token",
             "order_size",
             "number_of_orders",
             "budget",
             "user_ref_price",
-            "api_key",
+            "status",
         )
 
     def update(self, instance, validation_data):

@@ -210,10 +210,11 @@ class TestApiKeys(TestCase):
             reverse("exchange:ApiKeyUpdate", kwargs={"pk": data.id}), data=update
         )
 
-        expected_response = {'id': 8, 'api_key': 'fake_key1111111111111111', 'api_secret': 'fake0000000000000000', 'description': 'i have much more pain', 'default': False, 'exchange': 8, 'user': 8}
-
         self.assertEqual(request.status_code, 200)
-        self.assertDictEqual(request.json(), expected_response)
+        self.assertEqual(request.json()["api_key"], update["api_key"])
+        self.assertEqual(request.json()["api_secret"], str(update["api_secret"]))
+        self.assertEqual(request.json()["description"], update["description"])
+        self.assertEqual(request.json()["exchange"], update["exchange"])
 
     def test_delete_apikey(self):
 
