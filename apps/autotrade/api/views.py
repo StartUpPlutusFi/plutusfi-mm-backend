@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from apps.autotrade.serializers import *
 from apps.autotrade.models.models import *
+from apps.exchange.helper.helper import status_code
 
 
 class MMbotList(generics.ListAPIView):
@@ -27,17 +28,7 @@ class MMbotAdd(generics.CreateAPIView):
 
         try:
             insert_data = dict(request.data) | {
-                "user": request.user.id,
-                "api_key": ApiKeys.objects.filter(
-                    user=request.user, id=request.data["api_key"]
-                )
-                .values("id")
-                .first()["id"],
-                "pair_token": BotConfigPairtokens.objects.filter(
-                    id=request.data["pair_token"]
-                )
-                .values("id")
-                .first()["id"],
+                "user": request.user.id
             }
 
             # print(insert_data)
