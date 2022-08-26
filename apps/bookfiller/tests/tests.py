@@ -57,10 +57,8 @@ class TestBookFiller(TestCase):
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
-        print(request.data)
-
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json(), data["description"])
+        self.assertEqual(request.json()["name"], data["name"])
         self.assertEqual(request.json()["api_key"], data["api_key"])
         self.assertEqual(request.json()["user"], data["user"])
 
@@ -109,7 +107,7 @@ class TestBookFiller(TestCase):
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json(), [])
 
-    def test_update_apikey_with_invalid_parameter(self):
+    def test_update_bookfiller_with_invalid_parameter(self):
         update = {
             "invl": "TEST_USDT_FK",
             "api_key": "fake_key000000000000000",
@@ -124,10 +122,18 @@ class TestBookFiller(TestCase):
             data=update,
         )
 
-        expected_response = {'api_key': '', 'api_secret': '', 'description': '', 'default': False, 'exchange': None,
-                             'user': None}
+        expected_response = {
+            'api_key_id': ['This field is required.'],
+            'budget': ['This field is required.'],
+            'name': ['This field is required.'],
+            'number_of_orders': ['This field is required.'],
+            'order_size': ['This field is required.'],
+            'side': ['This field is required.'],
+            'status': ['This field is required.'],
+            'user_ref_price': ['This field is required.']
+        }
 
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 400)
         self.assertDictEqual(request.json(), expected_response)
 
     def test_update_bookfiller(self):
