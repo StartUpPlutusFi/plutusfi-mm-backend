@@ -173,3 +173,7 @@ class TestBookFiller(TestCase):
         )
         self.assertEqual(request.status_code, 200)
         self.assertDictEqual(request.json(), expected_response)
+
+    # def test_bot_status(self):
+
+

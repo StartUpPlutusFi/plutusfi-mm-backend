@@ -110,80 +110,6 @@ class BookFillerStatus(generics.ListAPIView):
         return self.list(request, *args, **kwargs)
 
 
-def BookFiller_bot_buy(request, pk):
-    bookfiller = BookFiller.objects.get(id=pk, user_id=request.user.id)
-    limit = bookfiller.number_of_orders
-    symbol = bookfiller.pair_token.pair
-    price = bookfiller.budget
-
-    order_book = bid_order_creator(limit, price, symbol)
-    order_book = order_book["order_pair"]
-
-    api_key = bookfiller.api_key.api_key
-    api_sec = bookfiller.api_key.api_secret
-
-    exit_code = []
-
-    for order in order_book:
-        params = {
-            "amount": float("{:.2f}".format(order["quantity"])),
-            "api_key": api_key,
-            "market": symbol,
-            "price": float("{:.6f}".format(order["price"])),
-            "side": 2,
-            "secret_key": api_sec,
-        }
-
-        code = create_order(params)
-        exit_code.append(code)
-        cancel_order_list = CancelOrderBookBot(
-            bot_id=pk, cancel_order_id=code, order_status=True
-        )
-        cancel_order_list.save()
-        time.sleep(0.3)
-
-    # the Maximum list-to-str length is 505 bytes
-
-    return {"status": "success", "check": exit}
-
-
-def BookFiller_bot_cancel(request, pk):
-    data = BookFiller.objects.get(id=pk, user_id=request.user.id)
-
-    cancel_codes = (
-        CancelOrderBookBot.objects.exclude(order_status=False)
-        .filter(bot_id=pk, bot_id__user_id=request.user.id)
-        .values()
-    )
-
-    api_key = data.api_key.api_key
-    api_sec = data.api_key.api_secret
-    symbol = data.pair_token.pair
-
-    # codes = cancel_codes
-
-    for code in cancel_codes:
-
-        params = {
-            "api_key": api_key,
-            "market": symbol,
-            "order_id": code["cancel_order_list"],
-            "secret_key": api_sec,
-        }
-
-        try:
-            result = cancel_order(params)
-            CancelOrderBookBot.objects.filter(id=code["id"]).update(
-                order_status=False
-            )
-            # print(result)
-        except Exception as e:
-            pass
-        time.sleep(0.25)
-
-    return {"status": "success"}
-
-
 class BookFillerCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatusUpdate
@@ -198,24 +124,18 @@ class BookFillerCtrl(generics.UpdateAPIView):
         if True:
             data = self.get_queryset()
             bot_ex = data.api_key.exchange.name
-            all_ex = Exchange.objects.all().values("name")
+            op_result = None
 
             if data.status == "STOP":
 
-                for ex in all_ex:
-
-                    if ex["name"] == bot_ex:
-                        op_result = biconomy_init_bookbot(data)
-                    else:
-                        pass
-
-                # return Response({
-                #             "status": "fail",
-                #             "code": "Exchange from book filler bot config din't mach to any registered exchange",
-                #             "exit": f"{ex['name']} :: {bot_ex}"
-                #         })
-
-                # EndFor
+                if "biconomy" == bot_ex:
+                    op_result = biconomy_init_bookbot(data)
+                    # op_result = {"pass": True}
+                elif "bigone" == bot_ex:
+                    # op_result = bigone_init_bookbot(data)
+                    pass
+                else:
+                    pass
 
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user

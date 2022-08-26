@@ -390,6 +390,7 @@ def biconomy_cancel_all_orders(bookbot):
 
 
 def biconomy_init_bookbot(data):
+
     limit_generator = data.number_of_orders
     token = data.pair_token.pair
     user_ref_price = data.user_ref_price
@@ -400,7 +401,7 @@ def biconomy_init_bookbot(data):
     bookbot_id = data.id
 
     # salva id da ordem criada
-    if data.side == "ASK":
+    if user_side_choice == "ASK":
         user_side_choice = 1
     else:
         user_side_choice = 2
