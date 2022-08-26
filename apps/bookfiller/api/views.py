@@ -149,7 +149,12 @@ class BookFillerCtrl(generics.UpdateAPIView):
             else:
 
                 # Cancel all orders
-                exit_codes = biconomy_cancel_all_orders(data)
+                if "biconomy" == bot_ex:
+                    exit_codes = biconomy_cancel_all_orders(data)
+                elif "bigone" == bot_ex:
+                    exit_codes = []
+                else:
+                    exit_codes = []
 
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
