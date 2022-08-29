@@ -6,7 +6,7 @@ from apps.exchange.helper.helper import status_code
 from apps.bookfiller.serializers import *
 from apps.bookfiller.models.models import *
 
-# from apps.exchange.services.bigone.bigone_core import *
+from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
 
 import time
@@ -154,7 +154,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 if "biconomy" == bot_ex:
                     exit_codes = biconomy_cancel_all_orders(data)
                 elif "bigone" == bot_ex:
-                    exit_codes = []
+                    exit_codes = bigone_cancel_all_orders()
                 else:
                     exit_codes = []
 

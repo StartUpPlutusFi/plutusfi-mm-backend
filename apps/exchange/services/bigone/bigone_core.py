@@ -6,6 +6,8 @@ import random
 import jwt
 import json
 
+from apps.bookfiller.models.models import CancelOrderBookBot
+
 
 def biconomy_configuration_set():
     headers = {
@@ -421,6 +423,34 @@ def bigone_autotrade_close(candle):
     return {"status": "success"}
 
 
+def bigone_cancel_all_orders(bookbot):
+    responses = []
+
+    apikey = bookbot.api_key.api_key
+    apisec = bookbot.api_key.api_secret
+    bot_id = bookbot.id
+
+    base_url = 'https://big.one/api/v3/viewer/order/cancel'
+
+    cancel_list = CancelOrderBookBot.objects.filter(
+        order_status=True, bot_id=bot_id
+    ).values("id", "bot", "cancel_order_id")
+
+    for bot in cancel_list:
+        params = {
+            "order_id": bot["cancel_order_id"],
+        }
+        json_params = json.dumps(params, indent=4)
+        r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
+        response_json = r.json()
+
+        CancelOrderBookBot.objects.filter(bot_id=bot_id).update(order_status=False)
+
+        responses.append(response_json)
+
+    return responses
+
+
 def bookfiller_check_ref_price(token):
     ask = False
     base_url = f"https://big.one/api/v3/asset_pairs/{token}/depth"
@@ -441,31 +471,76 @@ def bookfiller_check_ref_price(token):
 
 
 # Gets the price and quantity necessary to make an order from (reference price * 1.02)
-def book_generator(
-        order_quantity, token, user_ref_price, user_max_order_value, side, apikey, apisec
+def bigone_book_generator(
+        limit_generator, token, user_ref_price, user_max_order_value, side, api_key, api_sec, bookbot_id
 ):
-    if user_ref_price is None:
+    if user_ref_price == 0:
         price = bookfiller_check_ref_price(token)
+
     else:
         price = user_ref_price
+
     multiplier = 1.02
-    if side == "BID":
+    if side == 2:  # 2 == BID
         multiplier = 0.98
+
     prices = []
     quantitys = []
-    order = []
-    for x in range(order_quantity):
+    exit_codes = []
+
+    for x in range(limit_generator):
         price = multiplier * price
         prices.append(price)
         quantity = user_max_order_value / price
         quantitys.append(quantity)
-        create_order(price, quantity, side, token, apikey, apisec)
-        order.append(x + 1)
+        code = create_order(price, quantity, side, token, api_key, api_sec)
+        exit_codes.append(code['data']['id'])
+
+        CancelOrderBookBot.objects.create(
+            bot_id=bookbot_id, cancel_order_id=code['data']['id'], order_status=True
+        )
+
     return {
-        "order": order,
         "prices": prices,
         "quantitys": quantitys,
+        "exit_codes": exit_codes,
     }
+
+
+def bigone_init_bookbot(data):
+    limit_generator = data.number_of_orders
+    token = data.pair_token
+    user_ref_price = data.user_ref_price
+    user_max_order_value = data.order_size
+    user_side_choice = data.side
+    api_key = data.api_key.api_key
+    api_sec = data.api_key.api_secret
+    bookbot_id = data.id
+
+    if user_side_choice == "ASK":
+        side = 1
+    else:
+        side = 2
+
+    if user_ref_price == 0:
+        user_ref_price = check_ref_price(token)
+
+    cancel_codes = bigone_book_generator(
+        limit_generator,
+        token,
+        user_ref_price,
+        user_max_order_value,
+        side,
+        api_key,
+        api_sec,
+        bookbot_id,
+    )
+
+    return {
+        "number_of_orders": len(cancel_codes),
+        "cancel_codes": cancel_codes,
+    }
+
 
 def bigone_market_creator(
         user_order_size_bid,
@@ -504,4 +579,3 @@ def bigone_market_creator(
             "status": "error",
             "code": str(e),
         }
-
