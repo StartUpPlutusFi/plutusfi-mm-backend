@@ -61,50 +61,6 @@ def make_request(params, URL):
     return response_json
 
 
-def create_order(params):
-    BASE_URL = "https://www.biconomy.com/api/v1/private/trade/limit"
-    response_json = make_request(params, BASE_URL)
-    if response_json["code"] == 10:
-        return 0
-    return response_json["result"]["id"]
-
-
-def cancel_order(params):
-    BASE_URL = "https://www.biconomy.com/api/v1/private/trade/cancel"
-    make_request(params, BASE_URL)
-    return {"status": "success"}
-
-
-## Create and cancel order
-def trade_operation(api_key, api_sec, amount, symbol, price, side=2):
-    create_order_par = {
-        "amount": amount,
-        "api_key": api_key,
-        "market": symbol,
-        "price": price,
-        "side": 2,
-        "secret_key": api_sec,
-    }
-
-    order_id = create_order(create_order_par)
-    time.sleep(10)
-
-    cancel_order_par = {
-        "api_key": api_key,
-        "market": symbol,
-        "order_id": order_id,
-        "secret_key": api_sec,
-    }
-
-    result = (cancel_order(cancel_order_par),)
-
-    return {
-        "created_order": order_id,
-        "cancel_order": result,
-        # "candle_time": candle,
-    }
-
-
 ## Take total ASKS and BIDS of an symbol
 def take_all_asks_and_bids_by_symbol(symbol, size=100):
     BASE_URL = f"https://www.biconomy.com/api/v1/depth?symbol={symbol}"
@@ -215,33 +171,6 @@ def bid_order_creator(limit, price, symbol):
 
 
 ## Biconomy RANDOM ORDER LOOP
-def auto_trade_mm_bot(user_max_order_value, symbol):
-    ref_price = check_ref_price(symbol, size=100)
-
-    total_order = random.randint(10, user_max_order_value)
-
-    bid_price = ref_price
-    bid_price = 1.02 * bid_price
-    bid_quantity = total_order / bid_price
-
-    # create_order_par = {
-    #     "amount": bid_quantity,
-    #     "api_key": api_key,
-    #     "market": symbol,
-    #     "price": bid_price,
-    #     "side": 2,
-    #     "secret_key": api_sec,
-    # }
-
-    # order_id = create_order(create_order_par)
-
-    return {
-        "ref_price": ref_price,
-        "bid_price": bid_price,
-        "bid_quantity": bid_quantity,
-    }
-
-
 
 def get_order_url():
     BASE_URL = "https://www.biconomy.com/api/v1/private/trade/limit"
@@ -370,7 +299,7 @@ def biconomy_cancel_all_orders(bookbot):
     for bot in cancel_list:
         params = {
             "api_key": bookbot.api_key.api_key,
-            "market": bookbot.pair_token.pair,
+            "market": bookbot.pair_token,
             "order_id": bot["cancel_order_id"],
             "secret_key": bookbot.api_key.api_secret,
         }
@@ -390,9 +319,8 @@ def biconomy_cancel_all_orders(bookbot):
 
 
 def biconomy_init_bookbot(data):
-
     limit_generator = data.number_of_orders
-    token = data.pair_token.pair
+    token = data.pair_token
     user_ref_price = data.user_ref_price
     user_max_order_value = data.order_size
     user_side_choice = data.side
@@ -424,3 +352,200 @@ def biconomy_init_bookbot(data):
         "number_of_orders": len(cancel_codes),
         "cancel_codes": cancel_codes,
     }
+
+
+def ref_value(user_ref_price, user_side_choice, user_max_order_value):
+    smallest_ask = 0.0
+    random_operation = None
+
+    if user_ref_price == 0:
+        ref_price, ask, smallest_ask, highest_bid = check_ref_price()
+        if user_side_choice == 1:
+            price = random.uniform(ref_price, smallest_ask)
+        elif user_side_choice == 2:
+            price = random.uniform(ref_price, highest_bid)
+        else:
+            random_list = [smallest_ask, highest_bid]
+            random_operation = random.choice(random_list)
+            price = random.uniform(ref_price, random_operation)
+    else:
+        ref_price = user_ref_price
+        ask = False
+        price = ref_price
+    total_order = random.randint(1, user_max_order_value)
+
+    # Gets the price and quantity necessary to make an order from (reference price * 1.02) or * 0.98
+    if ask or user_side_choice == 1 or random_operation == smallest_ask:
+        price = 0.98 * price
+    else:
+        price = (1.02 * price)
+    print(f"Price {price}")
+    quantity = total_order / price
+    print(f"Quantity {quantity}")
+    return quantity, price
+
+
+def biconomy_auto_trade_order_open(
+        user_ref_price,
+        user_side_choice,
+        token,
+        user_max_order_value,
+        api_key,
+        api_sec,
+        bot_id,
+        candle,
+        op=3,
+):
+    order = op
+    if op != 1 and op != 2:
+        order = random.randint(1, 2)
+
+    quantity, price = ref_value(user_ref_price, user_side_choice, user_max_order_value)
+
+    #ask
+    if order == 1:
+        exit_code = create_order(price, quantity, token, order, api_key, api_sec)
+
+        log = MarketMakerBotAutoTradeQueue.objects.create(
+            bot_id=bot_id,
+            price=price,
+            quantity=quantity,
+            side="ASK",
+            status="OPEN",
+            candle=candle,
+        )
+
+        log.save()
+
+    #bid
+    else:
+        exit_code = create_order(price, quantity, token, order, api_key, api_sec)
+
+        log = MarketMakerBotAutoTradeQueue.objects.create(
+            bot_id=bot_id,
+            price=price,
+            quantity=quantity,
+            side="BID",
+            status="OPEN",
+            candle=candle,
+        )
+
+        log.save()
+
+    return {
+        "name": "biconomy_auto_trade_order_open",
+        "status": "success",
+        "data": exit_code,
+    }
+
+def biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token):
+    try:
+
+        if side == "ASK":
+            side = 2 #BID
+            exit_code = create_order(price, quantity, token, side, apikey, apisec)
+
+        elif side == "BID":
+            side = 1 #ASK
+            exit_code = create_order(price, quantity, token, side, apikey, apisec)
+        else:
+            exit_code = "Invalid side at auto_trade_order_close"
+
+        return {
+            "name": "auto_trade_order_close",
+            "status": "success",
+            "data": exit_code,
+        }
+
+    except Exception as e:
+
+        return {
+            "name": "biconomy_auto_trade_order_close",
+            "status": "error",
+            "error": f"ERROR at auto_trade_order_close → {str(e)}",
+        }
+
+
+def biconomy_autotrade_open(candle):
+    bots = MarketMakerBot.objects.filter(
+        status="START", trade_candle=candle, bot__api_key__exchange__name="biconomy"
+    )
+
+    result = []
+
+    for data in bots:
+        bot_id = data.id
+        apikey = data.api_key.api_key
+        apisec = data.api_key.api_secret
+        user_side_choice = data.side
+        user_max_order_value = data.trade_amount
+        token = data.pair_token
+        user_ref_price = data.user_ref_price
+        op = data.side
+        ref = check_ref_price(token)
+
+        exit_code = biconomy_auto_trade_order_open(
+            user_ref_price,
+            user_side_choice,
+            token,
+            user_max_order_value,
+            apikey,
+            apisec,
+            bot_id,
+            candle,
+            op,
+        )
+
+        edata = {
+            "reference_price": ref,
+            "user_ref_price": user_ref_price,
+            "user_side_choice": user_side_choice,
+            "user_max_order_value": user_max_order_value,
+            "token": token,
+            "side": data.side,
+            "status": data.status,
+            "bot_id": bot_id,
+            "candle": candle,
+            "autotrade": exit_code,
+        }
+
+        result.append(edata)
+        # print(f"bigone_autotrade_open:: :: {edata}")
+
+    return result
+def biconomy_autotrade_close(candle):
+
+    open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
+        status="OPEN", candle=candle, bot__api_key__exchange__name="biconomy"
+    )
+
+    for order in open_orders:
+
+        price = order.price
+        quantity = order.quantity
+        side = order.side
+        apikey = order.bot.api_key.api_key
+        apisec = order.bot.api_key.api_secret
+        token = order.bot.pair_token
+
+        order_id = order.id
+
+        # print(
+        #     f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
+        # )
+
+        exit_code = biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token)
+
+        if exit_code["status"] == "success":
+
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
+                status="DONE"
+            )
+
+        else:
+
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
+                status="CLOSE"
+            )
+
+    return {"status": "success"}

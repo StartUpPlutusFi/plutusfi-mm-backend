@@ -6,7 +6,7 @@ from apps.exchange.helper.helper import status_code
 from apps.bookfiller.serializers import *
 from apps.bookfiller.models.models import *
 
-from apps.exchange.services.bigone.bigone_core import *
+# from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
 
 import time
@@ -124,7 +124,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
         if True:
             data = self.get_queryset()
             bot_ex = data.api_key.exchange.name
-            op_result = None
+            # op_result = None
 
             if data.status == "STOP":
 
@@ -132,8 +132,9 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     op_result = biconomy_init_bookbot(data)
                     # op_result = {"pass": True}
                 elif "bigone" == bot_ex:
-                    # op_result = bigone_init_bookbot(data)
-                    pass
+                    op_result = bigone_init_bookbot(data)
+                    op_result = {"pass": True}
+                    # pass
                 else:
                     pass
 
@@ -144,6 +145,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 return Response({
                     "status": "success",
                     "op": op_result,
+                    "bot": bot_ex,
                 })
 
             else:

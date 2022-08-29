@@ -10,7 +10,7 @@ class BookFiller(models.Model):
     side = models.CharField(max_length=5, default="nil")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     api_key = models.ForeignKey(ApiKeys, on_delete=models.DO_NOTHING)
-    pair_token = models.CharField(max_length=8, default="DUMMy")
+    pair_token = models.CharField(max_length=64, default="DUMMy")
     order_size = models.IntegerField(default=0)
     number_of_orders = models.IntegerField(default=0)
     budget = models.FloatField(default=0)

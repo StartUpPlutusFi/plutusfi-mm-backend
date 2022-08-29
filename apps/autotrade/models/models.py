@@ -8,7 +8,7 @@ class MarketMakerBot(models.Model):
     description = models.CharField(max_length=256)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     api_key = models.ForeignKey(ApiKeys, on_delete=models.DO_NOTHING)
-    pair_token = models.CharField(max_length=16, default="DUMMY")
+    pair_token = models.CharField(max_length=64, default="DUMMY")
     user_ref_price = models.FloatField(default=0)
     side = models.IntegerField(default=0)
     trade_candle = models.IntegerField(default=0)

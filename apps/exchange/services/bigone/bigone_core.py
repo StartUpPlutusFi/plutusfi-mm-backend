@@ -1,5 +1,4 @@
 from apps.autotrade.models.models import *
-from apps.bookfiller.models.models import *
 
 import requests
 import time
@@ -298,7 +297,7 @@ def auto_trade_order_open(
         log.save()
 
     return {
-        "name": "auto_trade_order_open",
+        "name": "bigone_auto_trade_order_open",
         "status": "success",
         "data": exit_code,
     }
@@ -337,7 +336,9 @@ def auto_trade_order_close(price, quantity, side, apikey, apisec, token):
 
 
 def bigone_autotrade_open(candle):
-    bots = MarketMakerBot.objects.filter(status="START", trade_candle=candle)
+    bots = MarketMakerBot.objects.filter(
+        status="START", trade_candle=candle, bot__api_key__exchange__name="bigone"
+    )
 
     result = []
 
@@ -385,7 +386,7 @@ def bigone_autotrade_open(candle):
 
 def bigone_autotrade_close(candle):
     open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
-        status="OPEN", candle=candle
+        status="OPEN", candle=candle, bot__api_key__exchange__name="bigone"
     )
 
     for order in open_orders:
@@ -395,7 +396,7 @@ def bigone_autotrade_close(candle):
         side = order.side
         apikey = order.bot.api_key.api_key
         apisec = order.bot.api_key.api_secret
-        token = order.bot.pair_token.pair
+        token = order.bot.pair_token
 
         order_id = order.id
 

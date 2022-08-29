@@ -5,7 +5,7 @@ from apps.exchange.services.bigone.bigone_core import *
 # ------------------------------------------------------------------------- #
 @shared_task
 def bigone_auto_trade_open_1m():
-    print(" -------------- Run BigOne autotrade OPEN 5m")
+    print(" -------------- Run BigOne autotrade OPEN 1m")
     var = bigone_autotrade_open(1)
     print(var)
     return var
@@ -13,7 +13,7 @@ def bigone_auto_trade_open_1m():
 
 @shared_task
 def bigone_auto_trade_close_1m():
-    print(" -------------- Run BigOne autotrade CLOSE 5m")
+    print(" -------------- Run BigOne autotrade CLOSE 1m")
     var = bigone_autotrade_close(1)
     print(var)
     return var
