@@ -25,6 +25,7 @@ dj-inmemorystorage = "^2.1.0"
 requests = "^2.28.1"
 drf-yasg = "^1.21.3"
 celery = "^5.2.7"
+PyJWT = "^2.4.0"
 
 [tool.poetry.dev-dependencies]
 ipython = "^8.4.0"

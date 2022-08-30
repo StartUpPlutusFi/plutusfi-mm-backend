@@ -130,13 +130,13 @@ class BookFillerCtrl(generics.UpdateAPIView):
 
                 if "biconomy" == bot_ex:
                     op_result = biconomy_init_bookbot(data)
-                    # op_result = {"pass": True}
                 elif "bigone" == bot_ex:
                     op_result = bigone_init_bookbot(data)
-                    op_result = {"pass": True}
-                    # pass
                 else:
-                    pass
+                    op_result = {
+                        "status": "error",
+                        "code": "Exchange not found"
+                    }
 
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
@@ -154,7 +154,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 if "biconomy" == bot_ex:
                     exit_codes = biconomy_cancel_all_orders(data)
                 elif "bigone" == bot_ex:
-                    exit_codes = bigone_cancel_all_orders()
+                    exit_codes = bigone_cancel_all_orders(data)
                 else:
                     exit_codes = []
 

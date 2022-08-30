@@ -99,11 +99,11 @@ def bigone_view_acount():
 
 
 def ping():
-    PING_URL = "https://big.one/api/v3/ping"
-    ping = requests.get(PING_URL)
+    ping_url = "https://big.one/api/v3/ping"
+    ping = requests.get(ping_url)
     ping_json = ping.json()
-    TIMESTAMP = ping_json["data"]["Timestamp"]
-    return TIMESTAMP
+    timestamp = ping_json["data"]["Timestamp"]
+    return timestamp
 
 
 def get_order_header_encoded(apikey, apisec):
@@ -438,15 +438,26 @@ def bigone_cancel_all_orders(bookbot):
 
     for bot in cancel_list:
         params = {
-            "order_id": bot["cancel_order_id"],
+            "order_id": int(bot["cancel_order_id"]),
         }
         json_params = json.dumps(params, indent=4)
         r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
         response_json = r.json()
 
-        CancelOrderBookBot.objects.filter(bot_id=bot_id).update(order_status=False)
+        try:
+            if response_json['data']['state'] == "CANCELLED":
+                CancelOrderBookBot.objects.filter(bot_id=bot_id).update(order_status=False)
 
-        responses.append(response_json)
+        except Exception as err:
+
+            return {
+                "status": f"fail to cancel order {bot['cancel_order_id']}"
+            }
+
+        responses.append({
+            "status": response_json['data']['state'],
+            "code": bot['cancel_order_id'],
+        })
 
     return responses
 
@@ -488,23 +499,37 @@ def bigone_book_generator(
     quantitys = []
     exit_codes = []
 
-    for x in range(limit_generator):
-        price = multiplier * price
-        prices.append(price)
-        quantity = user_max_order_value / price
-        quantitys.append(quantity)
-        code = create_order(price, quantity, side, token, api_key, api_sec)
-        exit_codes.append(code['data']['id'])
+    if side == 1:
+        side = "ASK"
+    else:
+        side = "BID"
 
-        CancelOrderBookBot.objects.create(
-            bot_id=bookbot_id, cancel_order_id=code['data']['id'], order_status=True
-        )
+    try:
+        for x in range(limit_generator):
+            price = multiplier * price
+            prices.append(price)
+            quantity = user_max_order_value / price
+            quantitys.append(quantity)
+            code = create_order(price, quantity, side, token, api_key, api_sec)
+            exit_codes.append(code['data']['id'])
 
-    return {
-        "prices": prices,
-        "quantitys": quantitys,
-        "exit_codes": exit_codes,
-    }
+            CancelOrderBookBot.objects.create(
+                bot_id=bookbot_id, cancel_order_id=code['data']['id'], order_status=True
+            )
+
+        return {
+            "prices": prices,
+            "quantitys": quantitys,
+            "exit_codes": exit_codes,
+        }
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "code": str(e),
+            "exit_code": exit_codes,
+        }
 
 
 def bigone_init_bookbot(data):
