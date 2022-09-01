@@ -469,7 +469,7 @@ def biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token
 
 def biconomy_autotrade_open(candle):
     bots = MarketMakerBot.objects.filter(
-        status="START", trade_candle=candle, bot__api_key__exchange__name="biconomy"
+        status="START", trade_candle=candle, api_key__exchange__name="biconomy"
     )
 
     result = []
@@ -514,6 +514,8 @@ def biconomy_autotrade_open(candle):
         # print(f"bigone_autotrade_open:: :: {edata}")
 
     return result
+
+
 def biconomy_autotrade_close(candle):
 
     open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
@@ -550,3 +552,4 @@ def biconomy_autotrade_close(candle):
             )
 
     return {"status": "success"}
+
