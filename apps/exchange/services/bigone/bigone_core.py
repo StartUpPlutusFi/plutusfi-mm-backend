@@ -339,7 +339,7 @@ def auto_trade_order_close(price, quantity, side, apikey, apisec, token):
 
 def bigone_autotrade_open(candle):
     bots = MarketMakerBot.objects.filter(
-        status="START", trade_candle=candle, bot__api_key__exchange__name="bigone"
+        status="START", trade_candle=candle, api_key__exchange__name="bigone"
     )
 
     result = []
@@ -402,9 +402,9 @@ def bigone_autotrade_close(candle):
 
         order_id = order.id
 
-        # print(
-        #     f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
-        # )
+        print(
+            f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
+        )
 
         exit_code = auto_trade_order_close(price, quantity, side, apikey, apisec, token)
 
