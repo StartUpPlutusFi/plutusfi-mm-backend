@@ -121,7 +121,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
         return result
 
     def get(self, request, *args, **kwargs):
-        if True:
+        try:
             data = self.get_queryset()
             bot_ex = data.api_key.exchange.name
             # op_result = None
@@ -167,5 +167,5 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 "exit_codes": exit_codes,
             })
 
-        # except Exception as e:
-        #     return Response({"status": "error", "check": str(e)})
+        except Exception as e:
+            return Response({"status": "error", "check": str(e)})

@@ -313,7 +313,7 @@ def biconomy_cancel_all_orders(bookbot):
         response_json = r.json()
         responses.append(response_json)
 
-        CancelOrderBookBot.objects.filter(bot_id=bot_id).update(order_status=False)
+        CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=False)
 
     return responses
 
@@ -553,3 +553,9 @@ def biconomy_autotrade_close(candle):
 
     return {"status": "success"}
 
+
+#
+# def biconomy_geneses(data):
+#
+#
+#     pass

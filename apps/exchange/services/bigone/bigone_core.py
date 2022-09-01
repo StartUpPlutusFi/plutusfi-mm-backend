@@ -7,6 +7,7 @@ import jwt
 import json
 
 from apps.bookfiller.models.models import CancelOrderBookBot
+from apps.geneses.models.models import *
 
 
 def biconomy_configuration_set():
@@ -446,7 +447,7 @@ def bigone_cancel_all_orders(bookbot):
 
         try:
             if response_json['data']['state'] == "CANCELLED":
-                CancelOrderBookBot.objects.filter(bot_id=bot_id).update(order_status=False)
+                CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=False)
 
         except Exception as err:
 
@@ -567,25 +568,36 @@ def bigone_init_bookbot(data):
     }
 
 
-def bigone_market_creator(
-        user_order_size_bid,
-        user_order_size_ask,
-        token,
-        apikey,
-        apisec,
-        market_value,
-        spread_distance,
-):
+def bigone_market_creator_open(geneses_bot):
+
+    user_order_size_bid = geneses_bot.user_order_size_bid
+    user_order_size_ask = geneses_bot.user_order_size_ask
+    token = geneses_bot.token
+    apikey = geneses_bot.api_key.api_key
+    apisec = geneses_bot.api_key.api_secret
+    market_value = geneses_bot.market_value
+    spread_distance = geneses_bot.spread_distance
+    gid = geneses_bot.id
+
+
     try:
         price_bid = market_value * (1 - (spread_distance / 100.0))
         quantity_bid = user_order_size_bid / price_bid
         exit_code1 = f"The bid price will be {price_bid} and the bid quantity price will be {quantity_bid}"
         exit_code_bid = create_order(price_bid, quantity_bid, "BID", token, apikey, apisec)
 
+        GenesesQueue.objects.create(
+                geneses_id=gid, cancel_order_id=exit_code_bid['data']['id'], status="OPEN"
+            )
+
         price_ask = market_value * ((spread_distance / 100.0) + 1.0)
         quantity_ask = user_order_size_ask / price_ask
         exit_code2 = f"The ask price will be {price_ask} and the ask quantity price will be {quantity_ask}"
         exit_code_ask = create_order(price_bid, quantity_bid, "ASK", token, apikey, apisec)
+
+        GenesesQueue.objects.create(
+                geneses_id=gid, cancel_order_id=exit_code_ask['data']['id'], status="OPEN"
+            )
 
         return {
             "status": "success",
@@ -604,3 +616,40 @@ def bigone_market_creator(
             "status": "error",
             "code": str(e),
         }
+
+
+def bigone_market_creator_close(geneses_bot):
+    responses = []
+
+    apikey = geneses_bot.geneses.api_key.api_key
+    apisec = geneses_bot.geneses.api_key.api_secret
+    gid_id = geneses_bot.id
+
+    base_url = 'https://big.one/api/v3/viewer/order/cancel'
+
+    cancel_list = GenesesQueue.objects.filter(
+        status="OPEN", geneses_id=gid_id
+    ).values("id", "bot", "cancel_order_id")
+
+    for reg in cancel_list:
+        params = {
+            "order_id": int(reg["cancel_code"]),
+        }
+        json_params = json.dumps(params, indent=4)
+        r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
+        response_json = r.json()
+
+        try:
+            if response_json['data']['state'] == "CANCELLED":
+                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(status="OPEN")
+
+        except Exception as err:
+
+            return {
+                "status": f"fail to cancel order {reg['cancel_code']}"
+            }
+
+        responses.append({
+            "status": response_json['data']['state'],
+            "code": reg['cancel_code'],
+        })

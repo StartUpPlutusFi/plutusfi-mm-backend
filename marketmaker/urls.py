@@ -38,6 +38,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("autotrade/", include("apps.autotrade.api.urls")),
     path("bookfiller/", include("apps.bookfiller.api.urls")),
+    path("geneses/", include("apps.geneses.api.urls")),
     path("", include("apps.exchange.api.urls")),
     path("auth/api/token/", include("apps.auth.api.urls")),
     re_path(

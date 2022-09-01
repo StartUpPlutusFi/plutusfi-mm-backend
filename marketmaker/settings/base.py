@@ -35,6 +35,7 @@ PROJECT_APPS = [
     "apps.exchange",
     "apps.autotrade",
     "apps.bookfiller",
+    "apps.geneses",
 ]
 
 THIRDPARTY_APPS = [
