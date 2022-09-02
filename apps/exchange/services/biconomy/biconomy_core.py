@@ -372,12 +372,12 @@ def biconomy_cancel_one_order(api_key, api_sec, order_id, token):
     return r.json()
 
 
-def ref_value(user_ref_price, user_side_choice, user_max_order_value):
+def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
     smallest_ask = 0.0
     random_operation = None
 
     if user_ref_price == 0:
-        ref_price, ask, smallest_ask, highest_bid = check_ref_price()
+        ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
         if user_side_choice == 1:
             price = random.uniform(ref_price, smallest_ask)
         elif user_side_choice == 2:
@@ -418,7 +418,7 @@ def biconomy_auto_trade_order_open(
     if op != 1 and op != 2:
         order = random.randint(1, 2)
 
-    quantity, price = ref_value(user_ref_price, user_side_choice, user_max_order_value)
+    quantity, price = ref_value(user_ref_price, user_side_choice, user_max_order_value, token)
 
     # ask
     if order == 1:

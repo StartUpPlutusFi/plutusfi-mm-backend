@@ -24,6 +24,7 @@ def run_autotrade_periodically_every_1min(time=1):
         "open_biconomy": open_biconomy,
     }
 
+
 @shared_task
 def run_autotrade_periodically_every_5min(time=5):
 
