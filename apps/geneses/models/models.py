@@ -22,7 +22,7 @@ class Geneses(models.Model):
 
 
 class GenesesQueue(models.Model):
-    geneses_id = models.ForeignKey(Geneses,  on_delete=models.DO_NOTHING)
+    geneses = models.ForeignKey(Geneses,  on_delete=models.DO_NOTHING)
     cancel_code = models.CharField(max_length=128)
     status = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)

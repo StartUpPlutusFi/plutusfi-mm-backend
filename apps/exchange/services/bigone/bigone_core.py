@@ -641,7 +641,7 @@ def bigone_market_creator_close(geneses_bot):
 
         try:
             if response_json['data']['state'] == "CANCELLED":
-                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(status="OPEN")
+                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(status="DONE")
 
         except Exception as err:
 

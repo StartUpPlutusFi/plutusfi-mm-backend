@@ -4,9 +4,8 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from apps.exchange.helper.helper import status_code
-from apps.exchange.services.bigone.bigone_core import bigone_market_creator_open, bigone_market_creator_close
-# from apps.exchange.services.bigone.bigone_core import
-# from apps.exchange.services.biconomy.biconomy_core import biconomy_init_bookbot, biconomy_cancel_all_orders
+from apps.exchange.services.bigone.bigone_core import *
+from apps.exchange.services.biconomy.biconomy_core import *
 from apps.geneses.serializers import *
 from apps.geneses.models.models import *
 
@@ -120,7 +119,8 @@ class GenesesCtrl(generics.UpdateAPIView):
         return result
 
     def get(self, request, *args, **kwargs):
-        if True:
+
+        try:
             geneses_bot = self.get_queryset()
             bot_ex = geneses_bot.api_key.exchange.name
             # op_result = None
@@ -128,7 +128,7 @@ class GenesesCtrl(generics.UpdateAPIView):
             if geneses_bot.status == "STOP":
 
                 if "biconomy" == bot_ex:
-                    op_result = "" #bigone_market_creator_close(geneses_bot)
+                    op_result = biconomy_market_creator_open(geneses_bot)
                 elif "bigone" == bot_ex:
                     op_result = bigone_market_creator_open(geneses_bot)
                 else:
@@ -151,7 +151,7 @@ class GenesesCtrl(generics.UpdateAPIView):
 
                 # Cancel all orders
                 if "biconomy" == bot_ex:
-                    exit_codes = ""# biconomy_cancel_all_orders(geneses_bot)
+                    exit_codes = biconomy_market_creator_close(geneses_bot)
                 elif "bigone" == bot_ex:
                     exit_codes = bigone_market_creator_close(geneses_bot)
                 else:
@@ -161,14 +161,13 @@ class GenesesCtrl(generics.UpdateAPIView):
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
+                return Response({
+                    "status": "success",
+                })
+
+        except Exception as err:
+
             return Response({
                 "status": "success",
-                "exit_codes": exit_codes,
+                "code": str(err),
             })
-
-        # except Exception as err:
-
-            # return Response({
-            #     "status": "success",
-            #     "code": str(err),
-            # })

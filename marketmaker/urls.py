@@ -36,11 +36,13 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("geneses/", include("apps.geneses.api.urls")),
     path("autotrade/", include("apps.autotrade.api.urls")),
     path("bookfiller/", include("apps.bookfiller.api.urls")),
-    path("geneses/", include("apps.geneses.api.urls")),
     path("", include("apps.exchange.api.urls")),
     path("auth/api/token/", include("apps.auth.api.urls")),
+
+    
     re_path(
         r"^swagger(?P<format>\.json|\.yaml)$",
         schema_view.without_ui(cache_timeout=0),
