@@ -7,6 +7,7 @@ import jwt
 import json
 
 from apps.bookfiller.models.models import CancelOrderBookBot
+from apps.exchange.services.common.common import autotrade_operation_log
 from apps.geneses.models.models import *
 
 
@@ -265,13 +266,13 @@ def auto_trade_order_open(
         )
 
         exit_code = create_order(
-            price, quantity, side="BID", token=token, apikey=apikey, apisec=apisec
+            price, quantity, side="ASK", token=token, apikey=apikey, apisec=apisec
         )
         log = MarketMakerBotAutoTradeQueue.objects.create(
             bot_id=bot_id,
             price=price,
             quantity=quantity,
-            side="BID",
+            side="ASK",
             status="OPEN",
             candle=candle,
         )
@@ -285,14 +286,14 @@ def auto_trade_order_open(
         )
 
         exit_code = create_order(
-            price, quantity, side="ASK", token=token, apikey=apikey, apisec=apisec
+            price, quantity, side="BID", token=token, apikey=apikey, apisec=apisec
         )
 
         log = MarketMakerBotAutoTradeQueue.objects.create(
             bot_id=bot_id,
             price=price,
             quantity=quantity,
-            side="ASK",
+            side="BID",
             status="OPEN",
             candle=candle,
         )
@@ -338,92 +339,6 @@ def auto_trade_order_close(price, quantity, side, apikey, apisec, token):
         }
 
 
-def bigone_autotrade_open(candle):
-    bots = MarketMakerBot.objects.filter(
-        status="START", trade_candle=candle, api_key__exchange__name="bigone"
-    )
-
-    result = []
-
-    for data in bots:
-        bot_id = data.id
-        apikey = data.api_key.api_key
-        apisec = data.api_key.api_secret
-        user_side_choice = data.side
-        user_max_order_value = data.trade_amount
-        token = data.pair_token.pair
-        user_ref_price = data.user_ref_price
-        op = data.side
-        ref = check_ref_price(token)
-
-        exit_code = auto_trade_order_open(
-            user_ref_price,
-            user_side_choice,
-            user_max_order_value,
-            apikey,
-            apisec,
-            token,
-            bot_id,
-            candle,
-            op,
-        )
-
-        edata = {
-            "reference_price": ref,
-            "user_ref_price": user_ref_price,
-            "user_side_choice": user_side_choice,
-            "user_max_order_value": user_max_order_value,
-            "token": token,
-            "side": data.side,
-            "status": data.status,
-            "bot_id": bot_id,
-            "candle": candle,
-            "autotrade": exit_code,
-        }
-
-        result.append(edata)
-        # print(f"bigone_autotrade_open:: :: {edata}")
-
-    return result
-
-
-def bigone_autotrade_close(candle):
-    open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
-        status="OPEN", candle=candle, bot__api_key__exchange__name="bigone"
-    )
-
-    for order in open_orders:
-
-        price = order.price
-        quantity = order.quantity
-        side = order.side
-        apikey = order.bot.api_key.api_key
-        apisec = order.bot.api_key.api_secret
-        token = order.bot.pair_token
-
-        order_id = order.id
-
-        print(
-            f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
-        )
-
-        exit_code = auto_trade_order_close(price, quantity, side, apikey, apisec, token)
-
-        if exit_code["status"] == "success":
-
-            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
-                status="DONE"
-            )
-
-        else:
-
-            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
-                status="CLOSE"
-            )
-
-    return {"status": "success"}
-
-
 def bigone_cancel_all_orders(bookbot):
     responses = []
 
@@ -461,6 +376,115 @@ def bigone_cancel_all_orders(bookbot):
         })
 
     return responses
+
+
+def bigone_autotrade_open(candle):
+    bots = MarketMakerBot.objects.filter(
+        status="START", trade_candle=candle, api_key__exchange__name="bigone"
+    )
+
+    codes, logs = [], []
+
+    for data in bots:
+
+        bot_id = data.id
+        apikey = data.api_key.api_key
+        apisec = data.api_key.api_secret
+        exchange = data.api_key.exchange.name
+        user_side_choice = data.side
+        user_max_order_value = data.trade_amount
+        token = data.pair_token.pair
+        user_ref_price = data.user_ref_price
+        op = data.side
+        ref = check_ref_price(token)
+
+        exit_code = auto_trade_order_open(
+            user_ref_price,
+            user_side_choice,
+            user_max_order_value,
+            apikey,
+            apisec,
+            token,
+            bot_id,
+            candle,
+            op,
+        )
+
+        log = autotrade_operation_log(
+            bot_id=bot_id,
+            type="OPEN",
+            exchange=exchange,
+            pair_token=token,
+            reference_price=ref,
+            user_ref_price=user_ref_price,
+            side=user_side_choice,
+            trade_candle=candle,
+            trade_amount=user_max_order_value,
+        )
+
+        logs.append(log)
+
+        codes.append(exit_code)
+
+    return {
+        "status": "success",
+        "exit_code": codes,
+        "logs": logs,
+    }
+
+
+def bigone_autotrade_close(candle):
+    open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
+        status="OPEN", candle=candle, bot__api_key__exchange__name="bigone"
+    )
+
+    codes, logs = [], []
+
+    for order in open_orders:
+
+        price = order.price
+        quantity = order.quantity
+        side = order.side
+        apikey = order.bot.api_key.api_key
+        apisec = order.bot.api_key.api_secret
+        token = order.bot.pair_token
+
+        order_id = order.id
+
+        exit_code = auto_trade_order_close(price, quantity, side, apikey, apisec, token)
+        codes.append(exit_code)
+
+        if exit_code["status"] == "success":
+
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
+                status="DONE"
+            )
+
+        else:
+
+            MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
+                status="CLOSE"
+            )
+
+        log = autotrade_operation_log(
+            bot_id=order.bot.id,
+            type="CLOSE",
+            exchange=order.bot.api_key.exchange.name,
+            pair_token=token,
+            reference_price=order.exec_ref_price,
+            user_ref_price=order.bot.user_ref_price,
+            side=order.bot.side,
+            trade_candle=candle,
+            trade_amount=order.bot.trade_amount,
+        )
+
+        logs.append(log)
+
+    return {
+        "status": "success",
+        "exit_code": codes,
+        "logs": logs,
+    }
 
 
 def bookfiller_check_ref_price(token):

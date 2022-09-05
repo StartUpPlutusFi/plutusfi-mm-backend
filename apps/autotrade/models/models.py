@@ -27,12 +27,12 @@ class MarketMakerBot(models.Model):
 
 class MarketMakerBotOrderHistory(models.Model):
     bot = models.ForeignKey(MarketMakerBot, models.DO_NOTHING)
-    pair_token = models.CharField(max_length=16, default="DUMMY_TK")
-    spreed = models.IntegerField(default=0)
-    status = models.CharField(max_length=8, default="STOP")
-    side = models.CharField(max_length=4, default="Nil")
-    trade_qty_low = models.IntegerField(default=0)
-    trade_qty_high = models.IntegerField(default=0)
+    type = models.CharField(max_length=128, default="ex_fail")
+    exchange = models.CharField(max_length=128, default="DUMMYEX")
+    pair_token = models.CharField(max_length=64, default="DUMMY")
+    reference_price = models.FloatField(default=0)
+    user_ref_price = models.FloatField(default=0)
+    side = models.IntegerField(default=0)
     trade_candle = models.IntegerField(default=0)
     trade_amount = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -49,6 +49,7 @@ class MarketMakerBotAutoTradeQueue(models.Model):
     side = models.CharField(default="FILL", max_length=64)
     status = models.CharField(default="FINISHED", max_length=64)
     candle = models.IntegerField(default=0)
+    exec_ref_price = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -9,6 +9,7 @@ import random
 import time
 
 from apps.autotrade.models.models import *
+from apps.exchange.services.common.common import autotrade_operation_log
 from apps.geneses.models.models import *
 from apps.bookfiller.models.models import *
 
@@ -490,12 +491,13 @@ def biconomy_autotrade_open(candle):
         status="START", trade_candle=candle, api_key__exchange__name="biconomy"
     )
 
-    result = []
+    codes, logs = [], []
 
     for data in bots:
         bot_id = data.id
         apikey = data.api_key.api_key
         apisec = data.api_key.api_secret
+        exchange = data.api_key.exchange.name
         user_side_choice = data.side
         user_max_order_value = data.trade_amount
         token = data.pair_token
@@ -515,29 +517,36 @@ def biconomy_autotrade_open(candle):
             op,
         )
 
-        edata = {
-            "reference_price": ref,
-            "user_ref_price": user_ref_price,
-            "user_side_choice": user_side_choice,
-            "user_max_order_value": user_max_order_value,
-            "token": token,
-            "side": data.side,
-            "status": data.status,
-            "bot_id": bot_id,
-            "candle": candle,
-            "autotrade": exit_code,
-        }
+        log = autotrade_operation_log(
+            bot_id=bot_id,
+            type="OPEN",
+            exchange=exchange,
+            pair_token=token,
+            reference_price=ref,
+            user_ref_price=user_ref_price,
+            side=user_side_choice,
+            trade_candle=candle,
+            trade_amount=user_max_order_value,
+        )
 
-        result.append(edata)
+        logs.append(log)
+
+        codes.append(exit_code)
         # print(f"bigone_autotrade_open:: :: {edata}")
 
-    return result
+    return {
+        "status": "success",
+        "exit_code": codes,
+        "logs": logs,
+    }
 
 
 def biconomy_autotrade_close(candle):
     open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
         status="OPEN", candle=candle, bot__api_key__exchange__name="biconomy"
     )
+
+    codes, logs = [], []
 
     for order in open_orders:
 
@@ -547,14 +556,10 @@ def biconomy_autotrade_close(candle):
         apikey = order.bot.api_key.api_key
         apisec = order.bot.api_key.api_secret
         token = order.bot.pair_token
-
         order_id = order.id
 
-        # print(
-        #     f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
-        # )
-
         exit_code = biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token)
+        codes.append(exit_code)
 
         if exit_code["status"] == "success":
 
@@ -565,10 +570,28 @@ def biconomy_autotrade_close(candle):
         else:
 
             MarketMakerBotAutoTradeQueue.objects.filter(id=order_id).update(
-                status="CLOSE"
+                status="FAIL"
             )
 
-    return {"status": "success"}
+        log = autotrade_operation_log(
+            bot_id=order.bot.id,
+            type="CLOSE",
+            exchange=order.bot.api_key.exchange.name,
+            pair_token=token,
+            reference_price=order.exec_ref_price,
+            user_ref_price=order.bot.user_ref_price,
+            side=order.bot.side,
+            trade_candle=candle,
+            trade_amount=order.bot.trade_amount,
+        )
+
+        logs.append(log)
+
+    return {
+        "status": "success",
+        "exit_code": codes,
+        "logs": logs,
+    }
 
 
 def biconomy_market_creator_open(geneses_bot):
