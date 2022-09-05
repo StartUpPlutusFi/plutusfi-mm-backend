@@ -10,12 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 from datetime import timedelta
-
+from pathlib import Path
 import pymysql
 
 pymysql.install_as_MySQLdb()
-
-from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -34,12 +32,17 @@ ALLOWED_HOSTS = []
 # Application definition
 PROJECT_APPS = [
     "apps.account",
+    "apps.exchange",
+    "apps.autotrade",
+    "apps.bookfiller",
+    "apps.geneses",
 ]
 
 THIRDPARTY_APPS = [
     "rest_framework",
     "corsheaders",
     "drf_yasg",
+    "django_celery_beat",
 ]
 
 INSTALLED_APPS = (
@@ -92,8 +95,8 @@ WSGI_APPLICATION = "marketmaker.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.models.backends.sqlite3",
+        "NAME": BASE_DIR / "models.sqlite3",
     }
 }
 
@@ -164,3 +167,14 @@ SIMPLE_JWT = {
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
     "JTI_CLAIM": "jti",
 }
+
+
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+CELERY_TIMEZONE = "Australia/Tasmania"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
