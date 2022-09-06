@@ -12,7 +12,8 @@ def autotrade_operation_log(
     trade_candle,
     trade_amount,
 ):
-    try:
+    # try:
+    if True:
         edata = MarketMakerBotOrderHistory.objects.create(
             bot_id,
             type,
@@ -42,10 +43,10 @@ def autotrade_operation_log(
             }
         }
 
-    except Exception as err:
-
-        return {
-            "status": "error",
-            "code": str(err),
-        }
+    # except Exception as err:
+    #
+    #     return {
+    #         "status": "error",
+    #         "code": str(err),
+    #     }
 
