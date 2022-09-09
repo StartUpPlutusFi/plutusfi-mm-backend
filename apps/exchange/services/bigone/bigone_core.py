@@ -10,93 +10,14 @@ from apps.bookfiller.models.models import CancelOrderBookBot
 from apps.geneses.models.models import *
 
 
-def biconomy_configuration_set():
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-SITE-ID": "127",
+def cancel_one_order(apikey, apisec, code):
+    base_url = 'https://big.one/api/v3/viewer/order/cancel'
+    params = {
+        "order_id": int(code),
     }
-
-    API_KEY = "585f82c5-09cf-4288-a512-8bbe0f3067eb"
-    SECRET_KEY = "594d28ac-b379-4418-b5af-1ca4e089c4fd"
-
-    return {
-        "base_url": "https://www.biconomy.com/api/v1/private/trade/limit",
-        "api_key": API_KEY,
-        "api_secret": SECRET_KEY,
-        "headers": headers,
-    }
-
-
-def bigone_configuration_set():
-    API_KEY = "7654e9c4-03ad-11ed-b82e-1a11d26d1a6a"
-    SECRET_KEY = "3393DBF2490A73B14B5414DBCF6C9512A05F6D492A7CE1EB077D3EA139577303"
-
-    header = {
-        "alg": "HS256",
-        "typ": "JWT",
-    }
-
-    payload = {
-        "type": "OpenAPIV2",
-        "sub": API_KEY,
-        "nonce": str(time.time_ns()),
-        "recv_window": "50",
-    }
-
-    JWT = jwt.encode(
-        payload=payload,
-        headers=header,
-        key=SECRET_KEY,
-        algorithm="HS256",
-    )
-
-    return {
-        "base_url": "https://big.one/api/v3/",
-        "api_key": API_KEY,
-        "api_secret": SECRET_KEY,
-        "headers": "headers",
-        "jwt": JWT,
-    }
-
-
-def bigone_is_alive():
-    cfg = bigone_configuration_set()
-    url = "/ping"
-    response = requests.get(f"{cfg['base_url']}{url}")
-    return response.json()
-
-
-def bigone_order_book(asset_pair_name="EOS-BTC"):
-    cfg = bigone_configuration_set()
-    url = f"/asset_pairs/{asset_pair_name}/depth"
-    response = requests.get(f"{cfg['base_url']}{url}")
-    return response.json()
-
-
-def bigone_jwt_test():
-    cfg = bigone_configuration_set()
-    url = "/viewer/accounts"
-
-    response = requests.get(
-        f"{cfg['base_url']}{url}", headers={"Authorization": f"Bearer {cfg['jwt']}"}
-    )
-    return {
-        "code": response.status_code,
-        "json": response.json(),
-    }
-
-
-def bigone_view_acount():
-    cfg = bigone_configuration_set()
-    url = "/viewer/accounts"
-
-    response = requests.get(
-        f"{cfg['base_url']}{url}", headers={"Authorization": f"Bearer {cfg['jwt']}"}
-    )
-    return {
-        "code": response.status_code,
-        "json": response.json(),
-    }
+    json_params = json.dumps(params, indent=4)
+    r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
+    return r.json()
 
 
 def ping():
@@ -244,7 +165,7 @@ def get_budget(coin, side, apikey, apisec):
 
 
 def auto_trade_order_open(
-        user_ref_price,
+        exec_ref_price,
         user_side_choice,
         user_max_order_value,
         apikey,
@@ -261,7 +182,7 @@ def auto_trade_order_open(
     if order == 1:
 
         quantity, price = ref_value(
-            user_ref_price, user_side_choice, user_max_order_value, token
+            exec_ref_price, user_side_choice, user_max_order_value, token
         )
 
         exit_code = create_order(
@@ -274,6 +195,7 @@ def auto_trade_order_open(
             side="BID",
             status="OPEN",
             candle=candle,
+            exec_ref_price=exec_ref_price,
         )
 
         log.save()
@@ -281,7 +203,7 @@ def auto_trade_order_open(
     else:
 
         quantity, price = ref_value(
-            user_ref_price, user_side_choice, user_max_order_value, token
+            exec_ref_price, user_side_choice, user_max_order_value, token
         )
 
         exit_code = create_order(
@@ -295,6 +217,7 @@ def auto_trade_order_open(
             side="ASK",
             status="OPEN",
             candle=candle,
+            exec_ref_price=exec_ref_price,
         )
 
         log.save()
@@ -351,13 +274,18 @@ def bigone_autotrade_open(candle):
         apisec = data.api_key.api_secret
         user_side_choice = data.side
         user_max_order_value = data.trade_amount
-        token = data.pair_token.pair
+        token = data.pair_token
         user_ref_price = data.user_ref_price
         op = data.side
-        ref = check_ref_price(token)
+        ref = check_ref_price(token)[0]
+
+        if user_ref_price == 0:
+            exec_ref_price = ref
+        else:
+            exec_ref_price = user_ref_price
 
         exit_code = auto_trade_order_open(
-            user_ref_price,
+            exec_ref_price,
             user_side_choice,
             user_max_order_value,
             apikey,
@@ -369,8 +297,7 @@ def bigone_autotrade_open(candle):
         )
 
         edata = {
-            "reference_price": ref,
-            "user_ref_price": user_ref_price,
+            "exec_ref_price": exec_ref_price,
             "user_side_choice": user_side_choice,
             "user_max_order_value": user_max_order_value,
             "token": token,
@@ -431,23 +358,19 @@ def bigone_cancel_all_orders(bookbot):
     apisec = bookbot.api_key.api_secret
     bot_id = bookbot.id
 
-    base_url = 'https://big.one/api/v3/viewer/order/cancel'
-
     cancel_list = CancelOrderBookBot.objects.filter(
         order_status=True, bot_id=bot_id
     ).values("id", "bot", "cancel_order_id")
 
     for bot in cancel_list:
-        params = {
-            "order_id": int(bot["cancel_order_id"]),
-        }
-        json_params = json.dumps(params, indent=4)
-        r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
-        response_json = r.json()
+
+        response_json = cancel_one_order(apikey, apisec, bot["cancel_order_id"])
 
         try:
             if response_json['data']['state'] == "CANCELLED":
                 CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=False)
+            else:
+                CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=True)
 
         except Exception as err:
 
@@ -569,7 +492,6 @@ def bigone_init_bookbot(data):
 
 
 def bigone_market_creator_open(geneses_bot):
-
     user_order_size_bid = geneses_bot.user_order_size_bid
     user_order_size_ask = geneses_bot.user_order_size_ask
     token = geneses_bot.token
@@ -579,7 +501,6 @@ def bigone_market_creator_open(geneses_bot):
     spread_distance = geneses_bot.spread_distance
     gid = geneses_bot.id
 
-
     try:
         price_bid = market_value * (1 - (spread_distance / 100.0))
         quantity_bid = user_order_size_bid / price_bid
@@ -587,17 +508,17 @@ def bigone_market_creator_open(geneses_bot):
         exit_code_bid = create_order(price_bid, quantity_bid, "BID", token, apikey, apisec)
 
         GenesesQueue.objects.create(
-                geneses_id=gid, cancel_order_id=exit_code_bid['data']['id'], status="OPEN"
-            )
+            geneses_id=gid, cancel_code=exit_code_bid['data']['id'], status="OPEN"
+        )
 
         price_ask = market_value * ((spread_distance / 100.0) + 1.0)
         quantity_ask = user_order_size_ask / price_ask
         exit_code2 = f"The ask price will be {price_ask} and the ask quantity price will be {quantity_ask}"
-        exit_code_ask = create_order(price_bid, quantity_bid, "ASK", token, apikey, apisec)
+        exit_code_ask = create_order(price_ask, quantity_ask, "ASK", token, apikey, apisec)
 
         GenesesQueue.objects.create(
-                geneses_id=gid, cancel_order_id=exit_code_ask['data']['id'], status="OPEN"
-            )
+            geneses_id=gid, cancel_code=exit_code_ask['data']['id'], status="OPEN"
+        )
 
         return {
             "status": "success",
@@ -612,6 +533,9 @@ def bigone_market_creator_open(geneses_bot):
         }
 
     except Exception as e:
+        # response_json_bid = cancel_one_order(apikey, apisec, exit_code_bid['data']['id'])
+        # response_json_ask = cancel_one_order(apikey, apisec, exit_code_ask['data']['id'])
+
         return {
             "status": "error",
             "code": str(e),
@@ -621,35 +545,37 @@ def bigone_market_creator_open(geneses_bot):
 def bigone_market_creator_close(geneses_bot):
     responses = []
 
-    apikey = geneses_bot.geneses.api_key.api_key
-    apisec = geneses_bot.geneses.api_key.api_secret
+    apikey = geneses_bot.api_key.api_key
+    apisec = geneses_bot.api_key.api_secret
     gid_id = geneses_bot.id
-
-    base_url = 'https://big.one/api/v3/viewer/order/cancel'
 
     cancel_list = GenesesQueue.objects.filter(
         status="OPEN", geneses_id=gid_id
-    ).values("id", "bot", "cancel_order_id")
+    ).values("id", "geneses", "cancel_code")
 
     for reg in cancel_list:
-        params = {
-            "order_id": int(reg["cancel_code"]),
-        }
-        json_params = json.dumps(params, indent=4)
-        r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
-        response_json = r.json()
+
+        response_json = cancel_one_order(apikey, apisec, reg["cancel_code"])
 
         try:
             if response_json['data']['state'] == "CANCELLED":
-                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(status="DONE")
+                GenesesQueue.objects.filter(id=reg['id'], geneses_id=gid_id).update(status="DONE")
+            else:
+                GenesesQueue.objects.filter(id=reg['id'], geneses_id=gid_id).update(status="FAIL")
 
         except Exception as err:
 
             return {
-                "status": f"fail to cancel order {reg['cancel_code']}"
+                "status": f"fail to cancel order {reg['cancel_code']}",
+                "code": str(err),
             }
 
         responses.append({
             "status": response_json['data']['state'],
             "code": reg['cancel_code'],
         })
+
+    return {
+        "status": "done",
+        "result": responses,
+    }

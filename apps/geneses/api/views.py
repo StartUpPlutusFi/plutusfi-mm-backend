@@ -120,7 +120,8 @@ class GenesesCtrl(generics.UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
 
-        try:
+        # try:
+        if True:
             geneses_bot = self.get_queryset()
             bot_ex = geneses_bot.api_key.exchange.name
             # op_result = None
@@ -142,7 +143,7 @@ class GenesesCtrl(generics.UpdateAPIView):
                 ).update(status="START")
 
                 return Response({
-                    "status": "success",
+                    "status": "pass",
                     "op": op_result,
                     "bot": bot_ex,
                 })
@@ -163,11 +164,13 @@ class GenesesCtrl(generics.UpdateAPIView):
 
                 return Response({
                     "status": "success",
+                    "op": exit_codes,
+                    "bot": bot_ex,
                 })
 
-        except Exception as err:
-
-            return Response({
-                "status": "success",
-                "code": str(err),
-            })
+        # except Exception as err:
+        #
+        #     return Response({
+        #         "status": "fail",
+        #         "code": str(err),
+        #     })

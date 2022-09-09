@@ -9,6 +9,7 @@ import random
 import time
 
 from apps.autotrade.models.models import *
+from apps.exchange.services.common.MMlogs import mm_logs
 from apps.geneses.models.models import *
 from apps.bookfiller.models.models import *
 
@@ -25,7 +26,7 @@ def biconomy_default_header():
     }
 
 
-def check_ref_price(symbol, size=100):
+def check_ref_price_only(symbol, size=100):
     # @symbol -> pait_token
     # @size -> response size
 
@@ -388,7 +389,6 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
             price = random.uniform(ref_price, random_operation)
     else:
         ref_price = user_ref_price
-        ask = False
         price = ref_price
     total_order = random.randint(1, user_max_order_value)
 
@@ -404,7 +404,7 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
 
 
 def biconomy_auto_trade_order_open(
-        user_ref_price,
+        exec_ref_price,
         user_side_choice,
         token,
         user_max_order_value,
@@ -418,7 +418,7 @@ def biconomy_auto_trade_order_open(
     if op != 1 and op != 2:
         order = random.randint(1, 2)
 
-    quantity, price = ref_value(user_ref_price, user_side_choice, user_max_order_value, token)
+    quantity, price = ref_value(exec_ref_price, user_side_choice, user_max_order_value, token)
 
     # ask
     if order == 1:
@@ -431,6 +431,7 @@ def biconomy_auto_trade_order_open(
             side="ASK",
             status="OPEN",
             candle=candle,
+            exec_ref_price=exec_ref_price
         )
 
         log.save()
@@ -446,6 +447,7 @@ def biconomy_auto_trade_order_open(
             side="BID",
             status="OPEN",
             candle=candle,
+            exec_ref_price=exec_ref_price
         )
 
         log.save()
@@ -503,8 +505,13 @@ def biconomy_autotrade_open(candle):
         op = data.side
         ref = check_ref_price(token)
 
+        if user_ref_price == 0:
+            exec_ref_price = ref
+        else:
+            exec_ref_price = user_ref_price
+
         exit_code = biconomy_auto_trade_order_open(
-            user_ref_price,
+            exec_ref_price,
             user_side_choice,
             token,
             user_max_order_value,
@@ -515,9 +522,19 @@ def biconomy_autotrade_open(candle):
             op,
         )
 
+        exit_log = mm_logs(
+            bot_id,
+            token,
+            user_ref_price,
+            exec_ref_price,
+            user_side_choice,
+            candle,
+            user_max_order_value,
+            status="ACTIVE",
+        )
+
         edata = {
-            "reference_price": ref,
-            "user_ref_price": user_ref_price,
+            "exec_ref_price": exec_ref_price,
             "user_side_choice": user_side_choice,
             "user_max_order_value": user_max_order_value,
             "token": token,
@@ -526,6 +543,7 @@ def biconomy_autotrade_open(candle):
             "bot_id": bot_id,
             "candle": candle,
             "autotrade": exit_code,
+            "exit_log": exit_log,
         }
 
         result.append(edata)
@@ -568,11 +586,23 @@ def biconomy_autotrade_close(candle):
                 status="CLOSE"
             )
 
-    return {"status": "success"}
+        mm_logs(
+            bot_id=order.bot.id,
+            pair_token=token,
+            user_ref_price=0,
+            exec_ref_price=order.exec_ref_price,
+            side=side,
+            trade_candle=candle,
+            trade_amount=order.bot.trade_amount,
+            status="ACTIVE",
+        )
+
+    return {
+        "status": "success",
+    }
 
 
 def biconomy_market_creator_open(geneses_bot):
-
     user_order_size_bid = geneses_bot.user_order_size_bid
     user_order_size_ask = geneses_bot.user_order_size_ask
     token = geneses_bot.token
@@ -582,7 +612,7 @@ def biconomy_market_creator_open(geneses_bot):
     spread_distance = geneses_bot.spread_distance
     gid = geneses_bot.id
 
-    if True:
+    try:
         price_bid = market_value * (1 - (spread_distance / 100.0))
         quantity_bid = user_order_size_bid / price_bid
         exit_code1 = f"The bid price will be {price_bid} and the bid quantity price will be {quantity_bid}"
@@ -613,11 +643,11 @@ def biconomy_market_creator_open(geneses_bot):
             },
         }
 
-    # except Exception as e:
-    #     return {
-    #         "status": "error",
-    #         "code": str(e),
-    #     }
+    except Exception as e:
+        return {
+            "status": "error",
+            "code": str(e),
+        }
 
 
 def biconomy_market_creator_close(geneses_bot):
