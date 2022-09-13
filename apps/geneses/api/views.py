@@ -21,6 +21,7 @@ class GenesesList(generics.ListAPIView):
         return result
 
     def get(self, request, *args, **kwargs):
+        logging.info(self.get_queryset().values())
         return self.list(request, *args, **kwargs)
 
 
