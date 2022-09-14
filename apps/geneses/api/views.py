@@ -1,4 +1,6 @@
 # Create your views here.
+import json
+
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -8,6 +10,8 @@ from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
 from apps.geneses.serializers import *
 from apps.geneses.models.models import *
+
+logger = logging.getLogger('geneses')
 
 
 class GenesesList(generics.ListAPIView):
@@ -21,8 +25,16 @@ class GenesesList(generics.ListAPIView):
         return result
 
     def get(self, request, *args, **kwargs):
-        logging.info(self.get_queryset().values())
-        return self.list(request, *args, **kwargs)
+        try:
+            logging.info("ssss")
+            return self.list(request, *args, **kwargs)
+
+        except Exception as err:
+            logging.critical(str(err))
+            return Response({
+                "status": "error",
+                "code": "0",
+            })
 
 
 class GenesesAdd(generics.CreateAPIView):
@@ -121,8 +133,7 @@ class GenesesCtrl(generics.UpdateAPIView):
 
     def get(self, request, *args, **kwargs):
 
-        # try:
-        if True:
+        try:
             geneses_bot = self.get_queryset()
             bot_ex = geneses_bot.api_key.exchange.name
             # op_result = None
@@ -169,9 +180,9 @@ class GenesesCtrl(generics.UpdateAPIView):
                     "bot": bot_ex,
                 })
 
-        # except Exception as err:
-        #
-        #     return Response({
-        #         "status": "fail",
-        #         "code": str(err),
-        #     })
+        except Exception as err:
+
+            return Response({
+                "status": "fail",
+                "code": str(err),
+            })

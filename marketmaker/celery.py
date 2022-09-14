@@ -1,5 +1,6 @@
 import os
 import logging
+import logging.config
 from celery import Celery
 from celery.signals import after_setup_logger
 from celery.app import trace
@@ -18,14 +19,7 @@ for f in ['./broker/out', './broker/processed']:
 
 @after_setup_logger.connect
 def setup_loggers(logger, *args, **kwargs):
-    formatter = logging.Formatter("{\"time\": \"%(asctime)s\", \"func name\": \"[%(funcName)s]\", \"levelname\": \"%("
-                                  "levelname)s\", \"message\": \"%(message)s\"}")
-
-    # add filehandler
-    fh = logging.FileHandler('logs/autotrade.log')
-    fh.setLevel(logging.DEBUG)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    logging.config.fileConfig('./marketmaker/log_auto_trade.ini', disable_existing_loggers=False)
 
 
 app.autodiscover_tasks()
