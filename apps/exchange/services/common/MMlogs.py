@@ -1,6 +1,5 @@
 from apps.autotrade.models.models import MarketMakerBotOrderHistory
 
-
 def mm_logs(
         bot_id,
         pair_token,
@@ -25,7 +24,7 @@ def mm_logs(
 
         logs.save()
 
-        return {
+        edata = {
             "status": "success",
             "log": {
                     "bot_id": bot_id,
@@ -38,6 +37,8 @@ def mm_logs(
                     "status": status,
                 },
             }
+
+        logger.warning(edata)
 
     except Exception as err:
 

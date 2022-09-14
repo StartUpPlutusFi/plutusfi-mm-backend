@@ -1,3 +1,5 @@
+import logging
+
 from apps.autotrade.models.models import *
 
 import requests

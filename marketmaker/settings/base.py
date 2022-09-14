@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import pymysql
+import logging
+import logging.config
+from pythonjsonlogger import jsonlogger
 
 pymysql.install_as_MySQLdb()
 
@@ -46,16 +49,16 @@ THIRDPARTY_APPS = [
 ]
 
 INSTALLED_APPS = (
-    [
-        "django.contrib.admin",
-        "django.contrib.auth",
-        "django.contrib.contenttypes",
-        "django.contrib.sessions",
-        "django.contrib.messages",
-        "django.contrib.staticfiles",
-    ]
-    + THIRDPARTY_APPS
-    + PROJECT_APPS
+        [
+            "django.contrib.admin",
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.sessions",
+            "django.contrib.messages",
+            "django.contrib.staticfiles",
+        ]
+        + THIRDPARTY_APPS
+        + PROJECT_APPS
 )
 
 MIDDLEWARE = [
@@ -168,7 +171,6 @@ SIMPLE_JWT = {
     "JTI_CLAIM": "jti",
 }
 
-
 CELERY_BROKER_URL = "redis://localhost:6379"
 CELERY_RESULT_BACKEND = "redis://localhost:6379"
 CELERY_TIMEZONE = "Australia/Tasmania"
@@ -178,3 +180,7 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+
+logging.config.fileConfig('./marketmaker/log_root.ini', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
