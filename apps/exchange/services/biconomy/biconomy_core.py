@@ -253,7 +253,7 @@ def book_generator(
 ):
     price = 0.0
     if user_ref_price == 0:
-        price, ask = check_ref_price(token)
+        price, ask, smallest_ask, highest_bid = check_ref_price(token)
     else:
         price = user_ref_price
     multiplier = 1.02

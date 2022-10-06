@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.exchange.serializers import *
 from apps.exchange.helper.helper import status_code
 from apps.exchange.models.models import *
+from drf_yasg.utils import swagger_auto_schema
 
 
 # ----------------------------------------------------- #
@@ -51,6 +52,7 @@ class ExchangeDelete(generics.DestroyAPIView):
         result = Exchange.objects.filter(id=self.kwargs.get("pk"))
         return result
 
+    @swagger_auto_schema(operation_description="partial_update description override", responses={404: 'slug not found'})
     def delete(self, request, *args, **kwargs):
         try:
             return self.destroy(request, *args, **kwargs)
@@ -66,6 +68,7 @@ class ExchangeDelete(generics.DestroyAPIView):
 class ExchangeUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ExchangeSerializerUpdate
+    http_method_names = ("put",)
 
     def get_queryset(self):
         result = Exchange.objects.filter(id=self.kwargs.get("pk")).first()
@@ -149,6 +152,7 @@ class ApiKeyDelete(generics.DestroyAPIView):
 class ApiKeyUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializerUpdate
+    http_method_names = ("put",)
 
     def get_queryset(self):
         result = ApiKeys.objects.filter(
