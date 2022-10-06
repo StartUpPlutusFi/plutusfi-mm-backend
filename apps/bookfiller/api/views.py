@@ -82,6 +82,7 @@ class BookFillerDelete(generics.DestroyAPIView):
 class BookFillerUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerUpdate
+    http_method_names = ("put",)
 
     def get_queryset(self):
         result = BookFiller.objects.filter(
@@ -90,15 +91,32 @@ class BookFillerUpdate(generics.UpdateAPIView):
         return result
 
     def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
-        return Response(BookFillerSerializer(data).data)
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id'],
+            }
+            serializer = self.serializer_class(data=insert_data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            return Response(BookFillerSerializer(data).data)
+
+        except Exception as err:
+
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class BookFillerStatus(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatus
+    http_method_names = ("get",)
 
     def get_queryset(self):
         data = BookFiller.objects.filter(
@@ -113,6 +131,7 @@ class BookFillerStatus(generics.ListAPIView):
 class BookFillerCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatusUpdate
+    http_method_names = ("get",)
 
     def get_queryset(self):
         result = BookFiller.objects.filter(

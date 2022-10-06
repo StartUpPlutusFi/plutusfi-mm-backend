@@ -46,24 +46,25 @@ class BookFillerSerializerDetail(serializers.Serializer):
 class BookFillerSerializerUpdate(serializers.Serializer):
     name = serializers.CharField(required=True)
     side = serializers.CharField(required=True)
+    user_id = serializers.IntegerField(required=True)
     order_size = serializers.IntegerField(required=True)
+    api_key_id = serializers.IntegerField(required=True)
+    pair_token = serializers.CharField(required=True)
     number_of_orders = serializers.IntegerField(required=True)
     budget = serializers.FloatField(required=True)
     user_ref_price = serializers.FloatField(required=True)
-    status = serializers.CharField(required=True)
-    api_key_id = serializers.IntegerField(required=True)
 
     class Meta:
         fields = (
             "name",
             "side",
+            "user_id",
             "api_key_id",
             "pair_token",
             "order_size",
             "number_of_orders",
             "budget",
             "user_ref_price",
-            "status",
         )
 
     def update(self, instance, validation_data):
