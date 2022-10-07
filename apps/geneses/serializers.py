@@ -15,6 +15,7 @@ class GenesesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Geneses
         fields = (
+            "id",
             "user_id",
             "api_key_id",
             "name",

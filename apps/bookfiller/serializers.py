@@ -17,6 +17,7 @@ class BookFillerSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookFiller
         fields = (
+            "id",
             "name",
             "side",
             "api_key_id",

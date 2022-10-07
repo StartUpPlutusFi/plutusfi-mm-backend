@@ -26,6 +26,7 @@ class MMBotSerializerAdd(serializers.Serializer):
 
     class Meta:
         fields = (
+            "id",
             "name",
             "description",
             "api_key_id",
