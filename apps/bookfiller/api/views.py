@@ -51,8 +51,8 @@ class BookFillerAdd(generics.CreateAPIView):
             return Response(
                 {
                     "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
+                    "code": "invalid data or unauthorized api_key_id",
+                    "data": str(err)
                 }
             )
 
@@ -200,4 +200,4 @@ class BookFillerCtrl(generics.UpdateAPIView):
             })
 
         except Exception as e:
-            return Response({"status": "error", "check": str(e)})
+            return Response({"status": "error", "code": str(e)})

@@ -19,20 +19,20 @@ class TestBookFiller(TestCase):
 
         self.exchange = ExchangeFactory(name="ScamEx")
 
-        self.api = ApiKeyFactory(
+        self.apikey = ApiKeyFactory(
             description="test",
             user=self.user,
             api_key="0x0000000000",
             api_secret="0x11111111",
             default=False,
-            exchange_id=self.exchange.id,
+            exchange=self.exchange,
         )
 
         self.bookfiller = BookFillerFactory(
             name="TestBookFiller",
             side=2,
-            user_id=self.user.id,
-            api_key_id=self.api.id,
+            user=self.user,
+            api_key=self.apikey,
             pair_token="SCAM",
             order_size=300,
             number_of_orders=20,
@@ -45,29 +45,29 @@ class TestBookFiller(TestCase):
         data = {
             "name": "TestBookFiller",
             "side": 2,
-            "user_id": self.user.id,
-            "api_key_id": self.api.id,
+            "api_key_id": self.apikey.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
             "budget": 1,
-            "user_ref_price": 0,
-            "status": "STOP",
+            "user_ref_price": 110,
         }
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
+        print(data, request.json())
+
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["name"], data["name"])
-        self.assertEqual(request.json()["api_key"], data["api_key"])
-        self.assertEqual(request.json()["user"], data["user"])
+        # self.assertEqual(request.json()["data"], data["name"])
+        # self.assertEqual(request.json()["data"]["api_key"], data["api_key_id"])
+        # self.assertEqual(request.json()["data"]["user"], data["user"])
 
     def test_add_bookfiller_wth_wrong_parameter(self):
         data = {
             "invalid": "TEST_USDT_FK",
             "side": 2,
             "user": self.user.id,
-            "api_key": self.api.id,
+            "api_key_id": self.apikey.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
@@ -79,7 +79,7 @@ class TestBookFiller(TestCase):
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 2)
+        self.assertEqual(request.json()["code"], 'invalid data or unauthorized api_key_id')
 
     def test_get_all_bookfiller(self):
         data = BookFiller.objects.filter(user_id=self.user.id).values()
@@ -109,12 +109,14 @@ class TestBookFiller(TestCase):
 
     def test_update_bookfiller_with_invalid_parameter(self):
         update = {
-            "invl": "TEST_USDT_FK",
-            "api_key": "fake_key000000000000000",
-            "api_secret": "fake0000000000000000",
-            "description": "i have pain",
-            "default": False,
-            "exchange": self.exchange.id,
+            "name": "TestBookFiller",
+            "side": 400,
+            "api_key_id": self.apikey.id,
+            "pair_token": "SCAM",
+            "order_size": 300,
+            "number_of_orders": 20,
+            "budget": 1,
+            "user_ref_price": "110",
         }
 
         request = self.client.put(
@@ -137,13 +139,13 @@ class TestBookFiller(TestCase):
         self.assertDictEqual(request.json(), expected_response)
 
     def test_update_bookfiller(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.api.id).first()
+        data = BookFiller.objects.filter(user_id=self.user.id, id=self.apikey.id).first()
 
         update = {
             "name": "TestBookFiller Updated",
             "side": 2,
             "user_id": self.user.id,
-            "api_key_id": self.api.id,
+            "api_key_id": self.apikey.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
@@ -155,6 +157,8 @@ class TestBookFiller(TestCase):
         request = self.client.put(
             reverse("bookfiller:BookFillerUpdate", kwargs={"pk": data.id}), data=update
         )
+
+        print(request.json())
 
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()["name"], update["name"])
