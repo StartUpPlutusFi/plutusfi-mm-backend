@@ -111,24 +111,26 @@ class TestApiKeys(TestCase):
             api_key="0x0000000000",
             api_secret="0x11111111",
             default=False,
-            exchange_id=self.exchange.id,
+            exchange=self.exchange,
         )
 
     def test_add_apikey(self):
         data = {
             "description": "test",
-            "api_key": "fake_key000000000000000",
-            "api_secret": "fake0000000000000000",
-            "default": False,
-            "exchange_id": self.exchange.id,
+            "api_key": "DUMMY_KEY",
+            "api_secret": "DUMMY_KEY",
+            "default": True,
+            "user": self.user,
+            "exchange": self.exchange.id
         }
 
         request = self.client.post(reverse("exchange:ApiKeyAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json(), data["description"])
-        self.assertEqual(request.json()["api_key"], data["api_key"])
-        self.assertEqual(request.json()["user"], data["user"])
+        # self.assertEqual(request.json()["data"]["description"], data['description'])
+        self.assertEqual(request.json()["data"]["api_key"][0], data['api_key'])
+        self.assertEqual(request.json()["data"]["api_secret"][0], data['api_secret'])
+        self.assertEqual(request.json()["data"]["exchange"][0], str(data['exchange']))
 
     def test_add_apikey_wth_wrong_parameter(self):
         data = {
@@ -143,7 +145,7 @@ class TestApiKeys(TestCase):
         request = self.client.post(reverse("exchange:ApiKeyAdd"), data)
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 2)
+        self.assertEqual(request.json()["code"], "Invalid data")
 
     def test_get_all_api_keys(self):
 

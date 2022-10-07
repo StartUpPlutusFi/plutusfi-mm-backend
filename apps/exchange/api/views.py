@@ -110,7 +110,11 @@ class ApiKeyAdd(generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data)
 
-        return Response(status_code(2))
+        return Response({
+            "status": "error",
+            "code": "Invalid data",
+            "data": serializer.data
+        })
 
 
 class ApiKeyDetail(generics.ListAPIView):
