@@ -42,17 +42,41 @@ class GenesesAdd(generics.CreateAPIView):
     serializer_class = GenesesSerializer
 
     def post(self, request, *args, **kwargs):
-        insert_data = dict(request.data) | {
-            "user_id": request.user.id,
-        }
+        # insert_data = dict(request.data) | {
+        #     "user_id": request.user.id,
+        # }
+        #
+        # serializer = GenesesSerializer(data=insert_data)
+        #
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data)
+        #
+        # return Response(status_code(2))
+        #
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+            }
 
-        serializer = GenesesSerializer(data=insert_data)
+            serializer = GenesesSerializer(data=insert_data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
 
-        return Response(status_code(2))
+            return Response(status_code(5, f"Data is invalid {serializer}"))
+
+        except Exception as err:
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class GenesesDetail(generics.ListAPIView):

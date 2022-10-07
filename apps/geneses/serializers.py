@@ -11,12 +11,10 @@ class GenesesSerializer(serializers.ModelSerializer):
     user_order_size_ask = serializers.FloatField(required=True)
     market_value = serializers.FloatField(required=True)
     spread_distance = serializers.FloatField(required=True)
-    status = serializers.CharField(required=True)
 
     class Meta:
         model = Geneses
         fields = (
-            "id",
             "user_id",
             "api_key_id",
             "name",
@@ -25,7 +23,6 @@ class GenesesSerializer(serializers.ModelSerializer):
             "user_order_size_ask",
             "market_value",
             "spread_distance",
-            "status",
         )
 
 
