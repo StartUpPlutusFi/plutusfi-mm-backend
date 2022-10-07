@@ -42,17 +42,41 @@ class GenesesAdd(generics.CreateAPIView):
     serializer_class = GenesesSerializer
 
     def post(self, request, *args, **kwargs):
-        insert_data = dict(request.data) | {
-            "user_id": request.user.id,
-        }
+        # insert_data = dict(request.data) | {
+        #     "user_id": request.user.id,
+        # }
+        #
+        # serializer = GenesesSerializer(data=insert_data)
+        #
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data)
+        #
+        # return Response(status_code(2))
+        #
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+            }
 
-        serializer = GenesesSerializer(data=insert_data)
+            serializer = GenesesSerializer(data=insert_data)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
 
-        return Response(status_code(2))
+            return Response(status_code(5, f"Data is invalid {serializer}"))
+
+        except Exception as err:
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class GenesesDetail(generics.ListAPIView):
@@ -93,6 +117,7 @@ class GenesesDelete(generics.DestroyAPIView):
 class GenesesUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = GenesesSerializerUpdate
+    http_method_names = ("put",)
 
     def get_queryset(self):
         result = Geneses.objects.filter(
@@ -101,15 +126,32 @@ class GenesesUpdate(generics.UpdateAPIView):
         return result
 
     def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
-        return Response(GenesesSerializer(data).data)
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+            }
+            serializer = self.serializer_class(data=insert_data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            return Response(GenesesSerializer(data).data)
+
+        except Exception as err:
+
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class GenesesStatus(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = GenesesSerializerStatus
+    http_method_names = ("get",)
 
     def get_queryset(self):
         data = Geneses.objects.filter(
@@ -124,6 +166,7 @@ class GenesesStatus(generics.ListAPIView):
 class GenesesCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = GenesesSerializerStatusUpdate
+    http_method_names = ("get",)
 
     def get_queryset(self):
         result = Geneses.objects.filter(

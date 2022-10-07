@@ -13,7 +13,7 @@ class Geneses(models.Model):
     user_order_size_ask = models.FloatField(default=0)
     market_value = models.FloatField(default=0)
     spread_distance = models.FloatField(default=0)
-    status = models.CharField(max_length=64)
+    status = models.CharField(max_length=64, default="STOP")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

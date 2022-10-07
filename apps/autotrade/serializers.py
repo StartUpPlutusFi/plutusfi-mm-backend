@@ -16,35 +16,36 @@ class MMBotSerializerDetail(serializers.Serializer):
 class MMBotSerializerAdd(serializers.Serializer):
     name = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
-
-    user = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
-    api_key = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
-    pair_token = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
-
-    trade_qty_range_low = serializers.IntegerField(required=False)
-    trade_qty_range_high = serializers.IntegerField(required=False)
+    api_key_id = serializers.IntegerField(required=True)
+    user_id = serializers.IntegerField(required=True)
+    pair_token = serializers.CharField(required=False)
+    user_ref_price = serializers.FloatField(required=False)
     trade_candle = serializers.IntegerField(required=False)
     trade_amount = serializers.FloatField(required=False)
 
+
     class Meta:
         fields = (
+            "id",
             "name",
             "description",
-            "user",
-            "api_key",
+            "api_key_id",
+            "user_id",
             "pair_token",
-            "trade_qty_range_low",
-            "trade_qty_range_high",
+            "user_ref_price",
             "trade_candle",
             "trade_amount",
         )
+
+    def create(self, validated_data):
+        return MarketMakerBot.objects.create(**validated_data)
 
 
 class MMBotSerializerUpdate(serializers.Serializer):
     name = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
 
-    api_key = serializers.IntegerField(required=False)
+    api_key_id = serializers.IntegerField(required=False)
     pair_token = serializers.IntegerField(required=False)
 
     trade_qty_range_low = serializers.IntegerField(required=False)
@@ -56,7 +57,7 @@ class MMBotSerializerUpdate(serializers.Serializer):
         fields = (
             "name",
             "description",
-            "api_key",
+            "api_key_id",
             "pair_token",
             "trade_qty_range_low",
             "trade_qty_range_high",

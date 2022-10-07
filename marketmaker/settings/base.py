@@ -184,3 +184,17 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 logging.config.fileConfig('./marketmaker/log_root.ini', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
+
+SWAGGER_SETTINGS = {
+    'DEFAULT_INFO': 'marketmaker.urls.openapi_info',
+    'SECURITY_DEFINITIONS': {
+          # 'Basic': {
+          #       'type': 'basic'
+          # },
+          'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header'
+          }
+       }
+}

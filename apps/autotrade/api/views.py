@@ -4,6 +4,9 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view
+
 from apps.autotrade.serializers import *
 from apps.autotrade.models.models import *
 from apps.exchange.helper.helper import status_code
@@ -24,27 +27,33 @@ class MMbotList(generics.ListAPIView):
 
 class MMbotAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = MMBotSerializer
+    serializer_class = MMBotSerializerAdd
 
     def post(self, request, *args, **kwargs):
 
         try:
-            insert_data = dict(request.data) | {
-                "user": request.user.id
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
             }
 
-            # print(insert_data)
-            serializer = MMBotSerializer(data=insert_data)
+            serializer = MMBotSerializerAdd(data=insert_data)
 
-        except Exception as e:
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
 
-            return Response(str(e))
+            return Response(status_code(5, f"Data is invalid {serializer}"))
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-        return Response(status_code(5, f"Data is invalid {serializer}"))
+        except Exception as err:
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class MMbotDetail(generics.ListAPIView):
@@ -85,6 +94,7 @@ class MMbotDelete(generics.DestroyAPIView):
 class MMbotUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = MMBotSerializerUpdate
+    http_method_names = ("put",)
 
     def get_queryset(self):
         result = MarketMakerBot.objects.filter(
@@ -93,10 +103,27 @@ class MMbotUpdate(generics.UpdateAPIView):
         return result
 
     def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
-        return Response(MMBotSerializer(data).data)
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+
+            }
+            serializer = self.serializer_class(data=insert_data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            return Response(MMBotSerializer(data).data)
+
+        except Exception as err:
+
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class AutoTradeStatus(generics.ListAPIView):
@@ -116,6 +143,7 @@ class AutoTradeStatus(generics.ListAPIView):
 class AutoTradeBotCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = MMBotSerializerUpdate
+    http_method_names = ("get",)
 
     def get_queryset(self):
         try:

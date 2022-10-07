@@ -17,7 +17,7 @@ class ApiKeyFactory(factory.django.DjangoModelFactory):
     api_secret = factory.Faker("api_secret")
     description = factory.Faker("description")
     default = factory.Faker("default")
-    exchange_id = factory.Faker("exchange")
+    exchange = factory.Faker("exchange")
 
     class Meta:
         model = ApiKeys

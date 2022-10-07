@@ -31,17 +31,30 @@ class BookFillerAdd(generics.CreateAPIView):
     serializer_class = BookFillerSerializer
 
     def post(self, request, *args, **kwargs):
-        insert_data = dict(request.data) | {
-            "user_id": request.user.id,
-        }
 
-        serializer = BookFillerSerializer(data=insert_data)
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+            }
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            serializer = BookFillerSerializer(data=insert_data)
 
-        return Response(status_code(2))
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+
+            return Response(status_code(5, f"Data is invalid {serializer}"))
+
+        except Exception as err:
+            return Response(
+                {
+                    "status": "error",
+                    "code": "invalid data or unauthorized api_key_id",
+                    "data": str(err)
+                }
+            )
 
 
 class BookFillerDetail(generics.ListAPIView):
@@ -82,6 +95,7 @@ class BookFillerDelete(generics.DestroyAPIView):
 class BookFillerUpdate(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerUpdate
+    http_method_names = ("put",)
 
     def get_queryset(self):
         result = BookFiller.objects.filter(
@@ -90,15 +104,32 @@ class BookFillerUpdate(generics.UpdateAPIView):
         return result
 
     def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
-        return Response(BookFillerSerializer(data).data)
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id'],
+            }
+            serializer = self.serializer_class(data=insert_data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            return Response(BookFillerSerializer(data).data)
+
+        except Exception as err:
+
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "invalid data or unauthorized api_key_id",
+                    "code": str(err)
+                }
+            )
 
 
 class BookFillerStatus(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatus
+    http_method_names = ("get",)
 
     def get_queryset(self):
         data = BookFiller.objects.filter(
@@ -113,6 +144,7 @@ class BookFillerStatus(generics.ListAPIView):
 class BookFillerCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatusUpdate
+    http_method_names = ("get",)
 
     def get_queryset(self):
         result = BookFiller.objects.filter(
@@ -168,4 +200,4 @@ class BookFillerCtrl(generics.UpdateAPIView):
             })
 
         except Exception as e:
-            return Response({"status": "error", "check": str(e)})
+            return Response({"status": "error", "code": str(e)})

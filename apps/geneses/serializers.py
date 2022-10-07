@@ -11,7 +11,6 @@ class GenesesSerializer(serializers.ModelSerializer):
     user_order_size_ask = serializers.FloatField(required=True)
     market_value = serializers.FloatField(required=True)
     spread_distance = serializers.FloatField(required=True)
-    status = serializers.CharField(required=True)
 
     class Meta:
         model = Geneses
@@ -25,7 +24,6 @@ class GenesesSerializer(serializers.ModelSerializer):
             "user_order_size_ask",
             "market_value",
             "spread_distance",
-            "status",
         )
 
 
@@ -35,10 +33,26 @@ class GenesesSerializerDetail(serializers.Serializer):
 
 
 class GenesesSerializerUpdate(serializers.Serializer):
-    name = serializers.CharField(required=False)
+    api_key_id = serializers.IntegerField(required=True)
+    name = serializers.CharField(required=True)
+    token = serializers.CharField(required=True)
+    user_order_size_bid = serializers.FloatField(required=True)
+    user_order_size_ask = serializers.FloatField(required=True)
+    market_value = serializers.FloatField(required=True)
+    spread_distance = serializers.FloatField(required=True)
+
+
 
     class Meta:
-        fields = ("name",)
+        fields = (
+            "api_key_id",
+            "name",
+            "token",
+            "user_order_size_bid",
+            "user_order_size_ask",
+            "market_value",
+            "spread_distance",
+        )
 
     def update(self, instance, validation_data):
         try:
