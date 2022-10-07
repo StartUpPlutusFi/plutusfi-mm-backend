@@ -28,7 +28,6 @@ class MMBotSerializerAdd(serializers.Serializer):
         fields = (
             "name",
             "description",
-            "user",
             "api_key_id",
             "user_id",
             "pair_token",
