@@ -5,30 +5,27 @@ from apps.bookfiller.models.models import *
 class BookFillerSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=True)
     side = serializers.CharField(required=True)
-    user_id = serializers.IntegerField(required=True)
     order_size = serializers.IntegerField(required=True)
     api_key_id = serializers.IntegerField(required=True)
     pair_token = serializers.CharField(required=True)
     number_of_orders = serializers.IntegerField(required=True)
     budget = serializers.FloatField(required=True)
     user_ref_price = serializers.FloatField(required=True)
-    status = serializers.CharField(required=True)
+    user_id = serializers.IntegerField(required=True)
 
 
     class Meta:
         model = BookFiller
         fields = (
-            "id",
             "name",
             "side",
-            "user_id",
             "api_key_id",
+            "user_id",
             "pair_token",
             "order_size",
             "number_of_orders",
             "budget",
             "user_ref_price",
-            "status",
         )
 
 
