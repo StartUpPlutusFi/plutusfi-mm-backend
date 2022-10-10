@@ -6,6 +6,8 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from apps.exchange.helper.helper import status_code
+from rest_framework import status
+
 from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
 from apps.geneses.serializers import *
@@ -42,18 +44,6 @@ class GenesesAdd(generics.CreateAPIView):
     serializer_class = GenesesSerializer
 
     def post(self, request, *args, **kwargs):
-        # insert_data = dict(request.data) | {
-        #     "user_id": request.user.id,
-        # }
-        #
-        # serializer = GenesesSerializer(data=insert_data)
-        #
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data)
-        #
-        # return Response(status_code(2))
-        #
         try:
             res = dict(request.data)
             insert_data = res | {
@@ -104,14 +94,19 @@ class GenesesDelete(generics.DestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         try:
-            return self.destroy(request, *args, **kwargs)
-        except Exception as e:
-            return Response(
-                status_code(
-                    5,
-                    "Cannot delete a parent row, check foreign key constraint or if the object exist",
-                )
-            )
+            if self.destroy(request, *args, **kwargs):
+                return Response({
+                    "status": "done"
+                })
+            else:
+                return Response({
+                    "status": "data not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as err:
+            return Response({
+                "status": "data not found"
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 class GenesesUpdate(generics.UpdateAPIView):
