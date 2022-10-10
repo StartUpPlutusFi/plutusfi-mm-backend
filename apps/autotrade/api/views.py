@@ -3,6 +3,8 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
+
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -17,7 +19,9 @@ class MMbotList(generics.ListAPIView):
     serializer_class = MMBotSerializer
 
     def get_queryset(self):
-        result = MarketMakerBot.objects.filter(user=self.request.user)
+        result = MarketMakerBot.objects.filter(user=self.request.user).order_by(
+            "-created_at"
+        )
         return result
 
     def get(self, request, *args, **kwargs):
@@ -81,14 +85,19 @@ class MMbotDelete(generics.DestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         try:
-            return self.destroy(request, *args, **kwargs)
-        except Exception as e:
-            return Response(
-                status_code(
-                    5,
-                    "Cannot delete a parent row, check foreign key constraint or if the object exist",
-                )
-            )
+            if self.destroy(request, *args, **kwargs):
+                return Response({
+                        "status": "done"
+                })
+            else:
+                return Response({
+                    "status": "data not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as err:
+            return Response({
+                "status": "data not found"
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 class MMbotUpdate(generics.UpdateAPIView):

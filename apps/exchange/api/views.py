@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.exchange.serializers import *
 from apps.exchange.helper.helper import status_code
 from apps.exchange.models.models import *
-from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 
 
 # ----------------------------------------------------- #
@@ -14,7 +14,9 @@ class ExchangeList(generics.ListAPIView):
     serializer_class = ExchangeSerializer
 
     def get_queryset(self):
-        result = Exchange.objects.all()
+        result = Exchange.objects.all().order_by(
+            "-created_at"
+        )
         return result
 
     def get(self, request, *args, **kwargs):
@@ -52,17 +54,21 @@ class ExchangeDelete(generics.DestroyAPIView):
         result = Exchange.objects.filter(id=self.kwargs.get("pk"))
         return result
 
-    @swagger_auto_schema(operation_description="partial_update description override", responses={404: 'slug not found'})
     def delete(self, request, *args, **kwargs):
         try:
-            return self.destroy(request, *args, **kwargs)
-        except Exception as e:
-            return Response(
-                status_code(
-                    5,
-                    "Cannot delete a parent row, check foreign key constraint or if the object exist",
-                )
-            )
+            if self.destroy(request, *args, **kwargs):
+                return Response({
+                    "status": "done"
+                })
+            else:
+                return Response({
+                    "status": "data not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as err:
+            return Response({
+                "status": "data not found"
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 class ExchangeUpdate(generics.UpdateAPIView):
@@ -88,7 +94,9 @@ class ApiKeyList(generics.ListAPIView):
     serializer_class = ApiKeySerializer
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(user=self.request.user)
+        result = ApiKeys.objects.filter(user=self.request.user).order_by(
+            "-created_at"
+        )
         return result
 
     def get(self, request, *args, **kwargs):
@@ -143,14 +151,19 @@ class ApiKeyDelete(generics.DestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         try:
-            return self.destroy(request, *args, **kwargs)
-        except Exception as e:
-            return Response(
-                status_code(
-                    5,
-                    "Cannot delete a parent row, check foreign key constraint or if the object exist",
-                )
-            )
+            if self.destroy(request, *args, **kwargs):
+                return Response({
+                    "status": "done"
+                })
+            else:
+                return Response({
+                    "status": "data not found"
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as err:
+            return Response({
+                "status": "data not found"
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
 class ApiKeyUpdate(generics.UpdateAPIView):
