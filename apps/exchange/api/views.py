@@ -22,73 +22,9 @@ class ExchangeList(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-
-class ExchangeAdd(generics.CreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ExchangeSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = ExchangeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(status_code(2))
-
-
-class ExchangeDetail(generics.ListAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ExchangeSerializer
-
-    def get_queryset(self):
-        result = Exchange.objects.filter(id=self.kwargs.get("pk"))
-        return result
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-
-class ExchangeDelete(generics.DestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        result = Exchange.objects.filter(id=self.kwargs.get("pk"))
-        return result
-
-    def delete(self, request, *args, **kwargs):
-        try:
-            if self.destroy(request, *args, **kwargs):
-                return Response({
-                    "status": "done"
-                })
-            else:
-                return Response({
-                    "status": "data not found"
-                }, status=status.HTTP_404_NOT_FOUND)
-
-        except Exception as err:
-            return Response({
-                "status": "data not found"
-            }, status=status.HTTP_404_NOT_FOUND)
-
-
-class ExchangeUpdate(generics.UpdateAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = ExchangeSerializerUpdate
-    http_method_names = ("put",)
-
-    def get_queryset(self):
-        result = Exchange.objects.filter(id=self.kwargs.get("pk")).first()
-        return result
-
-    def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
-        return Response(ExchangeSerializer(data).data)
-
-
 # ----------------------------------------------------- #
-# ApiKey Views
+
+
 class ApiKeyList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializer
