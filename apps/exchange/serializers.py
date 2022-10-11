@@ -24,25 +24,29 @@ class ApiKeySerializer(serializers.ModelSerializer):
 
 
 class ApiKeySerializerDetail(serializers.Serializer):
+    id = serializers.IntegerField(required=True)
+    exchange = serializers.IntegerField(required=True)
+    description = serializers.CharField(required=True, allow_null=False)
+    default = serializers.BooleanField(required=True, allow_null=False)
+
     class Meta:
-        fields = ("id",)
+        model = ApiKeys
+        fields = (
+            "id",
+            "description",
+            "default",
+            # "exchange",
+        )
 
 
 class ApiKeySerializerUpdate(serializers.Serializer):
-    api_key = serializers.CharField(required=False)
-    api_secret = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
     default = serializers.BooleanField(required=False)
-    exchange = serializers.PrimaryKeyRelatedField(many=False, read_only=True)
 
     class Meta:
         fields = (
-            "name",
-            "api_key",
-            "api_secret",
             "description",
             "default",
-            "exchange",
         )
 
     def update(self, instance, validation_data):
