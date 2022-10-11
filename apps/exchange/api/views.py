@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from apps.exchange.serializers import *
-from apps.exchange.helper.helper import status_code
+from apps.exchange.helper.crypto_utils import EncryptationTool
 from apps.exchange.models.models import *
 from rest_framework import status
 
@@ -27,16 +27,23 @@ class ExchangeList(generics.ListAPIView):
 
 class ApiKeyList(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = ApiKeySerializer
+    serializer_class = ApiKeySerializerDetail
 
     def get_queryset(self):
-        result = ApiKeys.objects.filter(user=self.request.user).order_by(
-            "-created_at"
-        )
+        result = ApiKeys.objects.filter(
+            user=self.request.user
+        ).values("id", "description", "default", "exchange_id")
         return result
 
     def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+        try:
+            data = self.get_queryset()
+            return Response(data)
+        except Exception:
+
+            return Response({
+                "status": "data id not found"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ApiKeyAdd(generics.CreateAPIView):
@@ -46,18 +53,24 @@ class ApiKeyAdd(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         insert_data = dict(request.data) | {
             "user": request.user.id,
+            "api_key": EncryptationTool.encrypt(request.data['api_key'].encode()),
+            "api_secret": EncryptationTool.encrypt(request.data['api_secret'].encode()),
         }
 
         serializer = ApiKeySerializer(data=insert_data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response({
+                "id": serializer.data['id'],
+                "description": serializer.data['description'],
+                "default":  serializer.data['default'],
+                "exchange":  Exchange.objects.filter(id=serializer.data['exchange']).values("name").first()["name"],
+            })
 
         return Response({
             "status": "error",
             "code": "Invalid data",
-            "data": serializer.data
         })
 
 
@@ -68,11 +81,23 @@ class ApiKeyDetail(generics.ListAPIView):
     def get_queryset(self):
         result = ApiKeys.objects.filter(
             user=self.request.user, id=self.kwargs.get("pk")
-        )
+        ).values("id", "description", "default", "exchange_id").first()
         return result
 
     def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
+        try:
+            data = self.get_queryset()
+            data = data | {
+                "exchange": Exchange.objects.filter(id=data['exchange_id']).values("name").first()["name"],
+            }
+            return Response(data)
+
+        except Exception:
+
+            return Response({
+                "status": "data id not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class ApiKeyDelete(generics.DestroyAPIView):
@@ -114,7 +139,19 @@ class ApiKeyUpdate(generics.UpdateAPIView):
         return result
 
     def put(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.update(self.get_queryset(), validation_data=serializer.data)
-        return Response(ApiKeySerializer(data).data)
+        try:
+            res = dict(request.data)
+            insert_data = res | {
+                "user_id": request.user.id,
+            }
+            serializer = self.serializer_class(data=insert_data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            return Response(ApiKeySerializerUpdate(data).data)
+
+        except Exception as err:
+
+            return Response({
+                "status": "error",
+                "msg": "invalid data or unauthorized api_key_id",
+            }, status=status.HTTP_400_BAD_REQUEST)
