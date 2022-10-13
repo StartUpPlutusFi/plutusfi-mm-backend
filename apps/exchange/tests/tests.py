@@ -19,81 +19,11 @@ class TestExchanges(TestCase):
 
         self.exchange = ExchangeFactory(name="ScamEx")
 
-    def test_add_exchange(self):
-
-        data = {"name": "ScamEx"}
-        request = self.client.post(reverse("exchange:ExchangeAdd"), data)
-
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["name"], data["name"])
-
-    def test_add_exchange_wth_wrong_parameter(self):
-        data = {
-            "invalid_field": "fake_ex",
-        }
-
-        request = self.client.post(reverse("exchange:ExchangeAdd"), data)
-
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 2)
-
     def test_get_all_exchanges(self):
         data = list(Exchange.objects.filter().values())
         request = self.client.get(reverse("exchange:ExchangeList"))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(len(request.json()), len(data))
-
-    def test_detail_exchange(self):
-        data = Exchange.objects.filter(id=self.exchange.id).first()
-        request = self.client.get(
-            reverse("exchange:ExchangeDetail", kwargs={"pk": data.id})
-        )
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()[0]["name"], data.name)
-
-    def test_detail_exchange_with_invalid_id(self):
-        request = self.client.get(
-            reverse("exchange:ExchangeDetail", kwargs={"pk": 922337203685477580})
-        )
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json(), [])
-
-    def test_update_exchange_with_invalid_paramter(self):
-        update = {
-            "clover_fake": "New scam ex",
-        }
-
-        request = self.client.put(
-            reverse("exchange:ExchangeUpdate", kwargs={"pk": 922337203685477580}),
-            data=update,
-        )
-        self.assertEqual(request.status_code, 200)
-        self.assertIsNot(request.json(), [])
-
-    def test_update_exchange(self):
-        data = Exchange.objects.filter(id=self.exchange.id).first()
-
-        update = {"name": "NewScamExLmao"}
-
-        request = self.client.put(
-            reverse("exchange:ExchangeUpdate", kwargs={"pk": data.id}), data=update
-        )
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["name"], update["name"])
-
-    def test_delete_exchange(self):
-        data = Exchange.objects.filter(id=self.exchange.id).first()
-        request = self.client.delete(
-            reverse("exchange:ExchangeDelete", kwargs={"pk": data.id})
-        )
-        self.assertEqual(request.status_code, 204)
-
-    def test_delete_exchange_with_invalid_id(self):
-        request = self.client.delete(
-            reverse("exchange:ExchangeDelete", kwargs={"pk": 922337203685477580})
-        )
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 5)
 
 
 class TestApiKeys(TestCase):
@@ -224,14 +154,18 @@ class TestApiKeys(TestCase):
         request = self.client.delete(
             reverse("exchange:ApiKeyDelete", kwargs={"pk": data.id})
         )
-        self.assertEqual(request.status_code, 204)
+
+        expected = {'status': 'done'}
+
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json(), expected)
 
     def test_delete_apikey_with_invalid_id(self):
 
-        expected_response = {'code': 5, 'message': 'Cannot delete a parent row, check foreign key constraint or if the object exist'}
+        expected_response = {'status': 'data not found'}
 
         request = self.client.delete(
             reverse("exchange:ApiKeyDelete", kwargs={"pk": 922337203685477580})
         )
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 404)
         self.assertDictEqual(request.json(), expected_response)
