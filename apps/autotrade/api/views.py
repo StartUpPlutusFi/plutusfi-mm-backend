@@ -5,10 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import api_view
-
 from apps.autotrade.serializers import *
 from apps.autotrade.models.models import *
 from apps.exchange.helper.helper import status_code
@@ -48,7 +44,10 @@ class MMbotAdd(generics.CreateAPIView):
                 serializer.save()
                 return Response(serializer.data)
 
-            return Response(status_code(5, f"Data is invalid {serializer}"))
+            return Response(
+                status_code(5, f"Data is invalid {serializer}"),
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         except Exception as err:
             return Response(
@@ -56,7 +55,7 @@ class MMbotAdd(generics.CreateAPIView):
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
                     "code": str(err)
-                }
+                }, status=status.HTTP_400_BAD_REQUEST
             )
 
 
