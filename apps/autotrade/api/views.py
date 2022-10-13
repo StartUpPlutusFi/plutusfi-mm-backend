@@ -116,7 +116,6 @@ class MMbotUpdate(generics.UpdateAPIView):
             insert_data = res | {
                 "user_id": request.user.id,
                 "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
-
             }
             serializer = self.serializer_class(data=insert_data)
             serializer.is_valid(raise_exception=True)
@@ -130,7 +129,7 @@ class MMbotUpdate(generics.UpdateAPIView):
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
                     "code": str(err)
-                }
+                }, status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -159,8 +158,14 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
                 user=self.request.user, id=self.kwargs.get("pk")
             ).first()
             return result
-        except Exception:
-            return {}
+        except Exception as err:
+            return Response(
+                {
+                    "status": "error",
+                    "msg": "An unknown error at change bot status",
+                    "code": str(err)
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
 
     def get(self, request, *args, **kwargs):
         try:

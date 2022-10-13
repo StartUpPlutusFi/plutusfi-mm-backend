@@ -63,7 +63,7 @@ class TestAutoTrade(TestCase):
     def test_get_all_bots_by_user(self):
         data = MarketMakerBot.objects.filter(user_id=self.user.id).values()
         request = self.client.get(reverse("MMbot:MMbotList"))
-        print('test_get_all_bots_by_user', request.json())
+        # print('test_get_all_bots_by_user', request.json())
         self.assertEqual(request.status_code, 200)
         self.assertEqual(len(request.json()), len(data))
 
@@ -73,7 +73,7 @@ class TestAutoTrade(TestCase):
             reverse("MMbot:MMbotDetail", kwargs={"pk": data['id']})
         )
 
-        print('test_detail_bots_by_id', request.json(), data)
+        # print('test_detail_bots_by_id', request.json(), data)
 
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()[0]['id'], data['id'])
@@ -81,88 +81,91 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request.json()[0]['trade_candle'], data['trade_candle'])
         self.assertEqual(request.json()[0]['status'], data['status'])
 
+    def test_detail_bots_by_id_wth_invalid_id(self):
+        request = self.client.get(
+            reverse("MMbot:MMbotDetail", kwargs={"pk": 999999})
+        )
+
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json(), [])
 
     #
-    # def test_detail_bookfiller_with_invalid_id(self):
-    #     request = self.client.get(
-    #         reverse("bookfiller:BookFillerDetail", kwargs={"pk": 922337203685477580})
-    #     )
-    #
-    #     self.assertEqual(request.status_code, 200)
-    #     self.assertEqual(request.json(), [])
-    #
-    # def test_update_bookfiller_with_invalid_parameter(self):
-    #     update = {
-    #         "invl": "TEST_USDT_FK",
-    #         "api_key": "fake_key000000000000000",
-    #         "api_secret": "fake0000000000000000",
-    #         "description": "i have pain",
-    #         "default": False,
-    #         "exchange": self.exchange.id,
-    #     }
-    #
-    #     request = self.client.put(
-    #         reverse("bookfiller:BookFillerUpdate", kwargs={"pk": 922337203685477580}),
-    #         data=update,
-    #     )
-    #
-    #     expected_response = {
-    #         'api_key_id': ['This field is required.'],
-    #         'budget': ['This field is required.'],
-    #         'name': ['This field is required.'],
-    #         'number_of_orders': ['This field is required.'],
-    #         'order_size': ['This field is required.'],
-    #         'side': ['This field is required.'],
-    #         'status': ['This field is required.'],
-    #         'user_ref_price': ['This field is required.']
-    #     }
-    #
-    #     self.assertEqual(request.status_code, 400)
-    #     self.assertDictEqual(request.json(), expected_response)
-    #
-    # def test_update_bookfiller(self):
-    #     data = BookFiller.objects.filter(user_id=self.user.id, id=self.api.id).first()
-    #
-    #     update = {
-    #         "name": "TestBookFiller Updated",
-    #         "side": 2,
-    #         "user_id": self.user.id,
-    #         "api_key_id": self.api.id,
-    #         "pair_token": "SCAM",
-    #         "order_size": 300,
-    #         "number_of_orders": 20,
-    #         "budget": 1,
-    #         "user_ref_price": 0,
-    #         "status": "STOP",
-    #     }
-    #
-    #     request = self.client.put(
-    #         reverse("bookfiller:BookFillerUpdate", kwargs={"pk": data.id}), data=update
-    #     )
-    #
-    #     self.assertEqual(request.status_code, 200)
-    #     self.assertEqual(request.json()["name"], update["name"])
-    #     self.assertEqual(request.json()["side"], str(update["side"]))
-    #     self.assertEqual(request.json()["order_size"], update["order_size"])
-    #     self.assertEqual(request.json()["status"], update["status"])
-    #
-    #
-    # def test_delete_apikey(self):
-    #     data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
-    #     request = self.client.delete(
-    #         reverse("bookfiller:BookFillerDelete", kwargs={"pk": data.id})
-    #     )
-    #     self.assertEqual(request.status_code, 204)
-    #
-    # def test_delete_apikey_with_invalid_id(self):
-    #     expected_response = {'code': 5,
-    #                          'message': 'Cannot delete a parent row, check foreign key constraint or if the object exist'}
-    #
-    #     request = self.client.delete(
-    #         reverse("bookfiller:BookFillerDelete", kwargs={"pk": 922337203685477580})
-    #     )
-    #     self.assertEqual(request.status_code, 200)
-    #     self.assertDictEqual(request.json(), expected_response)
-    #
-    # # def test_bot_status(self):
-    #
+    def test_update_autotrade_with_right_parameter(self):
+        update = {
+            "name": "wwwww",
+            "description": "cass_bot",
+            "trade_qty_range_low": 10,
+            "trade_qty_range_high": 12,
+            "trade_candle": 1,
+            "trade_amount": 999.0,
+            "status": "0",
+            "api_key_id": 1
+        }
+
+        request = self.client.put(
+            reverse("MMbot:MMbotUpdate", kwargs={"pk": 922337203685477580}),
+            data=update,
+        )
+
+        expected_response = {
+            "name": "",
+            "description": "",
+            "pair_token": "",
+            "user_ref_price": None,
+            "side": None,
+            "trade_candle": None,
+            "trade_amount": None,
+            "status": "",
+            "user": None,
+            "api_key": None
+        }
+
+        self.assertEqual(request.status_code, 400)
+        self.assertDictEqual(request.json(), expected_response)
+
+    def test_update_autotrade_with_invalid_parameter(self):
+        update = {
+            "name": "wwwww",
+            "description": "cass_bot",
+            "trade_qty_range_low": 10,
+            "trade_qty_range_high": 12,
+            "trade_candle": 1,
+            "trade_amount": 999.0,
+            "status": "0",
+            "api_key_id": 1
+        }
+
+        request = self.client.put(
+            reverse("MMbot:MMbotUpdate", kwargs={"pk": 922337203685477580}),
+            data=update,
+        )
+
+        expected_response_error = {
+            'code': "Field 'id' expected a number but got ['1'].",
+            'msg': 'invalid data or unauthorized api_key_id',
+            'status': 'error'
+        }
+
+        self.assertEqual(request.status_code, 400)
+        self.assertDictEqual(request.json(), expected_response_error)
+
+    def test_delete_apikey(self):
+        data = MarketMakerBot.objects.filter(user_id=self.user.id, id=self.mmbot.id).first()
+        request = self.client.delete(
+            reverse("MMbot:MMbotDelete", kwargs={"pk": data.id})
+        )
+
+        expected_response = {'status': 'done'}
+
+        self.assertEqual(request.status_code, 200)
+        self.assertDictEqual(request.json(), expected_response)
+
+    def test_delete_apikey_with_invalid_id(self):
+        request = self.client.delete(
+            reverse("MMbot:MMbotDelete", kwargs={"pk": 922337203685477580})
+        )
+
+        expected_response = {'status': 'data not found'}
+
+        self.assertEqual(request.status_code, 404)
+        self.assertDictEqual(request.json(), expected_response)
