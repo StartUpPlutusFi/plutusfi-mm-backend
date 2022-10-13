@@ -15,7 +15,7 @@ class MMBotSerializerDetail(serializers.Serializer):
 
 class MMBotSerializerAdd(serializers.Serializer):
     name = serializers.CharField(required=False)
-    description = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_null=True)
     api_key_id = serializers.IntegerField(required=True)
     user_id = serializers.IntegerField(required=True)
     pair_token = serializers.CharField(required=False)
@@ -25,6 +25,7 @@ class MMBotSerializerAdd(serializers.Serializer):
 
 
     class Meta:
+        model = MarketMakerBot
         fields = (
             "id",
             "name",
@@ -55,6 +56,7 @@ class MMBotSerializerUpdate(serializers.Serializer):
 
     class Meta:
         fields = (
+            "id",
             "name",
             "description",
             "api_key_id",
