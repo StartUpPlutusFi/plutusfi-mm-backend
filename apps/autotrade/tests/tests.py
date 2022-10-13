@@ -30,71 +30,58 @@ class TestAutoTrade(TestCase):
         )
 
         self.mmbot = MMFactory(
-            name = "Name",
-            description = "description test",
-            pair_token = "DUMMY",
-            user_ref_price = 100,
-            side = 1,
-            trade_candle = 10,
-            trade_amount = 0.1,
-            api_key_id = self.api.id,
+            name="Name",
+            description="description test",
+            pair_token="DUMMY",
+            user_ref_price=100,
+            side=1,
+            trade_candle=10,
+            trade_amount=0.1,
+            api_key_id=self.api.id,
             user_id=self.user.id,
             status="STOP",
         )
 
-    def test_add_autotrade(self):
-        data = {
-            "name": "big auto",
-            "description": "test",
-            "pair_token": "AuV-USDT",
-            "user_ref_price": 0.0,
-            "side": 2,
-            "trade_candle": 1,
-            "trade_amount": 12.0,
-            "api_key_id": self.api.id
-        }
-
-        request = self.client.post(reverse("MMbot:MMbotAdd"), data)
-
-        self.assertEqual(request.status_code, 200)
-        self.assertDictEqual()
-
-    # def test_add_bookfiller_wth_wrong_parameter(self):
+    # def test_add_autotrade(self):
     #     data = {
-    #         "invalid": "TEST_USDT_FK",
+    #         "name": "big auto",
+    #         "description": "test",
+    #         "pair_token": "AuV-USDT",
+    #         "user_ref_price": 0.0,
     #         "side": 2,
-    #         "user": self.user.id,
-    #         "api_key": self.api.id,
-    #         "pair_token": "SCAM",
-    #         "order_size": 300,
-    #         "number_of_orders": 20,
-    #         "budget": 1,
-    #         "user_ref_price": 0,
-    #         "status": "STOP",
+    #         "trade_candle": 1,
+    #         "trade_amount": 12.0,
+    #         "api_key_id": self.api.id
     #     }
     #
-    #     request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
+    #     request = self.client.post(reverse("MMbot:MMbotAdd"), data)
+    #     print(request.json(), data)
     #
     #     self.assertEqual(request.status_code, 200)
-    #     self.assertEqual(request.json()["code"], 2)
-    #
-    # def test_get_all_bookfiller(self):
-    #     data = BookFiller.objects.filter(user_id=self.user.id).values()
-    #     request = self.client.get(reverse("bookfiller:BookFillerList"))
-    #     self.assertEqual(request.status_code, 200)
-    #     self.assertEqual(len(request.json()), len(data))
+    #     self.assertDictEqual(request.json(), {})
 
-    # def test_detail_bookfiller(self):
-    #     data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
-    #     request = self.client.get(
-    #         reverse("bookfiller:BookFillerDetail", kwargs={"pk": data.id})
-    #     )
-    #
-    #     self.assertEqual(request.status_code, 200)
-    #     self.assertEqual(request.json()[0]["name"], data.name)
-    #     self.assertEqual(request.json()[0]["side"], data.side)
-    #     # self.assertDictEqual(request.json()[0]["order_size"], data["order_size"])
-    #     # self.assertDictEqual(request.json()[0]["status"], data["status"])
+    def test_get_all_bots_by_user(self):
+        data = MarketMakerBot.objects.filter(user_id=self.user.id).values()
+        request = self.client.get(reverse("MMbot:MMbotList"))
+        print('test_get_all_bots_by_user', request.json())
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(len(request.json()), len(data))
+
+    def test_detail_bots_by_id(self):
+        data = MarketMakerBot.objects.filter(user_id=self.user.id, id=self.mmbot.id).values().first()
+        request = self.client.get(
+            reverse("MMbot:MMbotDetail", kwargs={"pk": data['id']})
+        )
+
+        print('test_detail_bots_by_id', request.json(), data)
+
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json()[0]['id'], data['id'])
+        self.assertEqual(request.json()[0]['pair_token'], data['pair_token'])
+        self.assertEqual(request.json()[0]['trade_candle'], data['trade_candle'])
+        self.assertEqual(request.json()[0]['status'], data['status'])
+
+
     #
     # def test_detail_bookfiller_with_invalid_id(self):
     #     request = self.client.get(
@@ -179,4 +166,3 @@ class TestAutoTrade(TestCase):
     #
     # # def test_bot_status(self):
     #
-

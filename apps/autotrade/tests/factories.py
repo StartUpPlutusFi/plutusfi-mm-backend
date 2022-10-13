@@ -1,6 +1,5 @@
-import factory
-
 from apps.autotrade.models.models import MarketMakerBot
+import factory
 
 
 class MMFactory(factory.django.DjangoModelFactory):
