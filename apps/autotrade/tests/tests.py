@@ -42,30 +42,32 @@ class TestAutoTrade(TestCase):
             status="STOP",
         )
 
-    # def test_add_autotrade(self):
-    #     data = {
-    #         "name": "big auto",
-    #         "description": "test",
-    #         "pair_token": "AuV-USDT",
-    #         "user_ref_price": 0.0,
-    #         "side": 2,
-    #         "trade_candle": 1,
-    #         "trade_amount": 12.0,
-    #         "api_key_id": self.api.id
-    #     }
-    #
-    #     request = self.client.post(reverse("MMbot:MMbotAdd"), data)
-    #     print(request.json(), data)
-    #
-    #     self.assertEqual(request.status_code, 200)
-    #     self.assertDictEqual(request.json(), {})
+    def test_add_autotrade(self):
+        data = {
+            "name": "big auto",
+            "description": "test",
+            "pair_token": "AuV-USDT",
+            "user_ref_price": 0.0,
+            "side": 2,
+            "trade_candle": 1,
+            "trade_amount": 12.0,
+            "api_key_id": self.api.id
+        }
+
+        request = self.client.post(reverse("MMbot:MMbotAdd"), data)
+        print(request.json(), data)
+
+        self.assertEqual(request.status_code, 200)
+        self.assertDictEqual(request.json(), {})
 
     def test_get_all_bots_by_user(self):
         data = MarketMakerBot.objects.filter(user_id=self.user.id).values()
         request = self.client.get(reverse("MMbot:MMbotList"))
-        # print('test_get_all_bots_by_user', request.json())
+
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(len(request.json()), len(data))
+        self.assertEqual(request.json()[0]['id'], data[0]['id'])
+        self.assertEqual(request.json()[0]['description'], data[0]['description'])
+        self.assertEqual(request.json()[0]['side'], data[0]['side'])
 
     def test_detail_bots_by_id(self):
         data = MarketMakerBot.objects.filter(user_id=self.user.id, id=self.mmbot.id).values().first()

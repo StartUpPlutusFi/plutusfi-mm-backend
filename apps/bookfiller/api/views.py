@@ -55,7 +55,7 @@ class BookFillerAdd(generics.CreateAPIView):
                     "status": "error",
                     "code": "invalid data or unauthorized api_key_id",
                     "data": str(err)
-                }
+                },  status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -129,7 +129,7 @@ class BookFillerUpdate(generics.UpdateAPIView):
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
                     "code": str(err)
-                }
+                },  status=status.HTTP_400_BAD_REQUEST
             )
 
 
