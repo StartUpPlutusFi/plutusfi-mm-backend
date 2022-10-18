@@ -185,7 +185,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     "status": "success",
                     "op": op_result,
                     "bot": bot_ex,
-                })
+                }, status=status.HTTP_202_ACCEPTED)
 
             else:
 
@@ -204,7 +204,10 @@ class BookFillerCtrl(generics.UpdateAPIView):
             return Response({
                 "status": "success",
                 "exit_codes": exit_codes,
-            })
+            }, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
-            return Response({"status": "error", "code": str(e)})
+            return Response(
+                {"status": "error", "code": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

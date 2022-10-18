@@ -187,7 +187,7 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
                 {
                     "status": "success",
                     "auto_trade_bot_status": exit_code,
-                }
+                }, status=status.HTTP_202_ACCEPTED
             )
 
         except Exception as e:
@@ -195,5 +195,6 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
                 {
                     "status": "error",
                     "code": str(e),
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

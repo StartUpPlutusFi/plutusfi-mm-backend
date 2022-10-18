@@ -9,6 +9,7 @@ import jwt
 import json
 
 from apps.bookfiller.models.models import CancelOrderBookBot
+from apps.exchange.helper.crypto_utils import EncryptationTool
 from apps.geneses.models.models import *
 
 
@@ -272,8 +273,8 @@ def bigone_autotrade_open(candle):
 
     for data in bots:
         bot_id = data.id
-        apikey = data.api_key.api_key
-        apisec = data.api_key.api_secret
+        apikey = EncryptationTool.read(data.api_key.api_key)
+        apisec = EncryptationTool.read(data.api_key.api_secret)
         user_side_choice = data.side
         user_max_order_value = data.trade_amount
         token = data.pair_token
@@ -326,8 +327,8 @@ def bigone_autotrade_close(candle):
         price = order.price
         quantity = order.quantity
         side = order.side
-        apikey = order.bot.api_key.api_key
-        apisec = order.bot.api_key.api_secret
+        apikey = EncryptationTool.read(order.bot.api_key.api_key)
+        apisec = EncryptationTool.read(order.bot.api_key.api_secret)
         token = order.bot.pair_token
 
         order_id = order.id
@@ -356,8 +357,8 @@ def bigone_autotrade_close(candle):
 def bigone_cancel_all_orders(bookbot):
     responses = []
 
-    apikey = bookbot.api_key.api_key
-    apisec = bookbot.api_key.api_secret
+    apikey = EncryptationTool.read(bookbot.api_key.api_key)
+    apisec = EncryptationTool.read(bookbot.api_key.api_secret)
     bot_id = bookbot.id
 
     cancel_list = CancelOrderBookBot.objects.filter(
@@ -464,8 +465,8 @@ def bigone_init_bookbot(data):
     user_ref_price = data.user_ref_price
     user_max_order_value = data.order_size
     user_side_choice = data.side
-    api_key = data.api_key.api_key
-    api_sec = data.api_key.api_secret
+    api_key = EncryptationTool.read(data.api_key.api_key)
+    api_sec = EncryptationTool.read(data.api_key.api_secret)
     bookbot_id = data.id
 
     if user_side_choice == "ASK":
@@ -497,8 +498,8 @@ def bigone_market_creator_open(geneses_bot):
     user_order_size_bid = geneses_bot.user_order_size_bid
     user_order_size_ask = geneses_bot.user_order_size_ask
     token = geneses_bot.token
-    apikey = geneses_bot.api_key.api_key
-    apisec = geneses_bot.api_key.api_secret
+    apikey = EncryptationTool.read(geneses_bot.api_key.api_key)
+    apisec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     market_value = geneses_bot.market_value
     spread_distance = geneses_bot.spread_distance
     gid = geneses_bot.id
@@ -547,8 +548,8 @@ def bigone_market_creator_open(geneses_bot):
 def bigone_market_creator_close(geneses_bot):
     responses = []
 
-    apikey = geneses_bot.api_key.api_key
-    apisec = geneses_bot.api_key.api_secret
+    apikey = EncryptationTool.read(geneses_bot.api_key.api_key)
+    apisec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     gid_id = geneses_bot.id
 
     cancel_list = GenesesQueue.objects.filter(

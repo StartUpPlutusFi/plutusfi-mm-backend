@@ -28,15 +28,15 @@ class GenesesList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            logging.info("ssss")
+            logging.info("normal process")
             return self.list(request, *args, **kwargs)
 
         except Exception as err:
             logging.critical(str(err))
             return Response({
                 "status": "error",
-                "code": "0",
-            })
+                "code": str(err),
+            },  status=status.HTTP_400_BAD_REQUEST)
 
 
 class GenesesAdd(generics.CreateAPIView):
@@ -57,7 +57,10 @@ class GenesesAdd(generics.CreateAPIView):
                 serializer.save()
                 return Response(serializer.data)
 
-            return Response(status_code(5, f"Data is invalid {serializer}"))
+            return Response( {
+                    "status": "error",
+                    "msg": serializer,
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as err:
             return Response(
@@ -65,7 +68,7 @@ class GenesesAdd(generics.CreateAPIView):
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
                     "code": str(err)
-                }
+                }, status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -139,7 +142,7 @@ class GenesesUpdate(generics.UpdateAPIView):
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
                     "code": str(err)
-                }
+                },
             )
 
 
@@ -196,7 +199,7 @@ class GenesesCtrl(generics.UpdateAPIView):
                     "status": "pass",
                     "op": op_result,
                     "bot": bot_ex,
-                })
+                }, status=status.HTTP_202_ACCEPTED)
 
             else:
 
@@ -216,11 +219,11 @@ class GenesesCtrl(generics.UpdateAPIView):
                     "status": "success",
                     "op": exit_codes,
                     "bot": bot_ex,
-                })
+                }, status=status.HTTP_202_ACCEPTED)
 
         except Exception as err:
 
             return Response({
                 "status": "fail",
                 "code": str(err),
-            })
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

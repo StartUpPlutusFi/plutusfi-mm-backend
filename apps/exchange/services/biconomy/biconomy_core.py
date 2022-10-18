@@ -9,6 +9,7 @@ import random
 import time
 
 from apps.autotrade.models.models import *
+from apps.exchange.helper.crypto_utils import EncryptationTool
 from apps.exchange.services.common.MMlogs import mm_logs
 from apps.geneses.models.models import *
 from apps.bookfiller.models.models import *
@@ -300,10 +301,10 @@ def biconomy_cancel_all_orders(bookbot):
 
     for bot in cancel_list:
         params = {
-            "api_key": bookbot.api_key.api_key,
+            "api_key": EncryptationTool.read(bookbot.api_key.api_key),
             "market": bookbot.pair_token,
             "order_id": bot["cancel_order_id"],
-            "secret_key": bookbot.api_key.api_secret,
+            "secret_key": EncryptationTool.read(bookbot.api_key.api_secret),
         }
 
         query_string = urlencode(params)
@@ -326,8 +327,8 @@ def biconomy_init_bookbot(data):
     user_ref_price = data.user_ref_price
     user_max_order_value = data.order_size
     user_side_choice = data.side
-    api_key = data.api_key.api_key
-    api_sec = data.api_key.api_secret
+    api_key = EncryptationTool.read(data.api_key.api_key)
+    api_sec = EncryptationTool.read(data.api_key.api_secret)
     bookbot_id = data.id
 
     # salva id da ordem criada
@@ -496,8 +497,8 @@ def biconomy_autotrade_open(candle):
 
     for data in bots:
         bot_id = data.id
-        apikey = data.api_key.api_key
-        apisec = data.api_key.api_secret
+        apikey = EncryptationTool.read(data.api_key.api_key)
+        apisec = EncryptationTool.read(data.api_key.api_secret)
         user_side_choice = data.side
         user_max_order_value = data.trade_amount
         token = data.pair_token
@@ -562,8 +563,8 @@ def biconomy_autotrade_close(candle):
         price = order.price
         quantity = order.quantity
         side = order.side
-        apikey = order.bot.api_key.api_key
-        apisec = order.bot.api_key.api_secret
+        apikey = EncryptationTool.read(order.bot.api_key.api_key)
+        apisec = EncryptationTool.read(order.bot.api_key.api_secret)
         token = order.bot.pair_token
 
         order_id = order.id
@@ -606,8 +607,8 @@ def biconomy_market_creator_open(geneses_bot):
     user_order_size_bid = geneses_bot.user_order_size_bid
     user_order_size_ask = geneses_bot.user_order_size_ask
     token = geneses_bot.token
-    apikey = geneses_bot.api_key.api_key
-    apisec = geneses_bot.api_key.api_secret
+    apikey = EncryptationTool.read(geneses_bot.api_key.api_key)
+    apisec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     market_value = geneses_bot.market_value
     spread_distance = geneses_bot.spread_distance
     gid = geneses_bot.id
@@ -653,8 +654,8 @@ def biconomy_market_creator_open(geneses_bot):
 def biconomy_market_creator_close(geneses_bot):
     responses = []
 
-    api_key = geneses_bot.api_key.api_key
-    api_sec = geneses_bot.api_key.api_secret
+    api_key = EncryptationTool.read(geneses_bot.api_key.api_key)
+    api_sec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     gid_id = geneses_bot.id
 
     cancel_list = GenesesQueue.objects.filter(
