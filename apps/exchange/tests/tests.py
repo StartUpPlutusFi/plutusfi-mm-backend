@@ -62,13 +62,14 @@ class TestApiKeys(TestCase):
             "api_secret": "fake0000000000000000",
             "description": "i have pain",
             "default": False,
-            "exchange": self.exchange.id,
+            "exchange": 333,
         }
 
         request = self.client.post(reverse("exchange:ApiKeyAdd"), data)
 
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], "Invalid data")
+        self.assertEqual(request.status_code, 400)
+        data = request.json()
+        self.assertEqual(data["exchange"][0], 'Invalid pk "333" - object does not exist.')
 
     def test_get_all_api_keys(self):
         data = len(ApiKeys.objects.filter(user_id=self.user.id).values())
