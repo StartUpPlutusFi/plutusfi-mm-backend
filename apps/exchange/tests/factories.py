@@ -4,8 +4,6 @@ from apps.exchange.models.models import Exchange, ApiKeys
 
 
 class ExchangeFactory(factory.django.DjangoModelFactory):
-    name = factory.Faker("name")
-
     class Meta:
         model = Exchange
 
