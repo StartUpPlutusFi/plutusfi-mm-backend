@@ -161,13 +161,11 @@ class TestBookFiller(TestCase):
         self.assertEqual(request.status_code, 204)
 
     def test_delete_apikey_with_invalid_id(self):
-        expected_response = {'code': 5,
-                             'message': 'Cannot delete a parent row, check foreign key constraint or if the object exist'}
+        expected_response = {'status': 'data not found'}
 
         request = self.client.delete(
             reverse("bookfiller:BookFillerDelete", kwargs={"pk": 922337203685477580})
         )
-        self.assertEqual(request.status_code, 200)
-        self.assertDictEqual(request.json(), expected_response)
-
-    # def test_bot_status(self):
+        self.assertEqual(request.status_code, 404)
+        data = request.json()
+        self.assertDictEqual(data, expected_response)
