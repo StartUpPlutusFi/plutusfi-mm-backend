@@ -5,9 +5,7 @@ from django.shortcuts import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from apps.account.tests.factories import UserFactory
 from apps.bookfiller.tests.factories import *
-from apps.bookfiller.models.models import *
 from apps.exchange.tests.factories import *
 
 
@@ -17,18 +15,15 @@ class TestBookFiller(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.exchange = ExchangeFactory(name="ScamEx")
+        self.exchange = ExchangeFactory.create()
 
-        self.apikey = ApiKeyFactory(
+        self.apikey = ApiKeyFactory.create(
             description="test",
             user=self.user,
-            api_key="0x0000000000",
-            api_secret="0x11111111",
-            default=False,
             exchange=self.exchange,
         )
 
-        self.bookfiller = BookFillerFactory(
+        self.bookfiller = BookFillerFactory.create(
             name="TestBookFiller",
             side=2,
             user=self.user,
@@ -55,12 +50,7 @@ class TestBookFiller(TestCase):
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
-        print(data, request.json())
-
         self.assertEqual(request.status_code, 200)
-        # self.assertEqual(request.json()["data"], data["name"])
-        # self.assertEqual(request.json()["data"]["api_key"], data["api_key_id"])
-        # self.assertEqual(request.json()["data"]["user"], data["user"])
 
     def test_add_bookfiller_wth_wrong_parameter(self):
         data = {
@@ -139,8 +129,6 @@ class TestBookFiller(TestCase):
         self.assertDictEqual(request.json(), expected_response)
 
     def test_update_bookfiller(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.apikey.id).first()
-
         update = {
             "name": "TestBookFiller Updated",
             "side": 2,
@@ -155,17 +143,13 @@ class TestBookFiller(TestCase):
         }
 
         request = self.client.put(
-            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": data.id}), data=update
+            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": self.bookfiller.id}), data=update
         )
-
-        print(request.json())
 
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()["name"], update["name"])
         self.assertEqual(request.json()["side"], str(update["side"]))
         self.assertEqual(request.json()["order_size"], update["order_size"])
-        self.assertEqual(request.json()["status"], update["status"])
-
 
     def test_delete_apikey(self):
         data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
@@ -185,5 +169,3 @@ class TestBookFiller(TestCase):
         self.assertDictEqual(request.json(), expected_response)
 
     # def test_bot_status(self):
-
-
