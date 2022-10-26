@@ -1,17 +1,12 @@
-from rest_framework.response import Response
+import django.db.utils
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-
-from apps.exchange.helper.helper import status_code
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.bookfiller.serializers import *
-from apps.bookfiller.models.models import *
-
-from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
-
-import time
+from apps.exchange.services.bigone.bigone_core import *
 
 
 class BookFillerList(generics.ListAPIView):
@@ -33,30 +28,19 @@ class BookFillerAdd(generics.CreateAPIView):
     serializer_class = BookFillerSerializer
 
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
-            }
-
-            serializer = BookFillerSerializer(data=insert_data)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-
-            return Response(status_code(5, f"Data is invalid {serializer}"))
-
-        except Exception as err:
-            return Response(
-                {
-                    "status": "error",
-                    "code": "invalid data or unauthorized api_key_id",
-                    "data": str(err)
-                }
-            )
+            obj: BookFiller = serializer.save()
+            return Response(BookFillerSerializerResponse(obj).data, 201)
+        except django.db.utils.IntegrityError as err:
+            if "FOREIGN KEY constraint failed" in err.args:
+                return Response({"error": True, "message": "ID entered is invalid, please check and try again."}, 500)
+            return Response({
+                "error": True,
+                "message": f"An error occurred: {err.args}"
+            })
 
 
 class BookFillerDetail(generics.ListAPIView):
