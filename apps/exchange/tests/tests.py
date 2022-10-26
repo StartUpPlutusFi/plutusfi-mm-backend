@@ -140,11 +140,10 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.json()["exchange"], update["exchange"])
 
     def test_delete_apikey(self):
-        data = ApiKeys.objects.filter(user_id=self.user.id, id=self.api.id).first()
         request = self.client.delete(
-            reverse("exchange:ApiKeyDelete", kwargs={"pk": data.id})
+            reverse("exchange:ApiKeyDelete", kwargs={"pk": self.api.id})
         )
-        self.assertEqual(request.status_code, 204)
+        self.assertEqual(request.status_code, 200)
 
     def test_delete_apikey_with_invalid_id(self):
         expected_response = {'code': 5,
