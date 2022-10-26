@@ -81,7 +81,9 @@ class TestAutoTrade(TestCase):
         self.assertEqual(len(request.json()), len(data))
 
     def test_detail_bookfiller(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
+        data = BookFiller.objects.filter(
+            user_id=self.user.id, id=self.bookfiller.id
+        ).first()
         request = self.client.get(
             reverse("bookfiller:BookFillerDetail", kwargs={"pk": data.id})
         )
@@ -116,14 +118,20 @@ class TestAutoTrade(TestCase):
         self.assertEqual(response.status_code, 500)
         data = response.json()
 
-        expected_response = {'error': True,
-                             'errors': {'name': 'This field is required.', 'side': 'This field is required.',
-                                        'user_id': 'This field is required.', 'order_size': 'This field is required.',
-                                        'api_key_id': 'This field is required.',
-                                        'pair_token': 'This field is required.',
-                                        'number_of_orders': 'This field is required.',
-                                        'budget': 'This field is required.',
-                                        'user_ref_price': 'This field is required.'}}
+        expected_response = {
+            "error": True,
+            "errors": {
+                "name": "This field is required.",
+                "side": "This field is required.",
+                "user_id": "This field is required.",
+                "order_size": "This field is required.",
+                "api_key_id": "This field is required.",
+                "pair_token": "This field is required.",
+                "number_of_orders": "This field is required.",
+                "budget": "This field is required.",
+                "user_ref_price": "This field is required.",
+            },
+        }
 
         self.assertDictEqual(data, expected_response)
 
@@ -142,7 +150,8 @@ class TestAutoTrade(TestCase):
         }
 
         request = self.client.put(
-            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": self.bookfiller.id}), data=update
+            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": self.bookfiller.id}),
+            data=update,
         )
 
         self.assertEqual(request.status_code, 200)
@@ -158,7 +167,7 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request.status_code, 204)
 
     def test_delete_apikey_with_invalid_id(self):
-        expected_response = {'status': 'data not found'}
+        expected_response = {"status": "data not found"}
 
         request = self.client.delete(
             reverse("bookfiller:BookFillerDelete", kwargs={"pk": 922337203685477580})

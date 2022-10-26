@@ -41,8 +41,6 @@ class GenesesSerializerUpdate(serializers.Serializer):
     market_value = serializers.FloatField(required=True)
     spread_distance = serializers.FloatField(required=True)
 
-
-
     class Meta:
         fields = (
             "api_key_id",

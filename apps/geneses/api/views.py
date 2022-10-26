@@ -13,7 +13,7 @@ from apps.exchange.services.biconomy.biconomy_core import *
 from apps.geneses.serializers import *
 from apps.geneses.models.models import *
 
-logger = logging.getLogger('geneses')
+logger = logging.getLogger("geneses")
 
 
 class GenesesList(generics.ListAPIView):
@@ -21,9 +21,7 @@ class GenesesList(generics.ListAPIView):
     serializer_class = GenesesSerializer
 
     def get_queryset(self):
-        result = Geneses.objects.filter(user=self.request.user).order_by(
-            "-created_at"
-        )
+        result = Geneses.objects.filter(user=self.request.user).order_by("-created_at")
         return result
 
     def get(self, request, *args, **kwargs):
@@ -33,10 +31,12 @@ class GenesesList(generics.ListAPIView):
 
         except Exception as err:
             logging.critical(str(err))
-            return Response({
-                "status": "error",
-                "code": "0",
-            })
+            return Response(
+                {
+                    "status": "error",
+                    "code": "0",
+                }
+            )
 
 
 class GenesesAdd(generics.CreateAPIView):
@@ -48,7 +48,11 @@ class GenesesAdd(generics.CreateAPIView):
             res = dict(request.data)
             insert_data = res | {
                 "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+                "api_key_id": ApiKeys.objects.filter(
+                    id=res["api_key_id"], user_id=request.user.id
+                )
+                .values("id")
+                .first()["id"],
             }
 
             serializer = GenesesSerializer(data=insert_data)
@@ -64,7 +68,7 @@ class GenesesAdd(generics.CreateAPIView):
                 {
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
+                    "code": str(err),
                 }
             )
 
@@ -95,18 +99,16 @@ class GenesesDelete(generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         try:
             if self.destroy(request, *args, **kwargs):
-                return Response({
-                    "status": "done"
-                })
+                return Response({"status": "done"})
             else:
-                return Response({
-                    "status": "data not found"
-                }, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"status": "data not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         except Exception as err:
-            return Response({
-                "status": "data not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"status": "data not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class GenesesUpdate(generics.UpdateAPIView):
@@ -125,11 +127,17 @@ class GenesesUpdate(generics.UpdateAPIView):
             res = dict(request.data)
             insert_data = res | {
                 "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+                "api_key_id": ApiKeys.objects.filter(
+                    id=res["api_key_id"], user_id=request.user.id
+                )
+                .values("id")
+                .first()["id"],
             }
             serializer = self.serializer_class(data=insert_data)
             serializer.is_valid(raise_exception=True)
-            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            data = serializer.update(
+                self.get_queryset(), validation_data=serializer.data
+            )
             return Response(GenesesSerializer(data).data)
 
         except Exception as err:
@@ -138,7 +146,7 @@ class GenesesUpdate(generics.UpdateAPIView):
                 {
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
+                    "code": str(err),
                 }
             )
 
@@ -149,9 +157,7 @@ class GenesesStatus(generics.ListAPIView):
     http_method_names = ("get",)
 
     def get_queryset(self):
-        data = Geneses.objects.filter(
-            id=self.kwargs.get("pk"), user=self.request.user
-        )
+        data = Geneses.objects.filter(id=self.kwargs.get("pk"), user=self.request.user)
         return data
 
     def get(self, request, *args, **kwargs):
@@ -183,20 +189,19 @@ class GenesesCtrl(generics.UpdateAPIView):
                 elif "bigone" == bot_ex:
                     op_result = bigone_market_creator_open(geneses_bot)
                 else:
-                    op_result = {
-                        "status": "error",
-                        "code": "Exchange not found"
-                    }
+                    op_result = {"status": "error", "code": "Exchange not found"}
 
                 Geneses.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="START")
 
-                return Response({
-                    "status": "pass",
-                    "op": op_result,
-                    "bot": bot_ex,
-                })
+                return Response(
+                    {
+                        "status": "pass",
+                        "op": op_result,
+                        "bot": bot_ex,
+                    }
+                )
 
             else:
 
@@ -212,15 +217,19 @@ class GenesesCtrl(generics.UpdateAPIView):
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
-                return Response({
-                    "status": "success",
-                    "op": exit_codes,
-                    "bot": bot_ex,
-                })
+                return Response(
+                    {
+                        "status": "success",
+                        "op": exit_codes,
+                        "bot": bot_ex,
+                    }
+                )
 
         except Exception as err:
 
-            return Response({
-                "status": "fail",
-                "code": str(err),
-            })
+            return Response(
+                {
+                    "status": "fail",
+                    "code": str(err),
+                }
+            )

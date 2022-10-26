@@ -24,8 +24,12 @@ class ApiKeySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
-        api_key_encrypted = EncryptationTool.encrypt(validated_data.get("api_key").encode())
-        api_secret_encrypted = EncryptationTool.encrypt(validated_data.get("api_secret").encode())
+        api_key_encrypted = EncryptationTool.encrypt(
+            validated_data.get("api_key").encode()
+        )
+        api_secret_encrypted = EncryptationTool.encrypt(
+            validated_data.get("api_secret").encode()
+        )
         validated_data.pop("api_key")
         validated_data.pop("api_secret")
 

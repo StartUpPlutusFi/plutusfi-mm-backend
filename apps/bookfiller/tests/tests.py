@@ -71,7 +71,7 @@ class TestBookFiller(TestCase):
         self.assertEqual(request.status_code, 400)
         data = request.json()
 
-        self.assertEqual(*data.get("name"), 'This field is required.')
+        self.assertEqual(*data.get("name"), "This field is required.")
 
     def test_get_all_bookfiller(self):
         data = BookFiller.objects.filter(user_id=self.user.id).values()
@@ -80,7 +80,9 @@ class TestBookFiller(TestCase):
         self.assertEqual(len(request.json()), len(data))
 
     def test_detail_bookfiller(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
+        data = BookFiller.objects.filter(
+            user_id=self.user.id, id=self.bookfiller.id
+        ).first()
         request = self.client.get(
             reverse("bookfiller:BookFillerDetail", kwargs={"pk": data.id})
         )
@@ -116,7 +118,10 @@ class TestBookFiller(TestCase):
             data=update,
         )
 
-        expected_response = {'error': True, 'errors': {'user_id': 'This field is required.'}}
+        expected_response = {
+            "error": True,
+            "errors": {"user_id": "This field is required."},
+        }
 
         self.assertEqual(request.status_code, 500)
         data = request.json()
@@ -137,7 +142,8 @@ class TestBookFiller(TestCase):
         }
 
         request = self.client.put(
-            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": self.bookfiller.id}), data=update
+            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": self.bookfiller.id}),
+            data=update,
         )
 
         self.assertEqual(request.status_code, 200)
@@ -146,14 +152,16 @@ class TestBookFiller(TestCase):
         self.assertEqual(request.json()["order_size"], update["order_size"])
 
     def test_delete_apikey(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
+        data = BookFiller.objects.filter(
+            user_id=self.user.id, id=self.bookfiller.id
+        ).first()
         request = self.client.delete(
             reverse("bookfiller:BookFillerDelete", kwargs={"pk": data.id})
         )
         self.assertEqual(request.status_code, 204)
 
     def test_delete_apikey_with_invalid_id(self):
-        expected_response = {'status': 'data not found'}
+        expected_response = {"status": "data not found"}
 
         request = self.client.delete(
             reverse("bookfiller:BookFillerDelete", kwargs={"pk": 922337203685477580})

@@ -39,7 +39,11 @@ class MMbotAdd(generics.CreateAPIView):
             res = dict(request.data)
             insert_data = res | {
                 "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
+                "api_key_id": ApiKeys.objects.filter(
+                    id=res["api_key_id"], user_id=request.user.id
+                )
+                .values("id")
+                .first()["id"],
             }
 
             serializer = MMBotSerializerAdd(data=insert_data)
@@ -55,7 +59,7 @@ class MMbotAdd(generics.CreateAPIView):
                 {
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
+                    "code": str(err),
                 }
             )
 
@@ -86,18 +90,16 @@ class MMbotDelete(generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         try:
             if self.destroy(request, *args, **kwargs):
-                return Response({
-                        "status": "done"
-                })
+                return Response({"status": "done"})
             else:
-                return Response({
-                    "status": "data not found"
-                }, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"status": "data not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         except Exception as err:
-            return Response({
-                "status": "data not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"status": "data not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class MMbotUpdate(generics.UpdateAPIView):
@@ -116,12 +118,17 @@ class MMbotUpdate(generics.UpdateAPIView):
             res = dict(request.data)
             insert_data = res | {
                 "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
-
+                "api_key_id": ApiKeys.objects.filter(
+                    id=res["api_key_id"], user_id=request.user.id
+                )
+                .values("id")
+                .first()["id"],
             }
             serializer = self.serializer_class(data=insert_data)
             serializer.is_valid(raise_exception=True)
-            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            data = serializer.update(
+                self.get_queryset(), validation_data=serializer.data
+            )
             return Response(MMBotSerializer(data).data)
 
         except Exception as err:
@@ -130,7 +137,7 @@ class MMbotUpdate(generics.UpdateAPIView):
                 {
                     "status": "error",
                     "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
+                    "code": str(err),
                 }
             )
 

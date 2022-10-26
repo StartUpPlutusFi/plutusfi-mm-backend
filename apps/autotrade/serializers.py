@@ -23,7 +23,6 @@ class MMBotSerializerAdd(serializers.Serializer):
     trade_candle = serializers.IntegerField(required=False)
     trade_amount = serializers.FloatField(required=False)
 
-
     class Meta:
         fields = (
             "id",

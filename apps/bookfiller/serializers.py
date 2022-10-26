@@ -29,8 +29,7 @@ class BookFillerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         new_bookfiller = BookFiller.objects.create(
-            user=self.context["request"].user,
-            **validated_data
+            user=self.context["request"].user, **validated_data
         )
         new_bookfiller.save()
         return new_bookfiller

@@ -45,7 +45,7 @@ class TestApiKeys(TestCase):
             "api_secret": "DUMMY_KEY",
             "default": True,
             "user": self.user,
-            "exchange": self.exchange.id
+            "exchange": self.exchange.id,
         }
 
         request = self.client.post(reverse("exchange:ApiKeyAdd"), data)
@@ -69,7 +69,9 @@ class TestApiKeys(TestCase):
 
         self.assertEqual(request.status_code, 400)
         data = request.json()
-        self.assertEqual(data["exchange"][0], 'Invalid pk "333" - object does not exist.')
+        self.assertEqual(
+            data["exchange"][0], 'Invalid pk "333" - object does not exist.'
+        )
 
     def test_get_all_api_keys(self):
         data = len(ApiKeys.objects.filter(user_id=self.user.id).values())
@@ -94,7 +96,7 @@ class TestApiKeys(TestCase):
         )
 
         self.assertEqual(request.status_code, 404)
-        self.assertDictEqual(request.json(), {'status': 'data id not found'})
+        self.assertDictEqual(request.json(), {"status": "data id not found"})
 
     def test_update_apikey_with_invalid_parameter(self):
         update = {
@@ -111,7 +113,7 @@ class TestApiKeys(TestCase):
             data=update,
         )
 
-        expected_response = {'description': '', 'default': False}
+        expected_response = {"description": "", "default": False}
 
         self.assertEqual(request.status_code, 200)
         self.assertDictEqual(request.json(), expected_response)
@@ -140,7 +142,7 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.status_code, 200)
 
     def test_delete_apikey_with_invalid_id(self):
-        expected_response = {'status': 'data not found'}
+        expected_response = {"status": "data not found"}
 
         request = self.client.delete(
             reverse("exchange:ApiKeyDelete", kwargs={"pk": 922337203685477580})

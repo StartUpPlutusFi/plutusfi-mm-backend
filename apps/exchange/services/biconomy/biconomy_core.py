@@ -174,6 +174,7 @@ def bid_order_creator(limit, price, symbol):
 
 ## Biconomy RANDOM ORDER LOOP
 
+
 def get_order_url():
     BASE_URL = "https://www.biconomy.com/api/v1/private/trade/limit"
     return BASE_URL
@@ -203,8 +204,8 @@ def check_ref_price(token):
         # )
         return ref_price, ask, smallest_ask, highest_bid
     ref_price = (
-                        float(response_json["bids"][0][0]) + float(float(response_json["asks"][0][0]))
-                ) / 2
+        float(response_json["bids"][0][0]) + float(float(response_json["asks"][0][0]))
+    ) / 2
     smallest_ask = float(float(response_json["asks"][0][0]))
     highest_bid = float(response_json["bids"][0][0])
     # print(f"The ref price value is: {ref_price}")
@@ -242,14 +243,14 @@ def create_order(price, quantity, token, side, api_key, api_sec):
 
 
 def book_generator(
-        limit_generator,
-        token,
-        user_ref_price,
-        user_max_order_value,
-        user_side_choice,
-        api_key,
-        api_sec,
-        bookbot_id,
+    limit_generator,
+    token,
+    user_ref_price,
+    user_max_order_value,
+    user_side_choice,
+    api_key,
+    api_sec,
+    bookbot_id,
 ):
     price = 0.0
     if user_ref_price == 0:
@@ -315,7 +316,9 @@ def biconomy_cancel_all_orders(bookbot):
         response_json = r.json()
         responses.append(response_json)
 
-        CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=False)
+        CancelOrderBookBot.objects.filter(id=bot["id"], bot_id=bot_id).update(
+            order_status=False
+        )
 
     return responses
 
@@ -396,7 +399,7 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
     if ask or user_side_choice == 1 or random_operation == smallest_ask:
         price = 0.98 * price
     else:
-        price = (1.02 * price)
+        price = 1.02 * price
     print(f"Price {price}")
     quantity = total_order / price
     print(f"Quantity {quantity}")
@@ -404,21 +407,23 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
 
 
 def biconomy_auto_trade_order_open(
-        exec_ref_price,
-        user_side_choice,
-        token,
-        user_max_order_value,
-        api_key,
-        api_sec,
-        bot_id,
-        candle,
-        op=3,
+    exec_ref_price,
+    user_side_choice,
+    token,
+    user_max_order_value,
+    api_key,
+    api_sec,
+    bot_id,
+    candle,
+    op=3,
 ):
     order = op
     if op != 1 and op != 2:
         order = random.randint(1, 2)
 
-    quantity, price = ref_value(exec_ref_price, user_side_choice, user_max_order_value, token)
+    quantity, price = ref_value(
+        exec_ref_price, user_side_choice, user_max_order_value, token
+    )
 
     # ask
     if order == 1:
@@ -431,7 +436,7 @@ def biconomy_auto_trade_order_open(
             side="ASK",
             status="OPEN",
             candle=candle,
-            exec_ref_price=exec_ref_price
+            exec_ref_price=exec_ref_price,
         )
 
         log.save()
@@ -447,7 +452,7 @@ def biconomy_auto_trade_order_open(
             side="BID",
             status="OPEN",
             candle=candle,
-            exec_ref_price=exec_ref_price
+            exec_ref_price=exec_ref_price,
         )
 
         log.save()
@@ -572,7 +577,9 @@ def biconomy_autotrade_close(candle):
         #     f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
         # )
 
-        exit_code = biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token)
+        exit_code = biconomy_auto_trade_order_close(
+            price, quantity, side, apikey, apisec, token
+        )
 
         if exit_code["status"] == "success":
 
@@ -657,9 +664,7 @@ def biconomy_market_creator_close(geneses_bot):
     api_sec = geneses_bot.api_key.api_secret
     gid_id = geneses_bot.id
 
-    cancel_list = GenesesQueue.objects.filter(
-        status="OPEN", geneses_id=gid_id
-    )
+    cancel_list = GenesesQueue.objects.filter(status="OPEN", geneses_id=gid_id)
 
     for reg in cancel_list:
 
@@ -668,13 +673,17 @@ def biconomy_market_creator_close(geneses_bot):
 
         response_json = biconomy_cancel_one_order(api_key, api_sec, order_id, token)
 
-        exit = {'code': 10, 'message': 'Order not found', 'result': None}
+        exit = {"code": 10, "message": "Order not found", "result": None}
 
         try:
             if response_json == exit:
-                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(status="FAIL")
+                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(
+                    status="FAIL"
+                )
             else:
-                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(status="DONE")
+                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(
+                    status="DONE"
+                )
 
         except Exception as err:
 
@@ -683,7 +692,9 @@ def biconomy_market_creator_close(geneses_bot):
                 "code": str(err),
             }
 
-        responses.append({
-            "status": "success",
-            "code": response_json['result'],
-        })
+        responses.append(
+            {
+                "status": "success",
+                "code": response_json["result"],
+            }
+        )

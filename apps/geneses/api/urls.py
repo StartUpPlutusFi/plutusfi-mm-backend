@@ -11,6 +11,4 @@ urlpatterns = [
     path("detail/<int:pk>", GenesesDetail.as_view(), name="GenesesDetail"),
     path("delete/<int:pk>", GenesesDelete.as_view(), name="GenesesDelete"),
     path("update/<int:pk>", GenesesUpdate.as_view(), name="GenesesUpdate"),
-
 ]
-

@@ -13,13 +13,16 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 logger = logging.getLogger(__name__)
 # trace.LOG_SUCCESS = None
 
-for f in ['./broker/out', './broker/processed']:
+for f in ["./broker/out", "./broker/processed"]:
     if not os.path.exists(f):
         os.makedirs(f)
 
+
 @after_setup_logger.connect
 def setup_loggers(logger, *args, **kwargs):
-    logging.config.fileConfig('./marketmaker/log_auto_trade.ini', disable_existing_loggers=False)
+    logging.config.fileConfig(
+        "./marketmaker/log_auto_trade.ini", disable_existing_loggers=False
+    )
 
 
 app.autodiscover_tasks()

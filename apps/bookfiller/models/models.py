@@ -5,6 +5,7 @@ from apps.account.models import User
 
 # Create your models here.
 
+
 class BookFiller(models.Model):
     name = models.CharField(max_length=32, default="nil")
     side = models.CharField(max_length=5, default="nil")
