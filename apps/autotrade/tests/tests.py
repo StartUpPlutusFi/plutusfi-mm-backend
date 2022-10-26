@@ -59,7 +59,7 @@ class TestAutoTrade(TestCase):
             "invalid": "TEST_USDT_FK",
             "side": 2,
             "user": self.user.id,
-            "api_key": self.API.id,
+            "api_key_id": self.API.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
@@ -70,8 +70,9 @@ class TestAutoTrade(TestCase):
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 2)
+        self.assertEqual(request.status_code, 400)
+        data = request.json()
+        self.assertEqual(*data.get("name"), "This field is required.")
 
     def test_get_all_bookfiller(self):
         data = BookFiller.objects.filter(user_id=self.user.id).values()
