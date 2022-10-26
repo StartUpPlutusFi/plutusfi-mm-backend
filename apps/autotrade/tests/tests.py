@@ -17,22 +17,18 @@ class TestAutoTrade(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.exchange = ExchangeFactory(name="ScamEx")
+        self.exchange = ExchangeFactory.build()
 
-        self.api = ApiKeyFactory(
-            description="test",
+        self.API = ApiKeyFactory.create(
             user=self.user,
-            api_key="0x0000000000",
-            api_secret="0x11111111",
-            default=False,
             exchange_id=self.exchange.id,
         )
 
-        self.bookfiller = BookFillerFactory(
+        self.bookfiller = BookFillerFactory.build(
             name="TestBookFiller",
             side=2,
             user_id=self.user.id,
-            api_key_id=self.api.id,
+            api_key_id=self.API.id,
             pair_token="SCAM",
             order_size=300,
             number_of_orders=20,
