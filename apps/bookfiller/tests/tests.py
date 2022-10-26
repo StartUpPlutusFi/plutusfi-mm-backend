@@ -68,8 +68,10 @@ class TestBookFiller(TestCase):
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["code"], 'invalid data or unauthorized api_key_id')
+        self.assertEqual(request.status_code, 400)
+        data = request.json()
+
+        self.assertEqual(*data.get("name"), 'This field is required.')
 
     def test_get_all_bookfiller(self):
         data = BookFiller.objects.filter(user_id=self.user.id).values()
