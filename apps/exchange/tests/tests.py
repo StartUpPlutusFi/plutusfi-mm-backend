@@ -111,8 +111,7 @@ class TestApiKeys(TestCase):
             data=update,
         )
 
-        expected_response = {'api_key': '', 'api_secret': '', 'description': '', 'default': False, 'exchange': None,
-                             'user': None}
+        expected_response = {'description': '', 'default': False}
 
         self.assertEqual(request.status_code, 200)
         self.assertDictEqual(request.json(), expected_response)
