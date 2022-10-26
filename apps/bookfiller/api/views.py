@@ -71,7 +71,7 @@ class BookFillerDelete(generics.DestroyAPIView):
             if self.destroy(request, *args, **kwargs):
                 return Response({
                     "status": "done"
-                })
+                }, 204)
             else:
                 return Response({
                     "status": "data not found"
@@ -99,7 +99,8 @@ class BookFillerUpdate(generics.UpdateAPIView):
             res = dict(request.data)
             insert_data = res | {
                 "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id'],
+                "api_key_id":
+                    ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id'],
             }
             serializer = self.serializer_class(data=insert_data)
             serializer.is_valid(raise_exception=True)
