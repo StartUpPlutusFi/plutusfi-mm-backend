@@ -19,7 +19,7 @@ class TestAutoTrade(TestCase):
             exchange_id=self.exchange.id,
         )
 
-        self.bookfiller = BookFillerFactory.build(
+        self.bookfiller = BookFillerFactory.create(
             name="TestBookFiller",
             side=2,
             user_id=self.user.id,
@@ -88,8 +88,6 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request.status_code, 200)
         self.assertEqual(request.json()[0]["name"], data.name)
         self.assertEqual(request.json()[0]["side"], data.side)
-        # self.assertDictEqual(request.json()[0]["order_size"], data["order_size"])
-        # self.assertDictEqual(request.json()[0]["status"], data["status"])
 
     def test_detail_bookfiller_with_invalid_id(self):
         request = self.client.get(
@@ -154,10 +152,9 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request.json()["order_size"], update["order_size"])
         self.assertEqual(request.json()["status"], update["status"])
 
-    def test_delete_apikey(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
+    def test_delete_bookfiller_object(self):
         request = self.client.delete(
-            reverse("bookfiller:BookFillerDelete", kwargs={"pk": data.id})
+            reverse("bookfiller:BookFillerDelete", kwargs={"pk": self.bookfiller.id})
         )
         self.assertEqual(request.status_code, 204)
 
