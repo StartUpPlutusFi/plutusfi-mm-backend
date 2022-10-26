@@ -9,12 +9,11 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import logging.config
 from datetime import timedelta
 from pathlib import Path
+
 import pymysql
-import logging
-import logging.config
-from pythonjsonlogger import jsonlogger
 
 pymysql.install_as_MySQLdb()
 
@@ -181,20 +180,16 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-
 logging.config.fileConfig('./marketmaker/log_root.ini', disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 SWAGGER_SETTINGS = {
     'DEFAULT_INFO': 'marketmaker.urls.openapi_info',
     'SECURITY_DEFINITIONS': {
-          # 'Basic': {
-          #       'type': 'basic'
-          # },
-          'Bearer': {
-                'type': 'apiKey',
-                'name': 'Authorization',
-                'in': 'header'
-          }
-       }
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
 }
