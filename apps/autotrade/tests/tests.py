@@ -1,13 +1,8 @@
-# from django.test import TestCase
-
-# # Create your tests here.
 from django.shortcuts import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from apps.account.tests.factories import UserFactory
 from apps.bookfiller.tests.factories import *
-from apps.bookfiller.models.models import *
 from apps.exchange.tests.factories import *
 
 
@@ -41,8 +36,8 @@ class TestAutoTrade(TestCase):
         data = {
             "name": "TestBookFiller",
             "side": 2,
-            "user_id": self.user.id,
-            "api_key_id": self.api.id,
+            "user": self.user.id,
+            "api_key_id": self.API.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
@@ -53,17 +48,18 @@ class TestAutoTrade(TestCase):
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["name"], data["name"])
-        self.assertEqual(request.json()["api_key"], data["api_key"])
-        self.assertEqual(request.json()["user"], data["user"])
+        self.assertEqual(request.status_code, 201)
+        request_data = request.json()
+
+        self.assertEqual(request_data["name"], data["name"])
+        self.assertEqual(request_data["user"], data["user"])
 
     def test_add_bookfiller_wth_wrong_parameter(self):
         data = {
             "invalid": "TEST_USDT_FK",
             "side": 2,
             "user": self.user.id,
-            "api_key": self.api.id,
+            "api_key": self.API.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
@@ -139,7 +135,7 @@ class TestAutoTrade(TestCase):
             "name": "TestBookFiller Updated",
             "side": 2,
             "user_id": self.user.id,
-            "api_key_id": self.api.id,
+            "api_key_id": self.API.id,
             "pair_token": "SCAM",
             "order_size": 300,
             "number_of_orders": 20,
@@ -157,7 +153,6 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request.json()["side"], str(update["side"]))
         self.assertEqual(request.json()["order_size"], update["order_size"])
         self.assertEqual(request.json()["status"], update["status"])
-
 
     def test_delete_apikey(self):
         data = BookFiller.objects.filter(user_id=self.user.id, id=self.bookfiller.id).first()
@@ -177,5 +172,3 @@ class TestAutoTrade(TestCase):
         self.assertDictEqual(request.json(), expected_response)
 
     # def test_bot_status(self):
-
-
