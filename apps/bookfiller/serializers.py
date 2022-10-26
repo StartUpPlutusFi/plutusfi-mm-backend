@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from apps.bookfiller.models.models import *
 
 
@@ -11,8 +12,6 @@ class BookFillerSerializer(serializers.ModelSerializer):
     number_of_orders = serializers.IntegerField(required=True)
     budget = serializers.FloatField(required=True)
     user_ref_price = serializers.FloatField(required=True)
-    user_id = serializers.IntegerField(required=True)
-
 
     class Meta:
         model = BookFiller
@@ -21,13 +20,20 @@ class BookFillerSerializer(serializers.ModelSerializer):
             "name",
             "side",
             "api_key_id",
-            "user_id",
             "pair_token",
             "order_size",
             "number_of_orders",
             "budget",
             "user_ref_price",
         )
+
+    def create(self, validated_data):
+        new_bookfiller = BookFiller.objects.create(
+            user=self.context["request"].user,
+            **validated_data
+        )
+        new_bookfiller.save()
+        return new_bookfiller
 
 
 class BookFillerSerializerStatus(serializers.ModelSerializer):
@@ -91,3 +97,9 @@ class BookFillerSerializerStatusUpdate(serializers.Serializer):
 
         except Exception:
             return None
+
+
+class BookFillerSerializerResponse(serializers.ModelSerializer):
+    class Meta:
+        model = BookFiller
+        exclude = ("status",)

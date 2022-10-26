@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.utils.translation import gettext as _
 
 from apps.account.models import User
