@@ -118,8 +118,6 @@ class TestApiKeys(TestCase):
         self.assertDictEqual(request.json(), expected_response)
 
     def test_update_apikey(self):
-        data = ApiKeys.objects.filter(user_id=self.user.id, id=self.api.id).first()
-
         update = {
             "description": "i have much more pain",
             "user": self.user.id,
@@ -130,14 +128,11 @@ class TestApiKeys(TestCase):
         }
 
         request = self.client.put(
-            reverse("exchange:ApiKeyUpdate", kwargs={"pk": data.id}), data=update
+            reverse("exchange:ApiKeyUpdate", kwargs={"pk": self.api.id}), data=update
         )
-
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["api_key"], update["api_key"])
-        self.assertEqual(request.json()["api_secret"], str(update["api_secret"]))
         self.assertEqual(request.json()["description"], update["description"])
-        self.assertEqual(request.json()["exchange"], update["exchange"])
+        self.assertEqual(request.json()["default"], update["default"])
 
     def test_delete_apikey(self):
         request = self.client.delete(

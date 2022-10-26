@@ -123,11 +123,7 @@ class ApiKeyUpdate(generics.UpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-            }
-            serializer = self.serializer_class(data=insert_data)
+            serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.update(self.get_queryset(), validation_data=serializer.data)
             return Response(ApiKeySerializerUpdate(data).data)
