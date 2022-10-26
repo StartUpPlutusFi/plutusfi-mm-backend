@@ -103,13 +103,15 @@ class BookFillerUpdate(generics.UpdateAPIView):
             return Response(BookFillerSerializer(data).data)
 
         except Exception as err:
+            erros = {
+                "error": True,
+                "errors": {}
+            }
+            for e in err.args[0].items():
+                erros["errors"][e[0]] = e[1][0]
 
             return Response(
-                {
-                    "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
-                }
+                erros, 500
             )
 
 

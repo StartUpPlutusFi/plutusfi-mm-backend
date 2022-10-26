@@ -12,7 +12,7 @@ class TestAutoTrade(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.exchange = ExchangeFactory.build()
+        self.exchange = ExchangeFactory.create()
 
         self.API = ApiKeyFactory.create(
             user=self.user,
@@ -107,24 +107,24 @@ class TestAutoTrade(TestCase):
             "exchange": self.exchange.id,
         }
 
-        request = self.client.put(
+        response = self.client.put(
             reverse("bookfiller:BookFillerUpdate", kwargs={"pk": 922337203685477580}),
             data=update,
         )
 
-        expected_response = {
-            'api_key_id': ['This field is required.'],
-            'budget': ['This field is required.'],
-            'name': ['This field is required.'],
-            'number_of_orders': ['This field is required.'],
-            'order_size': ['This field is required.'],
-            'side': ['This field is required.'],
-            'status': ['This field is required.'],
-            'user_ref_price': ['This field is required.']
-        }
+        self.assertEqual(response.status_code, 500)
+        data = response.json()
 
-        self.assertEqual(request.status_code, 400)
-        self.assertDictEqual(request.json(), expected_response)
+        expected_response = {'error': True,
+                             'errors': {'name': 'This field is required.', 'side': 'This field is required.',
+                                        'user_id': 'This field is required.', 'order_size': 'This field is required.',
+                                        'api_key_id': 'This field is required.',
+                                        'pair_token': 'This field is required.',
+                                        'number_of_orders': 'This field is required.',
+                                        'budget': 'This field is required.',
+                                        'user_ref_price': 'This field is required.'}}
+
+        self.assertDictEqual(data, expected_response)
 
     def test_update_bookfiller(self):
         update = {
@@ -165,5 +165,3 @@ class TestAutoTrade(TestCase):
         )
         self.assertEqual(request.status_code, 200)
         self.assertDictEqual(request.json(), expected_response)
-
-    # def test_bot_status(self):
