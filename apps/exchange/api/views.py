@@ -1,11 +1,10 @@
 # Create your views here.
-from rest_framework.response import Response
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-from apps.exchange.serializers import *
-from apps.exchange.helper.crypto_utils import EncryptationTool
-from apps.exchange.models.models import *
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from apps.exchange.serializers import *
 
 
 # ----------------------------------------------------- #
@@ -21,6 +20,7 @@ class ExchangeList(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
+
 
 # ----------------------------------------------------- #
 
@@ -51,27 +51,23 @@ class ApiKeyAdd(generics.CreateAPIView):
     serializer_class = ApiKeySerializer
 
     def post(self, request, *args, **kwargs):
-        insert_data = dict(request.data) | {
-            "user": request.user.id,
-            "api_key": EncryptationTool.encrypt(request.data['api_key'].encode()),
-            "api_secret": EncryptationTool.encrypt(request.data['api_secret'].encode()),
-        }
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
 
-        serializer = ApiKeySerializer(data=insert_data)
+        return Response(ApiKeySerializerDetail(obj).data, 201)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "id": serializer.data['id'],
-                "description": serializer.data['description'],
-                "default":  serializer.data['default'],
-                "exchange":  Exchange.objects.filter(id=serializer.data['exchange']).values("name").first()["name"],
-            })
+        # return Response({
+        #     "id": serializer.data['id'],
+        #     "description": serializer.data['description'],
+        #     "default": serializer.data['default'],
+        #     "exchange": Exchange.objects.filter(id=serializer.data['exchange']).values("name").first()["name"],
+        # })
 
-        return Response({
-            "status": "error",
-            "code": "Invalid data",
-        })
+        # return Response({
+        #     "status": "error",
+        #     "code": "Invalid data",
+        # })
 
 
 class ApiKeyDetail(generics.ListAPIView):
@@ -97,7 +93,6 @@ class ApiKeyDetail(generics.ListAPIView):
             return Response({
                 "status": "data id not found"
             }, status=status.HTTP_404_NOT_FOUND)
-
 
 
 class ApiKeyDelete(generics.DestroyAPIView):

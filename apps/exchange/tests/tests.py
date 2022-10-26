@@ -5,9 +5,7 @@ from django.shortcuts import reverse
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from apps.account.tests.factories import UserFactory
 from apps.exchange.tests.factories import *
-from apps.exchange.models.models import Exchange, ApiKeys
 
 
 # Create your tests here.
@@ -20,7 +18,6 @@ class TestExchanges(TestCase):
         self.exchange = ExchangeFactory(name="ScamEx")
 
     def test_add_exchange(self):
-
         data = {"name": "ScamEx"}
         request = self.client.post(reverse("exchange:ExchangeAdd"), data)
 
@@ -98,19 +95,15 @@ class TestExchanges(TestCase):
 
 class TestApiKeys(TestCase):
     def setUp(self) -> None:
-
         self.user = UserFactory.create(password="abc123@", username="testSS")
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-        self.exchange = ExchangeFactory(name="ScamEx")
+        self.exchange = ExchangeFactory.create()
 
-        self.api = ApiKeyFactory(
+        self.api = ApiKeyFactory.create(
             description="test",
             user=self.user,
-            api_key="0x0000000000",
-            api_secret="0x11111111",
-            default=False,
             exchange=self.exchange,
         )
 
@@ -125,12 +118,11 @@ class TestApiKeys(TestCase):
         }
 
         request = self.client.post(reverse("exchange:ApiKeyAdd"), data)
-
-        self.assertEqual(request.status_code, 200)
-        # self.assertEqual(request.json()["data"]["description"], data['description'])
-        self.assertEqual(request.json()["data"]["api_key"][0], data['api_key'])
-        self.assertEqual(request.json()["data"]["api_secret"][0], data['api_secret'])
-        self.assertEqual(request.json()["data"]["exchange"][0], str(data['exchange']))
+        self.assertEqual(request.status_code, 201)
+        response_data = request.json()
+        self.assertEqual(response_data.get("exchange"), data["exchange"])
+        self.assertEqual(response_data.get("description"), data["description"])
+        self.assertEqual(response_data.get("default"), data["default"])
 
     def test_add_apikey_wth_wrong_parameter(self):
         data = {
@@ -148,14 +140,12 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.json()["code"], "Invalid data")
 
     def test_get_all_api_keys(self):
-
         data = len(ApiKeys.objects.filter(user_id=self.user.id).values())
         request = self.client.get(reverse("exchange:ApiKeyList"))
         self.assertEqual(request.status_code, 200)
         self.assertEqual(len(request.json()), data)
 
     def test_detail_apikey(self):
-
         data = ApiKeys.objects.filter(user_id=self.user.id, id=self.api.id).first()
         request = self.client.get(
             reverse("exchange:ApiKeyDetail", kwargs={"pk": data.id})
@@ -166,7 +156,6 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.json()[0]["user"], data.user.id)
 
     def test_detail_apikey_with_invalid_id(self):
-
         request = self.client.get(
             reverse("exchange:ApiKeyDetail", kwargs={"pk": 922337203685477580})
         )
@@ -175,7 +164,6 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.json(), [])
 
     def test_update_apikey_with_invalid_parameter(self):
-
         update = {
             "invl": "TEST_USDT_FK",
             "api_key": "fake_key000000000000000",
@@ -190,13 +178,13 @@ class TestApiKeys(TestCase):
             data=update,
         )
 
-        expected_response = {'api_key': '', 'api_secret': '', 'description': '', 'default': False, 'exchange': None, 'user': None}
+        expected_response = {'api_key': '', 'api_secret': '', 'description': '', 'default': False, 'exchange': None,
+                             'user': None}
 
         self.assertEqual(request.status_code, 200)
         self.assertDictEqual(request.json(), expected_response)
 
     def test_update_apikey(self):
-
         data = ApiKeys.objects.filter(user_id=self.user.id, id=self.api.id).first()
 
         update = {
@@ -219,7 +207,6 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.json()["exchange"], update["exchange"])
 
     def test_delete_apikey(self):
-
         data = ApiKeys.objects.filter(user_id=self.user.id, id=self.api.id).first()
         request = self.client.delete(
             reverse("exchange:ApiKeyDelete", kwargs={"pk": data.id})
@@ -227,8 +214,8 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.status_code, 204)
 
     def test_delete_apikey_with_invalid_id(self):
-
-        expected_response = {'code': 5, 'message': 'Cannot delete a parent row, check foreign key constraint or if the object exist'}
+        expected_response = {'code': 5,
+                             'message': 'Cannot delete a parent row, check foreign key constraint or if the object exist'}
 
         request = self.client.delete(
             reverse("exchange:ApiKeyDelete", kwargs={"pk": 922337203685477580})
