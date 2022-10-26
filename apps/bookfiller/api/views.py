@@ -96,13 +96,8 @@ class BookFillerUpdate(generics.UpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id":
-                    ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id'],
-            }
-            serializer = self.serializer_class(data=insert_data)
+
+            serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.update(self.get_queryset(), validation_data=serializer.data)
             return Response(BookFillerSerializer(data).data)

@@ -127,8 +127,6 @@ class TestAutoTrade(TestCase):
         self.assertDictEqual(request.json(), expected_response)
 
     def test_update_bookfiller(self):
-        data = BookFiller.objects.filter(user_id=self.user.id, id=self.api.id).first()
-
         update = {
             "name": "TestBookFiller Updated",
             "side": 2,
@@ -143,14 +141,14 @@ class TestAutoTrade(TestCase):
         }
 
         request = self.client.put(
-            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": data.id}), data=update
+            reverse("bookfiller:BookFillerUpdate", kwargs={"pk": self.bookfiller.id}), data=update
         )
 
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()["name"], update["name"])
-        self.assertEqual(request.json()["side"], str(update["side"]))
-        self.assertEqual(request.json()["order_size"], update["order_size"])
-        self.assertEqual(request.json()["status"], update["status"])
+        data = request.json()
+        self.assertEqual(data["name"], update["name"])
+        self.assertEqual(data["side"], str(update["side"]))
+        self.assertEqual(data["order_size"], update["order_size"])
 
     def test_delete_bookfiller_object(self):
         request = self.client.delete(
