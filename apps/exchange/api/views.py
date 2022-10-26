@@ -57,18 +57,6 @@ class ApiKeyAdd(generics.CreateAPIView):
 
         return Response(ApiKeySerializerDetail(obj).data, 201)
 
-        # return Response({
-        #     "id": serializer.data['id'],
-        #     "description": serializer.data['description'],
-        #     "default": serializer.data['default'],
-        #     "exchange": Exchange.objects.filter(id=serializer.data['exchange']).values("name").first()["name"],
-        # })
-
-        # return Response({
-        #     "status": "error",
-        #     "code": "Invalid data",
-        # })
-
 
 class ApiKeyDetail(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
