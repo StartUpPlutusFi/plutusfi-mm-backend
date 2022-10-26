@@ -93,8 +93,8 @@ class TestApiKeys(TestCase):
             reverse("exchange:ApiKeyDetail", kwargs={"pk": 922337203685477580})
         )
 
-        self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json(), [])
+        self.assertEqual(request.status_code, 404)
+        self.assertDictEqual(request.json(), {'status': 'data id not found'})
 
     def test_update_apikey_with_invalid_parameter(self):
         update = {
