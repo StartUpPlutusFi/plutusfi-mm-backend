@@ -50,7 +50,7 @@ class TestBookFiller(TestCase):
 
         request = self.client.post(reverse("bookfiller:BookFillerAdd"), data)
 
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 201)
 
     def test_add_bookfiller_wth_wrong_parameter(self):
         data = {
