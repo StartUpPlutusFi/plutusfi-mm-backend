@@ -146,14 +146,15 @@ class TestApiKeys(TestCase):
         self.assertEqual(len(request.json()), data)
 
     def test_detail_apikey(self):
-        data = ApiKeys.objects.filter(user_id=self.user.id, id=self.api.id).first()
         request = self.client.get(
-            reverse("exchange:ApiKeyDetail", kwargs={"pk": data.id})
+            reverse("exchange:ApiKeyDetail", kwargs={"pk": self.api.id})
         )
         self.assertEqual(request.status_code, 200)
-        self.assertEqual(request.json()[0]["description"], data.description)
-        self.assertEqual(request.json()[0]["api_key"], data.api_key)
-        self.assertEqual(request.json()[0]["user"], data.user.id)
+        data = request.json()
+
+        self.assertEqual(data["description"], self.api.description)
+        self.assertEqual(data["default"], self.api.default)
+        self.assertEqual(data["id"], self.api.id)
 
     def test_detail_apikey_with_invalid_id(self):
         request = self.client.get(
