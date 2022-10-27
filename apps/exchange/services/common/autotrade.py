@@ -1,10 +1,15 @@
-
 from celery import shared_task
-from apps.exchange.services.bigone.bigone_core import bigone_autotrade_open, bigone_autotrade_close
-from apps.exchange.services.biconomy.biconomy_core import biconomy_autotrade_open, biconomy_autotrade_close
+from apps.exchange.services.bigone.bigone_core import (
+    bigone_autotrade_open,
+    bigone_autotrade_close,
+)
+from apps.exchange.services.biconomy.biconomy_core import (
+    biconomy_autotrade_open,
+    biconomy_autotrade_close,
+)
 import logging
-logger = logging.getLogger(__name__)
 
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -21,7 +26,6 @@ def run_autotrade_periodically_every_1min(time=1):
     data = {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
@@ -45,10 +49,10 @@ def run_autotrade_periodically_every_5min(time=5):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_7min(time=7):
@@ -64,10 +68,10 @@ def run_autotrade_periodically_every_7min(time=7):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_15min(time=15):
@@ -83,10 +87,10 @@ def run_autotrade_periodically_every_15min(time=15):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_30min(time=30):
@@ -102,10 +106,10 @@ def run_autotrade_periodically_every_30min(time=30):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_1hour(time=60):
@@ -121,10 +125,10 @@ def run_autotrade_periodically_every_1hour(time=60):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_2hours(time=120):
@@ -140,10 +144,10 @@ def run_autotrade_periodically_every_2hours(time=120):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_4hours(time=240):
@@ -159,10 +163,10 @@ def run_autotrade_periodically_every_4hours(time=240):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_6hours(time=360):
@@ -178,10 +182,10 @@ def run_autotrade_periodically_every_6hours(time=360):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_12hours(time=720):
@@ -197,10 +201,10 @@ def run_autotrade_periodically_every_12hours(time=720):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
+
 
 @shared_task
 def run_autotrade_periodically_every_1day(time=1440):
@@ -216,8 +220,6 @@ def run_autotrade_periodically_every_1day(time=1440):
     return {
         "close_bigone": close_bigone,
         "open_bigone": open_bigone,
-
         "close_biconomy": close_biconomy,
         "open_biconomy": open_biconomy,
     }
-

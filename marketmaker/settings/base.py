@@ -9,12 +9,11 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import logging.config
 from datetime import timedelta
 from pathlib import Path
+
 import pymysql
-import logging
-import logging.config
-from pythonjsonlogger import jsonlogger
 
 pymysql.install_as_MySQLdb()
 
@@ -49,16 +48,16 @@ THIRDPARTY_APPS = [
 ]
 
 INSTALLED_APPS = (
-        [
-            "django.contrib.admin",
-            "django.contrib.auth",
-            "django.contrib.contenttypes",
-            "django.contrib.sessions",
-            "django.contrib.messages",
-            "django.contrib.staticfiles",
-        ]
-        + THIRDPARTY_APPS
-        + PROJECT_APPS
+    [
+        "django.contrib.admin",
+        "django.contrib.auth",
+        "django.contrib.contenttypes",
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "django.contrib.staticfiles",
+    ]
+    + THIRDPARTY_APPS
+    + PROJECT_APPS
 )
 
 MIDDLEWARE = [
@@ -179,22 +178,14 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
-
-logging.config.fileConfig('./marketmaker/log_root.ini', disable_existing_loggers=False)
+logging.config.fileConfig("./marketmaker/log_root.ini", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
 SWAGGER_SETTINGS = {
-    'DEFAULT_INFO': 'marketmaker.urls.openapi_info',
-    'SECURITY_DEFINITIONS': {
-          # 'Basic': {
-          #       'type': 'basic'
-          # },
-          'Bearer': {
-                'type': 'apiKey',
-                'name': 'Authorization',
-                'in': 'header'
-          }
-       }
+    "DEFAULT_INFO": "marketmaker.urls.openapi_info",
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
+    },
 }

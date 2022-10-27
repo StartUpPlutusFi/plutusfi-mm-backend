@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from apps.exchange.helper.crypto_utils import EncryptationTool
 from apps.exchange.models.models import *
 
 
@@ -13,29 +15,44 @@ class ApiKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = ApiKeys
         fields = (
-            "id",
             "api_key",
             "api_secret",
             "description",
             "default",
             "exchange",
-            "user",
         )
 
+    def create(self, validated_data):
+        user = self.context["request"].user
+        api_key_encrypted = EncryptationTool.encrypt(
+            validated_data.get("api_key").encode()
+        )
+        api_secret_encrypted = EncryptationTool.encrypt(
+            validated_data.get("api_secret").encode()
+        )
+        validated_data.pop("api_key")
+        validated_data.pop("api_secret")
 
-class ApiKeySerializerDetail(serializers.Serializer):
-    id = serializers.IntegerField(required=True)
-    exchange = serializers.IntegerField(required=True)
-    description = serializers.CharField(required=True, allow_null=False)
-    default = serializers.BooleanField(required=True, allow_null=False)
+        new_api_key = ApiKeys.objects.create(
+            user=user,
+            api_key=api_key_encrypted,
+            api_secret=api_secret_encrypted,
+            **validated_data
+        )
 
+        new_api_key.save()
+
+        return new_api_key
+
+
+class ApiKeySerializerDetail(serializers.ModelSerializer):
     class Meta:
         model = ApiKeys
         fields = (
             "id",
             "description",
             "default",
-            # "exchange",
+            "exchange",
         )
 
 

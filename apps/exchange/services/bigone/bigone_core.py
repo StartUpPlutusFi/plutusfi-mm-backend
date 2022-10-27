@@ -13,12 +13,14 @@ from apps.geneses.models.models import *
 
 
 def cancel_one_order(apikey, apisec, code):
-    base_url = 'https://big.one/api/v3/viewer/order/cancel'
+    base_url = "https://big.one/api/v3/viewer/order/cancel"
     params = {
         "order_id": int(code),
     }
     json_params = json.dumps(params, indent=4)
-    r = requests.post(base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params)
+    r = requests.post(
+        base_url, headers=get_order_header_encoded(apikey, apisec), data=json_params
+    )
     return r.json()
 
 
@@ -75,9 +77,9 @@ def check_ref_price(token):
         # )
         return ref_price, ask, smallest_ask, highest_bid
     ref_price = (
-                        float(response_json["data"]["bids"][0]["price"])
-                        + float(response_json["data"]["asks"][0]["price"])
-                ) / 2
+        float(response_json["data"]["bids"][0]["price"])
+        + float(response_json["data"]["asks"][0]["price"])
+    ) / 2
     smallest_ask = float(response_json["data"]["asks"][0]["price"])
     highest_bid = float(response_json["data"]["bids"][0]["price"])
 
@@ -167,15 +169,15 @@ def get_budget(coin, side, apikey, apisec):
 
 
 def auto_trade_order_open(
-        exec_ref_price,
-        user_side_choice,
-        user_max_order_value,
-        apikey,
-        apisec,
-        token,
-        bot_id,
-        candle,
-        op=3,
+    exec_ref_price,
+    user_side_choice,
+    user_max_order_value,
+    apikey,
+    apisec,
+    token,
+    bot_id,
+    candle,
+    op=3,
 ):
     order = op
     if op != 1 and op != 2:
@@ -369,21 +371,25 @@ def bigone_cancel_all_orders(bookbot):
         response_json = cancel_one_order(apikey, apisec, bot["cancel_order_id"])
 
         try:
-            if response_json['data']['state'] == "CANCELLED":
-                CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=False)
+            if response_json["data"]["state"] == "CANCELLED":
+                CancelOrderBookBot.objects.filter(id=bot["id"], bot_id=bot_id).update(
+                    order_status=False
+                )
             else:
-                CancelOrderBookBot.objects.filter(id=bot['id'], bot_id=bot_id).update(order_status=True)
+                CancelOrderBookBot.objects.filter(id=bot["id"], bot_id=bot_id).update(
+                    order_status=True
+                )
 
         except Exception as err:
 
-            return {
-                "status": f"fail to cancel order {bot['cancel_order_id']}"
-            }
+            return {"status": f"fail to cancel order {bot['cancel_order_id']}"}
 
-        responses.append({
-            "status": response_json['data']['state'],
-            "code": bot['cancel_order_id'],
-        })
+        responses.append(
+            {
+                "status": response_json["data"]["state"],
+                "code": bot["cancel_order_id"],
+            }
+        )
 
     return responses
 
@@ -401,15 +407,22 @@ def bookfiller_check_ref_price(token):
         ref_price = float(response_json["data"]["bids"][0]["price"])
         return ref_price, ask
     ref_price = (
-                        float(response_json["data"]["bids"][0]["price"])
-                        + float(response_json["data"]["asks"][0]["price"])
-                ) / 2
+        float(response_json["data"]["bids"][0]["price"])
+        + float(response_json["data"]["asks"][0]["price"])
+    ) / 2
     return ref_price, ask
 
 
 # Gets the price and quantity necessary to make an order from (reference price * 1.02)
 def bigone_book_generator(
-        limit_generator, token, user_ref_price, user_max_order_value, side, api_key, api_sec, bookbot_id
+    limit_generator,
+    token,
+    user_ref_price,
+    user_max_order_value,
+    side,
+    api_key,
+    api_sec,
+    bookbot_id,
 ):
     if user_ref_price == 0:
         price = bookfiller_check_ref_price(token)
@@ -437,10 +450,10 @@ def bigone_book_generator(
             quantity = user_max_order_value / price
             quantitys.append(quantity)
             code = create_order(price, quantity, side, token, api_key, api_sec)
-            exit_codes.append(code['data']['id'])
+            exit_codes.append(code["data"]["id"])
 
             CancelOrderBookBot.objects.create(
-                bot_id=bookbot_id, cancel_order_id=code['data']['id'], order_status=True
+                bot_id=bookbot_id, cancel_order_id=code["data"]["id"], order_status=True
             )
 
         return {
@@ -507,19 +520,23 @@ def bigone_market_creator_open(geneses_bot):
         price_bid = market_value * (1 - (spread_distance / 100.0))
         quantity_bid = user_order_size_bid / price_bid
         exit_code1 = f"The bid price will be {price_bid} and the bid quantity price will be {quantity_bid}"
-        exit_code_bid = create_order(price_bid, quantity_bid, "BID", token, apikey, apisec)
+        exit_code_bid = create_order(
+            price_bid, quantity_bid, "BID", token, apikey, apisec
+        )
 
         GenesesQueue.objects.create(
-            geneses_id=gid, cancel_code=exit_code_bid['data']['id'], status="OPEN"
+            geneses_id=gid, cancel_code=exit_code_bid["data"]["id"], status="OPEN"
         )
 
         price_ask = market_value * ((spread_distance / 100.0) + 1.0)
         quantity_ask = user_order_size_ask / price_ask
         exit_code2 = f"The ask price will be {price_ask} and the ask quantity price will be {quantity_ask}"
-        exit_code_ask = create_order(price_ask, quantity_ask, "ASK", token, apikey, apisec)
+        exit_code_ask = create_order(
+            price_ask, quantity_ask, "ASK", token, apikey, apisec
+        )
 
         GenesesQueue.objects.create(
-            geneses_id=gid, cancel_code=exit_code_ask['data']['id'], status="OPEN"
+            geneses_id=gid, cancel_code=exit_code_ask["data"]["id"], status="OPEN"
         )
 
         return {
@@ -551,19 +568,23 @@ def bigone_market_creator_close(geneses_bot):
     apisec = geneses_bot.api_key.api_secret
     gid_id = geneses_bot.id
 
-    cancel_list = GenesesQueue.objects.filter(
-        status="OPEN", geneses_id=gid_id
-    ).values("id", "geneses", "cancel_code")
+    cancel_list = GenesesQueue.objects.filter(status="OPEN", geneses_id=gid_id).values(
+        "id", "geneses", "cancel_code"
+    )
 
     for reg in cancel_list:
 
         response_json = cancel_one_order(apikey, apisec, reg["cancel_code"])
 
         try:
-            if response_json['data']['state'] == "CANCELLED":
-                GenesesQueue.objects.filter(id=reg['id'], geneses_id=gid_id).update(status="DONE")
+            if response_json["data"]["state"] == "CANCELLED":
+                GenesesQueue.objects.filter(id=reg["id"], geneses_id=gid_id).update(
+                    status="DONE"
+                )
             else:
-                GenesesQueue.objects.filter(id=reg['id'], geneses_id=gid_id).update(status="FAIL")
+                GenesesQueue.objects.filter(id=reg["id"], geneses_id=gid_id).update(
+                    status="FAIL"
+                )
 
         except Exception as err:
 
@@ -572,10 +593,12 @@ def bigone_market_creator_close(geneses_bot):
                 "code": str(err),
             }
 
-        responses.append({
-            "status": response_json['data']['state'],
-            "code": reg['cancel_code'],
-        })
+        responses.append(
+            {
+                "status": response_json["data"]["state"],
+                "code": reg["cancel_code"],
+            }
+        )
 
     return {
         "status": "done",

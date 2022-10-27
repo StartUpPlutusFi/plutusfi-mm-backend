@@ -1,17 +1,12 @@
-from rest_framework.response import Response
+import django.db.utils
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
-
-from apps.exchange.helper.helper import status_code
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.bookfiller.serializers import *
-from apps.bookfiller.models.models import *
-
-from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
-
-import time
+from apps.exchange.services.bigone.bigone_core import *
 
 
 class BookFillerList(generics.ListAPIView):
@@ -33,29 +28,23 @@ class BookFillerAdd(generics.CreateAPIView):
     serializer_class = BookFillerSerializer
 
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id']
-            }
-
-            serializer = BookFillerSerializer(data=insert_data)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-
-            return Response(status_code(5, f"Data is invalid {serializer}"))
-
-        except Exception as err:
+            obj: BookFiller = serializer.save()
+            return Response(BookFillerSerializerResponse(obj).data, 201)
+        except django.db.utils.IntegrityError as err:
+            if "FOREIGN KEY constraint failed" in err.args:
+                return Response(
+                    {
+                        "error": True,
+                        "message": "ID entered is invalid, please check and try again.",
+                    },
+                    500,
+                )
             return Response(
-                {
-                    "status": "error",
-                    "code": "invalid data or unauthorized api_key_id",
-                    "data": str(err)
-                }
+                {"error": True, "message": f"An error occurred: {err.args}"}
             )
 
 
@@ -85,18 +74,16 @@ class BookFillerDelete(generics.DestroyAPIView):
     def delete(self, request, *args, **kwargs):
         try:
             if self.destroy(request, *args, **kwargs):
-                return Response({
-                    "status": "done"
-                })
+                return Response({"status": "done"}, 204)
             else:
-                return Response({
-                    "status": "data not found"
-                }, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"status": "data not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         except Exception as err:
-            return Response({
-                "status": "data not found"
-            }, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"status": "data not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class BookFillerUpdate(generics.UpdateAPIView):
@@ -112,25 +99,20 @@ class BookFillerUpdate(generics.UpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(id=res['api_key_id'], user_id=request.user.id).values('id').first()['id'],
-            }
-            serializer = self.serializer_class(data=insert_data)
+
+            serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            data = serializer.update(self.get_queryset(), validation_data=serializer.data)
+            data = serializer.update(
+                self.get_queryset(), validation_data=serializer.data
+            )
             return Response(BookFillerSerializer(data).data)
 
         except Exception as err:
+            erros = {"error": True, "errors": {}}
+            for e in err.args[0].items():
+                erros["errors"][e[0]] = e[1][0]
 
-            return Response(
-                {
-                    "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err)
-                }
-            )
+            return Response(erros, 500)
 
 
 class BookFillerStatus(generics.ListAPIView):
@@ -172,20 +154,19 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 elif "bigone" == bot_ex:
                     op_result = bigone_init_bookbot(data)
                 else:
-                    op_result = {
-                        "status": "error",
-                        "code": "Exchange not found"
-                    }
+                    op_result = {"status": "error", "code": "Exchange not found"}
 
                 BookFiller.objects.filter(
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="START")
 
-                return Response({
-                    "status": "success",
-                    "op": op_result,
-                    "bot": bot_ex,
-                })
+                return Response(
+                    {
+                        "status": "success",
+                        "op": op_result,
+                        "bot": bot_ex,
+                    }
+                )
 
             else:
 
@@ -201,10 +182,12 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     id=self.kwargs.get("pk"), user=request.user
                 ).update(status="STOP")
 
-            return Response({
-                "status": "success",
-                "exit_codes": exit_codes,
-            })
+            return Response(
+                {
+                    "status": "success",
+                    "exit_codes": exit_codes,
+                }
+            )
 
         except Exception as e:
             return Response({"status": "error", "code": str(e)})
