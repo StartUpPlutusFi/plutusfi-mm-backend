@@ -49,8 +49,17 @@ class ApiKeyAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializer
 
+    def get_queryset(self):
+        result = ApiKeys.objects.filter(user=self.request.user).update(default=False)
+        return result
+
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+
+        data=request.data
+        if data['default'] == True:
+            self.get_queryset()
+
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
