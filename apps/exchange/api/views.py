@@ -55,11 +55,11 @@ class ApiKeyAdd(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        data=request.data
-        if data['default'] == True:
+        props=request.data
+        if props['default'] == True:
             self.get_queryset()
 
-        serializer = self.get_serializer(data=data)
+        serializer = self.get_serializer(data=props)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
