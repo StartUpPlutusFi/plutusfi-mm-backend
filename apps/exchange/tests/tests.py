@@ -89,14 +89,11 @@ class TestApiKeys(TestCase):
 
         api_list = self.client.get(reverse("exchange:ApiKeyList"))
         api_list = api_list.json()
-        print(api_list)
 
         for result in api_list[0:-1]:
-            print(result)
             self.assertEqual(result['default'], False)
 
         result = api_list[-1]
-        print(result)
         self.assertEqual(result["default"], True)
 
 
@@ -151,7 +148,7 @@ class TestApiKeys(TestCase):
             "user": self.user.id,
             "api_key": "fake_key1111111111111111",
             "api_secret": "fake0000000000000000",
-            "default": False,
+            "default": True,
             "exchange": self.exchange.id,
         }
 
@@ -176,3 +173,31 @@ class TestApiKeys(TestCase):
         )
         self.assertEqual(request.status_code, 404)
         self.assertDictEqual(request.json(), expected_response)
+
+
+    def test_update_default_apikey(self):
+
+        update = {
+            "description": "i have much more pain",
+            "user": self.user.id,
+            "api_key": "fake_key1111111111111111",
+            "api_secret": "fake0000000000000000",
+            "default": True,
+            "exchange": self.exchange.id,
+        }
+
+        request = self.client.put(
+            reverse("exchange:ApiKeyUpdate", kwargs={"pk": self.api.id}), data=update
+        )
+
+        api_list = self.client.get(reverse("exchange:ApiKeyList"))
+        api_list = api_list.json()
+
+        for request in api_list[0:-1]:
+            self.assertEqual(request["description"], update["description"])
+            self.assertEqual(request["default"], False)
+
+
+        request = api_list[-1]
+        self.assertEqual(request["description"], update["description"])
+        self.assertEqual(request["default"], True)
