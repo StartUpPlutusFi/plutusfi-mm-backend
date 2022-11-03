@@ -73,6 +73,34 @@ class TestApiKeys(TestCase):
             data["exchange"][0], 'Invalid pk "333" - object does not exist.'
         )
 
+    def test_add_n_apikeys_wth_one_default(self):
+
+        data = {
+            "description": "test",
+            "api_key": "DUMMY_KEY",
+            "api_secret": "DUMMY_KEY",
+            "default": True,
+            "user": self.user,
+            "exchange": self.exchange.id,
+        }
+
+        for x in range(9):
+            self.client.post(reverse("exchange:ApiKeyAdd"), data)
+
+        api_list = self.client.get(reverse("exchange:ApiKeyList"))
+        api_list = api_list.json()
+
+        print(api_list)
+
+        for result in api_list[0:-1]:
+            print(result)
+            self.assertEqual(result["default"], False)
+
+        result = api_list[-1]
+        print(result)
+        self.assertEqual(result["default"], True)
+
+
     def test_get_all_api_keys(self):
         data = len(ApiKeys.objects.filter(user_id=self.user.id).values())
         request = self.client.get(reverse("exchange:ApiKeyList"))
