@@ -56,7 +56,7 @@ class ApiKeyAdd(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
 
         props=request.data
-        if props['default'] == True:
+        if props['default'] == 'True':
             self.get_queryset()
 
         serializer = self.get_serializer(data=props)

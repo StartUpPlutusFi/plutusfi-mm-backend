@@ -89,12 +89,11 @@ class TestApiKeys(TestCase):
 
         api_list = self.client.get(reverse("exchange:ApiKeyList"))
         api_list = api_list.json()
-
         print(api_list)
 
         for result in api_list[0:-1]:
             print(result)
-            self.assertEqual(result["default"], False)
+            self.assertEqual(result['default'], False)
 
         result = api_list[-1]
         print(result)
