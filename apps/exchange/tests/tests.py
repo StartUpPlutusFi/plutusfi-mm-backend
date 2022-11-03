@@ -73,6 +73,30 @@ class TestApiKeys(TestCase):
             data["exchange"][0], 'Invalid pk "333" - object does not exist.'
         )
 
+    def test_add_n_apikeys_wth_one_default(self):
+
+        data = {
+            "description": "test",
+            "api_key": "DUMMY_KEY",
+            "api_secret": "DUMMY_KEY",
+            "default": True,
+            "user": self.user,
+            "exchange": self.exchange.id,
+        }
+
+        for x in range(9):
+            self.client.post(reverse("exchange:ApiKeyAdd"), data)
+
+        api_list = self.client.get(reverse("exchange:ApiKeyList"))
+        api_list = api_list.json()
+
+        for result in api_list[0:-1]:
+            self.assertEqual(result['default'], False)
+
+        result = api_list[-1]
+        self.assertEqual(result["default"], True)
+
+
     def test_get_all_api_keys(self):
         data = len(ApiKeys.objects.filter(user_id=self.user.id).values())
         request = self.client.get(reverse("exchange:ApiKeyList"))
@@ -124,7 +148,7 @@ class TestApiKeys(TestCase):
             "user": self.user.id,
             "api_key": "fake_key1111111111111111",
             "api_secret": "fake0000000000000000",
-            "default": False,
+            "default": True,
             "exchange": self.exchange.id,
         }
 
@@ -149,3 +173,31 @@ class TestApiKeys(TestCase):
         )
         self.assertEqual(request.status_code, 404)
         self.assertDictEqual(request.json(), expected_response)
+
+
+    def test_update_default_apikey(self):
+
+        update = {
+            "description": "i have much more pain",
+            "user": self.user.id,
+            "api_key": "fake_key1111111111111111",
+            "api_secret": "fake0000000000000000",
+            "default": True,
+            "exchange": self.exchange.id,
+        }
+
+        request = self.client.put(
+            reverse("exchange:ApiKeyUpdate", kwargs={"pk": self.api.id}), data=update
+        )
+
+        api_list = self.client.get(reverse("exchange:ApiKeyList"))
+        api_list = api_list.json()
+
+        for request in api_list[0:-1]:
+            self.assertEqual(request["description"], update["description"])
+            self.assertEqual(request["default"], False)
+
+
+        request = api_list[-1]
+        self.assertEqual(request["description"], update["description"])
+        self.assertEqual(request["default"], True)

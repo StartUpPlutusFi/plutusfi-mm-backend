@@ -49,8 +49,17 @@ class ApiKeyAdd(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ApiKeySerializer
 
+    def get_queryset(self):
+        result = ApiKeys.objects.filter(user=self.request.user).update(default=False)
+        return result
+
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+
+        props=request.data
+        if props['default'] == True or 'True':
+            self.get_queryset()
+
+        serializer = self.get_serializer(data=props)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
@@ -122,9 +131,18 @@ class ApiKeyUpdate(generics.UpdateAPIView):
         ).first()
         return result
 
+    def update_default(self):
+        result = ApiKeys.objects.filter(user=self.request.user).exclude(id=self.kwargs.get("pk")).update(default=False)
+        return result
+
     def put(self, request, *args, **kwargs):
         try:
-            serializer = self.get_serializer(data=request.data)
+
+            props=request.data
+            if props['default'] == True or 'True':
+                self.update_default()
+
+            serializer = self.get_serializer(data=props)
             serializer.is_valid(raise_exception=True)
             data = serializer.update(
                 self.get_queryset(), validation_data=serializer.data
