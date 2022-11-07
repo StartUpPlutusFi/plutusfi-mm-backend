@@ -1,19 +1,31 @@
 import factory
 
-from apps.autotrade.models.models import MarketMakerBot
+from random import choice
 
+import factory
+from django.utils.crypto import get_random_string
+
+from apps.autotrade.models.models import MarketMakerBot
+from apps.account.tests.factories import UserFactory
+from apps.exchange.tests.factories import ApiKeyFactory
 
 class MMFactory(factory.django.DjangoModelFactory):
+    photo = factory.LazyAttribute(
+        lambda _: ContentFile(
+            factory.django.ImageField()._make_data({"width": 1024, "height": 768}),
+            "example.jpg",
+        )
+    )
     name = factory.Faker("name")
     description = factory.Faker("description")
-    user_id = factory.Faker("user_id")
-    api_key_id = factory.Faker("api_key_id")
-    pair_token = factory.Faker("pair_token")
+    user = factory.SubFactory(UserFactory)
+    api_key = factory.SubFactory(ApiKeyFactory)
+    pair_token = factory.LazyAttribute(lambda obj: get_random_string(length=8))
     user_ref_price = factory.Faker("user_ref_price")
     side = factory.Faker("side")
     trade_candle = factory.Faker("trade_candle")
     trade_amount = factory.Faker("trade_amount")
-    status = factory.Faker("status")
+    status = factory.LazyAttribute(lambda obj: choice([True, False]))
 
     class Meta:
         model = MarketMakerBot
