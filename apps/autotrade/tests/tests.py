@@ -102,6 +102,35 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request.status_code, 400)
         self.assertDictEqual(request.json(), expected)
 
+    def test_add_autotrade_with_invalid_data_and_null_file(self):
+        data = {
+            "photo": "",
+            "name": "0x00000000",
+            "description": "0x00000000",
+            "user": "0x00000000",
+            "api_key_id": "0x00000000",
+            "pair_token": "0x00000000",
+            "user_ref_price": "0x00000000",
+            "side": "0x00000000",
+            "trade_candle": "0x00000000",
+            "trade_amount": "0x00000000",
+            "status": "0x00000000",
+        }
+
+        request = self.client.post(reverse("MMbot:MMbotAdd"), data)
+
+        self.assertEqual(request.status_code, 400)
+        request_data = request.json()
+        expected = {
+            "api_key_id": ["A valid integer is required."],
+            "side": ["A valid integer is required."],
+            "user_ref_price": ["A valid number is required."],
+            "trade_candle": ["A valid integer is required."],
+            "trade_amount": ["A valid number is required."],
+        }
+        print(request_data)
+        self.assertDictEqual(request_data, expected)
+
     def test_get_all_autotrade(self):
         data = MarketMakerBot.objects.filter(user_id=self.user.id).values()
         request = self.client.get(reverse("MMbot:MMbotList"))
