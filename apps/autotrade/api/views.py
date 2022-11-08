@@ -112,14 +112,14 @@ class MMbotUpdate(generics.UpdateAPIView):
             data = serializer.update(
                 self.get_queryset(), validation_data=serializer.data
             )
-            return Response(MMBotSerializerUpdate(data).data)
+            return Response(MMBotSerializer(data).data)
 
         except Exception as err:
 
             return Response(
                 {
                     "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
+                    "msg": "invalid data",
                     "code": str(err),
                 }
             )
