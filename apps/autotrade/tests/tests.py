@@ -134,12 +134,14 @@ class TestAutoTrade(TestCase):
 
     def test_detail_autotrade(self):
 
-        data = MarketMakerBot.objects.filter(
-            user_id=self.user.id, id=self.autotrade.id
-        ).values().first()
+        data = (
+            MarketMakerBot.objects.filter(user_id=self.user.id, id=self.autotrade.id)
+            .values()
+            .first()
+        )
 
         request = self.client.get(
-            reverse("MMbot:MMbotDetail", kwargs={"pk": data['id']})
+            reverse("MMbot:MMbotDetail", kwargs={"pk": data["id"]})
         )
 
         self.assertEqual(request.status_code, 200)
@@ -165,7 +167,7 @@ class TestAutoTrade(TestCase):
 
     def test_update_autotrade(self):
         update = {
-            "photo": self.gen_image(color=(45,45,45)),
+            "photo": self.gen_image(color=(45, 45, 45)),
             "name": "Test Autotrade",
             "description": "Generic Updated",
             "user": self.user,
@@ -183,9 +185,8 @@ class TestAutoTrade(TestCase):
 
         request_data = request.json()
 
-
         self.assertEqual(request.status_code, 200)
-        # self.assertIsNotNone(request.json()["photo"])
+        self.assertIsNotNone(request.json()["photo"])
         self.assertEqual(request_data["name"], update["name"])
         self.assertEqual(request_data["description"], update["description"])
         self.assertEqual(request_data["pair_token"], update["pair_token"])
@@ -194,9 +195,8 @@ class TestAutoTrade(TestCase):
         self.assertEqual(request_data["trade_candle"], update["trade_candle"])
         self.assertEqual(request_data["trade_amount"], update["trade_amount"])
 
-
     def test_delete_apikey(self):
-        
+
         data = MarketMakerBot.objects.filter(
             user_id=self.user.id, id=self.autotrade.id
         ).first()
@@ -205,7 +205,7 @@ class TestAutoTrade(TestCase):
             reverse("MMbot:MMbotDelete", kwargs={"pk": data.id})
         )
 
-        expected = {'status': 'done'}
+        expected = {"status": "done"}
 
         self.assertEqual(request.status_code, 200)
         request_data = request.json()
