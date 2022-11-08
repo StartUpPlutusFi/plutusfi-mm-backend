@@ -7,7 +7,8 @@ from apps.exchange.tests.factories import *
 
 
 import io
-import PIL.Image as Image
+from PIL import Image
+
 
 class TestAutoTrade(TestCase):
     def setUp(self) -> None:
@@ -17,17 +18,17 @@ class TestAutoTrade(TestCase):
 
         self.exchange = ExchangeFactory.create()
 
-        self.API = ApiKeyFactory.create(
+        self.apikey = ApiKeyFactory.create(
+            description="test",
             user=self.user,
-            exchange_id=self.exchange.id,
+            exchange=self.exchange,
         )
 
         self.autotrade = MMFactory.create(
-            photo=self.gen_image(),
             name="Test Autotrade",
             description="Generic",
             user=self.user,
-            api_key=self.API,
+            api_key=self.apikey,
             pair_token="TESTDUMMY",
             user_ref_price=100,
             side=1,
@@ -51,7 +52,7 @@ class TestAutoTrade(TestCase):
             "name": "Test Autotrade",
             "description": "Generic",
             "user": self.user,
-            "api_key": self.API,
+            "api_key_id": self.apikey.id,
             "pair_token": "TESTDUMMY",
             "user_ref_price": 100,
             "side": 1,
@@ -60,12 +61,10 @@ class TestAutoTrade(TestCase):
             "status": "STOP",
         }
 
-        request = self.client.post(reverse("autotrade:MMbotAdd"), data)
+        request = self.client.post(reverse("MMbot:MMbotAdd"), data)
 
         self.assertEqual(request.status_code, 201)
         request_data = request.json()
+
         self.assertIsNotNone(request.json()["photo"])
-
         self.assertEqual(request_data["name"], data["name"])
-        self.assertEqual(request_data["user"], data["user"])
-
