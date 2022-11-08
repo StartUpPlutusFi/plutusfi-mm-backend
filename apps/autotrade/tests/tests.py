@@ -36,7 +36,7 @@ class TestAutoTrade(TestCase):
             trade_amount=100.99,
             status="STOP",
         )
-    
+
     @staticmethod
     def gen_image(color=(255, 255, 255)):
         file = io.BytesIO()
@@ -68,3 +68,145 @@ class TestAutoTrade(TestCase):
 
         self.assertIsNotNone(request.json()["photo"])
         self.assertEqual(request_data["name"], data["name"])
+        self.assertEqual(request_data["description"], data["description"])
+        self.assertEqual(request_data["api_key"], data["api_key_id"])
+        self.assertEqual(request_data["pair_token"], data["pair_token"])
+        self.assertEqual(request_data["user_ref_price"], data["user_ref_price"])
+        self.assertEqual(request_data["side"], data["side"])
+        self.assertEqual(request_data["trade_candle"], data["trade_candle"])
+        self.assertEqual(request_data["trade_amount"], data["trade_amount"])
+        self.assertEqual(request_data["status"], data["status"])
+
+    def test_add_autotrade_with_invalid_file(self):
+        data = {
+            "photo": b"0x00000000",
+            "name": b"0x00000000",
+            "description": b"0x00000000",
+            "user": b"0x00000000",
+            "api_key_id": b"0x00000000",
+            "pair_token": b"0x00000000",
+            "user_ref_price": b"0x00000000",
+            "side": b"0x00000000",
+            "trade_candle": b"0x00000000",
+            "trade_amount": b"0x00000000",
+            "status": b"0x00000000",
+        }
+
+        request = self.client.post(reverse("MMbot:MMbotAdd"), data)
+        expected = {
+            "photo": [
+                "The submitted data was not a file. Check the encoding type on the form."
+            ]
+        }
+
+        self.assertEqual(request.status_code, 400)
+        self.assertDictEqual(request.json(), expected)
+
+    def test_add_autotrade_with_invalid_data_and_null_file(self):
+        data = {
+            "photo": "",
+            "name": b"0x00000000",
+            "description": b"0x00000000",
+            "user": b"0x00000000",
+            "api_key_id": b"0x00000000",
+            "pair_token": b"0x00000000",
+            "user_ref_price": b"0x00000000",
+            "side": b"0x00000000",
+            "trade_candle": b"0x00000000",
+            "trade_amount": b"0x00000000",
+            "status": b"0x00000000",
+        }
+
+        request = self.client.post(reverse("MMbot:MMbotAdd"), data)
+        expected = {
+            "error": True,
+            "message": "An error occurred: (1452, 'Cannot add or update a child row: a foreign key constraint fails (`test_mm_4`.`autotrade_marketmakerbot`, CONSTRAINT `autotrade_marketmake_api_key_id_1ba0dd89_fk_api_keys_` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys_store` (`id`))')",
+        }
+
+        self.assertEqual(request.status_code, 200)
+        self.assertDictEqual(request.json(), expected)
+
+    def test_get_all_autotrade(self):
+        data = MarketMakerBot.objects.filter(user_id=self.user.id).values()
+        request = self.client.get(reverse("MMbot:MMbotList"))
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(len(request.json()), len(data))
+
+    def test_detail_autotrade(self):
+
+        data = MarketMakerBot.objects.filter(
+            user_id=self.user.id, id=self.autotrade.id
+        ).values().first()
+
+        request = self.client.get(
+            reverse("MMbot:MMbotDetail", kwargs={"pk": data['id']})
+        )
+
+        self.assertEqual(request.status_code, 200)
+        request_data = request.json()[0]
+
+        self.assertEqual(request_data["name"], data["name"])
+        self.assertEqual(request_data["description"], data["description"])
+        self.assertEqual(request_data["api_key"], data["api_key_id"])
+        self.assertEqual(request_data["pair_token"], data["pair_token"])
+        self.assertEqual(request_data["user_ref_price"], data["user_ref_price"])
+        self.assertEqual(request_data["side"], data["side"])
+        self.assertEqual(request_data["trade_candle"], data["trade_candle"])
+        self.assertEqual(request_data["trade_amount"], data["trade_amount"])
+        self.assertEqual(request_data["status"], data["status"])
+
+    def test_detail_autotrade_with_invalid_id(self):
+        request = self.client.get(
+            reverse("MMbot:MMbotDetail", kwargs={"pk": 922337203685477580})
+        )
+
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.json(), [])
+
+    def test_update_autotrade(self):
+        update = {
+            "photo": self.gen_image(color=(45,45,45)),
+            "name": "Test Autotrade",
+            "description": "Generic Updated",
+            "user": self.user,
+            "pair_token": "TESTDUMMY",
+            "user_ref_price": 999,
+            "side": 2,
+            "trade_candle": 15,
+            "trade_amount": 100.99,
+        }
+
+        request = self.client.put(
+            reverse("MMbot:MMbotUpdate", kwargs={"pk": self.autotrade.id}),
+            data=update,
+        )
+
+        request_data = request.json()
+
+
+        self.assertEqual(request.status_code, 200)
+        # self.assertIsNotNone(request.json()["photo"])
+        self.assertEqual(request_data["name"], update["name"])
+        self.assertEqual(request_data["description"], update["description"])
+        self.assertEqual(request_data["pair_token"], update["pair_token"])
+        self.assertEqual(request_data["user_ref_price"], update["user_ref_price"])
+        self.assertEqual(request_data["side"], update["side"])
+        self.assertEqual(request_data["trade_candle"], update["trade_candle"])
+        self.assertEqual(request_data["trade_amount"], update["trade_amount"])
+
+
+    def test_delete_apikey(self):
+        
+        data = MarketMakerBot.objects.filter(
+            user_id=self.user.id, id=self.autotrade.id
+        ).first()
+
+        request = self.client.delete(
+            reverse("MMbot:MMbotDelete", kwargs={"pk": data.id})
+        )
+
+        expected = {'status': 'done'}
+
+        self.assertEqual(request.status_code, 200)
+        request_data = request.json()
+        self.assertDictEqual(request_data, expected)
