@@ -40,25 +40,25 @@ class MMBotSerializerAdd(serializers.Serializer):
         )
 
     def create(self, validated_data):
-        new_autotrade = MarketMakerBot.objects.create( user=self.context["request"].user, **validated_data)
+        new_autotrade = MarketMakerBot.objects.create(
+            user=self.context["request"].user, **validated_data
+        )
         new_autotrade.save()
         return new_autotrade
 
 
 class MMBotSerializerUpdate(serializers.Serializer):
     photo = serializers.ImageField(required=False)
-    name = serializers.CharField(required=True)
+    name = serializers.CharField(required=False)
     description = serializers.CharField(required=False)
-    user_id = serializers.IntegerField(required=False)
-    side = serializers.IntegerField(required=True)
-    pair_token = serializers.CharField(required=True)
-    user_ref_price = serializers.FloatField(required=True)
-    trade_candle = serializers.IntegerField(required=True)
-    trade_amount = serializers.FloatField(required=True)
+    side = serializers.IntegerField(required=False)
+    pair_token = serializers.CharField(required=False)
+    user_ref_price = serializers.FloatField(required=False)
+    trade_candle = serializers.IntegerField(required=False)
+    trade_amount = serializers.FloatField(required=False)
 
     class Meta:
         fields = (
-            "id",
             "photo",
             "name",
             "description",
@@ -71,7 +71,10 @@ class MMBotSerializerUpdate(serializers.Serializer):
 
     def update(self, instance, validation_data):
         try:
+
             for k, v in validation_data.items():
+                if k == "photo":
+                    v = self.context["request"].data["photo"]
                 setattr(instance, k, v)
             instance.save()
             return instance
