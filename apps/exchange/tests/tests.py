@@ -91,11 +91,10 @@ class TestApiKeys(TestCase):
         api_list = api_list.json()
 
         for result in api_list[0:-1]:
-            self.assertEqual(result['default'], False)
+            self.assertEqual(result["default"], False)
 
         result = api_list[-1]
         self.assertEqual(result["default"], True)
-
 
     def test_get_all_api_keys(self):
         data = len(ApiKeys.objects.filter(user_id=self.user.id).values())
@@ -174,7 +173,6 @@ class TestApiKeys(TestCase):
         self.assertEqual(request.status_code, 404)
         self.assertDictEqual(request.json(), expected_response)
 
-
     def test_update_default_apikey(self):
 
         update = {
@@ -196,7 +194,6 @@ class TestApiKeys(TestCase):
         for request in api_list[0:-1]:
             self.assertEqual(request["description"], update["description"])
             self.assertEqual(request["default"], False)
-
 
         request = api_list[-1]
         self.assertEqual(request["description"], update["description"])

@@ -5,7 +5,7 @@ from django.conf import settings
 
 
 class MarketMakerBot(models.Model):
-    photo = models.ImageField(upload_to='images', blank=True)
+    photo = models.ImageField(upload_to="images", blank=True)
     name = models.CharField(max_length=32)
     description = models.CharField(max_length=256)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)

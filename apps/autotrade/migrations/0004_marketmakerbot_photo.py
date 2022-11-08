@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('autotrade', '0003_remove_marketmakerbotorderhistory_spreed_and_more'),
+        ("autotrade", "0003_remove_marketmakerbotorderhistory_spreed_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='marketmakerbot',
-            name='photo',
-            field=models.ImageField(default=None, upload_to='images'),
+            model_name="marketmakerbot",
+            name="photo",
+            field=models.ImageField(default=None, upload_to="images"),
         ),
     ]

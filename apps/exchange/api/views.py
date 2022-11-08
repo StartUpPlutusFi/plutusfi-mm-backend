@@ -55,8 +55,8 @@ class ApiKeyAdd(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        props=request.data
-        if props['default'] == True or 'True':
+        props = request.data
+        if props["default"] == True or "True":
             self.get_queryset()
 
         serializer = self.get_serializer(data=props)
@@ -132,14 +132,18 @@ class ApiKeyUpdate(generics.UpdateAPIView):
         return result
 
     def update_default(self):
-        result = ApiKeys.objects.filter(user=self.request.user).exclude(id=self.kwargs.get("pk")).update(default=False)
+        result = (
+            ApiKeys.objects.filter(user=self.request.user)
+            .exclude(id=self.kwargs.get("pk"))
+            .update(default=False)
+        )
         return result
 
     def put(self, request, *args, **kwargs):
         try:
 
-            props=request.data
-            if props['default'] == True or 'True':
+            props = request.data
+            if props["default"] == True or "True":
                 self.update_default()
 
             serializer = self.get_serializer(data=props)
