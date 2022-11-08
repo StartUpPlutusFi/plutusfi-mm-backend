@@ -10,7 +10,7 @@ from apps.account.tests.factories import UserFactory
 from apps.exchange.tests.factories import ApiKeyFactory
 
 class MMFactory(factory.django.DjangoModelFactory):
-    photo = factory.django.ImageField(color="blue")
+    photo = factory.django.ImageField(width=1024, height=768)
     name = factory.Faker("name")
     description = factory.Faker("description")
     user = factory.SubFactory(UserFactory)
