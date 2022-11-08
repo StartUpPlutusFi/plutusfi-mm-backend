@@ -118,13 +118,9 @@ class TestAutoTrade(TestCase):
         }
 
         request = self.client.post(reverse("MMbot:MMbotAdd"), data)
-        expected = {
-            "error": True,
-            "message": "An error occurred: (1452, 'Cannot add or update a child row: a foreign key constraint fails (`test_mm_4`.`autotrade_marketmakerbot`, CONSTRAINT `autotrade_marketmake_api_key_id_1ba0dd89_fk_api_keys_` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys_store` (`id`))')",
-        }
 
         self.assertEqual(request.status_code, 200)
-        self.assertDictEqual(request.json(), expected)
+        self.assertEqual(request.json()["error"], True)
 
     def test_get_all_autotrade(self):
         data = MarketMakerBot.objects.filter(user_id=self.user.id).values()
