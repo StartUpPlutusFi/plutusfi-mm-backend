@@ -19,6 +19,7 @@ class MMBotSerializerAdd(serializers.Serializer):
     description = serializers.CharField(required=False)
     api_key_id = serializers.IntegerField(required=True)
     user_id = serializers.IntegerField(required=False)
+    side = serializers.IntegerField(required=True)
     pair_token = serializers.CharField(required=True)
     user_ref_price = serializers.FloatField(required=True)
     trade_candle = serializers.IntegerField(required=True)
@@ -31,6 +32,7 @@ class MMBotSerializerAdd(serializers.Serializer):
             "description",
             "api_key_id",
             "user_id",
+            "side",
             "pair_token",
             "user_ref_price",
             "trade_candle",
@@ -48,6 +50,7 @@ class MMBotSerializerUpdate(serializers.Serializer):
     name = serializers.CharField(required=True)
     description = serializers.CharField(required=False)
     user_id = serializers.IntegerField(required=False)
+    side = serializers.IntegerField(required=True)
     pair_token = serializers.CharField(required=True)
     user_ref_price = serializers.FloatField(required=True)
     trade_candle = serializers.IntegerField(required=True)
@@ -56,9 +59,10 @@ class MMBotSerializerUpdate(serializers.Serializer):
     class Meta:
         fields = (
             "id",
+            "photo",
             "name",
             "description",
-            "user_id",
+            "side",
             "pair_token",
             "user_ref_price",
             "trade_candle",
