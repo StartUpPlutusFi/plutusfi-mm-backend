@@ -34,33 +34,24 @@ class MMbotAdd(generics.CreateAPIView):
     serializer_class = MMBotSerializerAdd
 
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(
-                    id=res["api_key_id"], user_id=request.user.id
-                )
-                .values("id")
-                .first()["id"],
-            }
-
-            serializer = MMBotSerializerAdd(data=insert_data)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-
-            return Response(status_code(5, f"Data is invalid {serializer}"))
+            obj: AutoTrade = serializer.save()
+            return Response(MMBotSerializerResponse(obj).data, 201)
 
         except Exception as err:
+            if "FOREIGN KEY constraint failed" in err.args:
+                return Response(
+                    {
+                        "error": True,
+                        "message": "ID entered is invalid, please check and try again.",
+                    },
+                    500,
+                )
             return Response(
-                {
-                    "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err),
-                }
+                {"error": True, "message": f"An error occurred: {err.args}"}
             )
 
 
@@ -115,16 +106,8 @@ class MMbotUpdate(generics.UpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(
-                    id=res["api_key_id"], user_id=request.user.id
-                )
-                .values("id")
-                .first()["id"],
-            }
-            serializer = self.serializer_class(data=insert_data)
+
+            serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.update(
                 self.get_queryset(), validation_data=serializer.data
@@ -136,7 +119,7 @@ class MMbotUpdate(generics.UpdateAPIView):
             return Response(
                 {
                     "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
+                    "msg": "invalid data",
                     "code": str(err),
                 }
             )
