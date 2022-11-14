@@ -391,17 +391,6 @@ def biconomy_autotrade_open(candle) -> list:
             side,
         )
 
-        exit_log = mm_logs(
-            bot_id,
-            token,
-            user_ref_price,
-            exec_ref_price,
-            user_side_choice,
-            candle,
-            user_max_order_value,
-            status="ACTIVE",
-        )
-
         edata = {
             "exec_ref_price": exec_ref_price,
             "user_side_choice": user_side_choice,
@@ -412,7 +401,6 @@ def biconomy_autotrade_open(candle) -> list:
             "bot_id": bot_id,
             "candle": candle,
             "autotrade": biconomy_autotrade_open_result,
-            "exit_log": exit_log,
         }
 
         result.append(edata)
@@ -425,13 +413,15 @@ def biconomy_autotrade_close(candle) -> dict:
         status="OPEN", candle=candle, bot__api_key__exchange__name="biconomy"
     )
 
+    result = []
+
     for order in open_orders:
 
         price = order.price
         quantity = order.quantity
         side = order.side
-        apikey = order.bot.api_key.api_key
-        apisec = order.bot.api_key.api_secret
+        apikey = EncryptationTool.read(order.bot.api_key.api_key)
+        apisec = EncryptationTool.read(order.bot.api_key.api_secret)
         token = order.bot.pair_token
 
         order_id = order.id
@@ -452,19 +442,11 @@ def biconomy_autotrade_close(candle) -> dict:
                 status="CLOSE"
             )
 
-        mm_logs(
-            bot_id=order.bot.id,
-            pair_token=token,
-            user_ref_price=0,
-            exec_ref_price=order.exec_ref_price,
-            side=side,
-            trade_candle=candle,
-            trade_amount=order.bot.trade_amount,
-            status="ACTIVE",
-        )
+        result.append(exit_code)
 
     return {
         "status": "success",
+        "exit_code": result,
     }
 
 
