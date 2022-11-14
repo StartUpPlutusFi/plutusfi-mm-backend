@@ -11,6 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task
 def run_autotrade_periodically_every_10sec(time=10):
 

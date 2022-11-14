@@ -1,6 +1,4 @@
-from email import header
 from hashlib import md5
-from typing import Tuple, List
 from urllib.parse import urlencode
 import requests
 import random
@@ -10,6 +8,7 @@ from apps.autotrade.models.models import *
 from apps.exchange.services.common.MMlogs import mm_logs
 from apps.geneses.models.models import *
 from apps.bookfiller.models.models import *
+from apps.exchange.helper.crypto_utils import EncryptationTool
 
 
 def encript_string(query_string):
@@ -31,7 +30,7 @@ def get_order_cancel_url() -> str:
     return "https://www.biconomy.com/api/v1/private/trade/cancel"
 
 
-def check_ref_price(token) -> tuple[float, bool, float, float] | list[float | bool]:
+def check_ref_price(token) -> tuple[float, bool, float, float]:
 
     smallest_ask = 0.0
     highest_bid = 0.0
@@ -56,7 +55,7 @@ def check_ref_price(token) -> tuple[float, bool, float, float] | list[float | bo
     smallest_ask = float(float(response_json["asks"][0][0]))
     highest_bid = float(response_json["bids"][0][0])
 
-    return [ref_price, ask, smallest_ask, highest_bid]
+    return ref_price, ask, smallest_ask, highest_bid
 
 
 def create_order(price, quantity, token, side, api_key, api_sec):
@@ -173,8 +172,8 @@ def biconomy_init_bookbot(data) -> dict:
     user_ref_price = data.user_ref_price
     user_max_order_value = data.order_size
     user_side_choice = data.side
-    api_key = data.api_key.api_key
-    api_sec = data.api_key.api_secret
+    api_key = EncryptationTool.read(data.api_key.api_key)
+    api_sec = EncryptationTool.read(data.api_key.api_secret)
     bookbot_id = data.id
 
     if user_side_choice == "ASK":
@@ -183,7 +182,7 @@ def biconomy_init_bookbot(data) -> dict:
         user_side_choice = 2
 
     if user_ref_price == 0:
-        user_ref_price = check_ref_price(token)
+        user_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
 
     cancel_codes = book_generator(
         limit_generator,
@@ -259,15 +258,15 @@ def biconomy_reference_value(
 
 
 def biconomy_auto_trade_order_open(
-    exec_ref_price,
-    user_side_choice,
-    token,
-    user_max_order_value,
-    api_key,
-    api_sec,
-    bot_id,
-    candle,
-    operation_type=3,
+    exec_ref_price: float,
+    user_side_choice: int,
+    token: str,
+    user_max_order_value: int,
+    api_key: str,
+    api_sec: str,
+    bot_id: int,
+    candle: int,
+    operation_type: int = 3,
 ):
     order = operation_type
     if operation_type != 1 and operation_type != 2:
@@ -281,38 +280,48 @@ def biconomy_auto_trade_order_open(
     if order == 1:
         exit_code = create_order(price, quantity, token, order, api_key, api_sec)
 
-        # log = MarketMakerBotAutoTradeQueue.objects.create(
-        #     bot_id=bot_id,
-        #     price=price,
-        #     quantity=quantity,
-        #     side="ASK",
-        #     status="OPEN",
-        #     candle=candle,
-        #     exec_ref_price=exec_ref_price,
-        # )
+        log = MarketMakerBotAutoTradeQueue.objects.create(
+            bot_id=bot_id,
+            price=price,
+            quantity=quantity,
+            side="ASK",
+            status="OPEN",
+            candle=candle,
+            exec_ref_price=exec_ref_price,
+        )
 
-        # log.save()
+        log.save()
 
     # bid
     else:
         exit_code = create_order(price, quantity, token, order, api_key, api_sec)
 
-        # log = MarketMakerBotAutoTradeQueue.objects.create(
-        #     bot_id=bot_id,
-        #     price=price,
-        #     quantity=quantity,
-        #     side="BID",
-        #     status="OPEN",
-        #     candle=candle,
-        #     exec_ref_price=exec_ref_price,
-        # )
-        #
-        # log.save()
+        log = MarketMakerBotAutoTradeQueue.objects.create(
+            bot_id=bot_id,
+            price=price,
+            quantity=quantity,
+            side="BID",
+            status="OPEN",
+            candle=candle,
+            exec_ref_price=exec_ref_price,
+        )
+
+        log.save()
 
     return {
         "name": "biconomy_auto_trade_order_open",
         "status": "success",
-        "data": exit_code,
+        "data": (exit_code,
+                 exec_ref_price,
+                 user_side_choice,
+                 token,
+                 user_max_order_value,
+                 api_key,
+                 api_sec,
+                 bot_id,
+                 candle,
+                 operation_type,
+        ),
     }
 
 
@@ -357,8 +366,8 @@ def biconomy_autotrade_open(candle) -> list:
     for data in bots:
 
         bot_id = data.id
-        apikey = data.api_key.api_key
-        apisec = data.api_key.api_secret
+        apikey = EncryptationTool.read(data.api_key.api_key)
+        apisec = EncryptationTool.read(data.api_key.api_secret)
         user_side_choice = data.side
         user_max_order_value = data.trade_amount
         token = data.pair_token
@@ -366,7 +375,7 @@ def biconomy_autotrade_open(candle) -> list:
         side = data.side
 
         if user_ref_price == 0:
-            exec_ref_price = check_ref_price(token)
+            exec_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
         else:
             exec_ref_price = user_ref_price
 
@@ -463,8 +472,8 @@ def biconomy_market_creator_open(geneses_bot) -> dict:
     user_order_size_bid = geneses_bot.user_order_size_bid
     user_order_size_ask = geneses_bot.user_order_size_ask
     token = geneses_bot.token
-    apikey = geneses_bot.api_key.api_key
-    apisec = geneses_bot.api_key.api_secret
+    apikey = EncryptationTool.read(geneses_bot.api_key.api_key)
+    apisec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     market_value = geneses_bot.market_value
     spread_distance = geneses_bot.spread_distance
     gid = geneses_bot.id
@@ -511,8 +520,8 @@ def biconomy_market_creator_close(geneses_bot) -> dict:
 
     responses = []
 
-    api_key = geneses_bot.api_key.api_key
-    api_sec = geneses_bot.api_key.api_secret
+    api_key = EncryptationTool.read(geneses_bot.api_key.api_key)
+    api_sec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     gid_id = geneses_bot.id
 
     cancel_list = GenesesQueue.objects.filter(status="OPEN", geneses_id=gid_id)
