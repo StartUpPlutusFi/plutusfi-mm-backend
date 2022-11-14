@@ -29,4 +29,4 @@ def run_autotrade_periodically_every_10sec(time=10):
 
     logging.debug(data)
 
-    return data
+    print(data)
