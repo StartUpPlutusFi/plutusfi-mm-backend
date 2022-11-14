@@ -248,10 +248,9 @@ def biconomy_reference_value(
         else:
             price = 1.02 * price
     else:
-        raise ValueError({
-            "status": 'price is not numeric',
-            "data": [price, total_order]
-        })
+        raise ValueError(
+            {"status": "price is not numeric", "data": [price, total_order]}
+        )
 
     quantity = total_order / price
     return quantity, price
@@ -311,16 +310,17 @@ def biconomy_auto_trade_order_open(
     return {
         "name": "biconomy_auto_trade_order_open",
         "status": "success",
-        "data": (exit_code,
-                 exec_ref_price,
-                 user_side_choice,
-                 token,
-                 user_max_order_value,
-                 api_key,
-                 api_sec,
-                 bot_id,
-                 candle,
-                 operation_type,
+        "data": (
+            exit_code,
+            exec_ref_price,
+            user_side_choice,
+            token,
+            user_max_order_value,
+            api_key,
+            api_sec,
+            bot_id,
+            candle,
+            operation_type,
         ),
     }
 
@@ -558,8 +558,5 @@ def biconomy_market_creator_close(geneses_bot) -> dict:
                 "code": response_json["result"],
             }
         )
-    
-    return {
-        "status": "success",
-        "responses": responses
-    }
+
+    return {"status": "success", "responses": responses}
