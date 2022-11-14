@@ -1,5 +1,6 @@
 from email import header
 from hashlib import md5
+from typing import Tuple, List
 from urllib.parse import urlencode
 import requests
 import random
@@ -30,7 +31,7 @@ def get_order_cancel_url() -> str:
     return "https://www.biconomy.com/api/v1/private/trade/cancel"
 
 
-def check_ref_price(token) -> list:
+def check_ref_price(token) -> tuple[float, bool, float, float] | list[float | bool]:
 
     smallest_ask = 0.0
     highest_bid = 0.0
@@ -220,9 +221,10 @@ def biconomy_cancel_one_order(api_key, api_sec, order_id, token):
 
 
 def biconomy_reference_value(
-    user_ref_price, user_side_choice, user_max_order_value, token
-) -> list:
+    user_ref_price: float, user_side_choice: int, user_max_order_value: int, token: str
+) -> tuple[float, float]:
 
+    random_operation = 0.0
     smallest_ask = 0.0
     price = 0.0
 
@@ -238,15 +240,22 @@ def biconomy_reference_value(
             price = random.uniform(ref_price, random_operation)
     else:
         price = user_ref_price
+
     total_order = random.randint(1, user_max_order_value)
 
-    if user_side_choice == 1 or random_operation == smallest_ask:
-        price = 0.98 * price
+    if isinstance(price, (int, float)):
+        if user_side_choice == 1 or random_operation == smallest_ask:
+            price = 0.98 * price
+        else:
+            price = 1.02 * price
     else:
-        price = 1.02 * price
+        raise ValueError({
+            "status": 'price is not numeric',
+            "data": [price, total_order]
+        })
 
     quantity = total_order / price
-    return [quantity, price]
+    return quantity, price
 
 
 def biconomy_auto_trade_order_open(
@@ -272,33 +281,33 @@ def biconomy_auto_trade_order_open(
     if order == 1:
         exit_code = create_order(price, quantity, token, order, api_key, api_sec)
 
-        log = MarketMakerBotAutoTradeQueue.objects.create(
-            bot_id=bot_id,
-            price=price,
-            quantity=quantity,
-            side="ASK",
-            status="OPEN",
-            candle=candle,
-            exec_ref_price=exec_ref_price,
-        )
+        # log = MarketMakerBotAutoTradeQueue.objects.create(
+        #     bot_id=bot_id,
+        #     price=price,
+        #     quantity=quantity,
+        #     side="ASK",
+        #     status="OPEN",
+        #     candle=candle,
+        #     exec_ref_price=exec_ref_price,
+        # )
 
-        log.save()
+        # log.save()
 
     # bid
     else:
         exit_code = create_order(price, quantity, token, order, api_key, api_sec)
 
-        log = MarketMakerBotAutoTradeQueue.objects.create(
-            bot_id=bot_id,
-            price=price,
-            quantity=quantity,
-            side="BID",
-            status="OPEN",
-            candle=candle,
-            exec_ref_price=exec_ref_price,
-        )
-
-        log.save()
+        # log = MarketMakerBotAutoTradeQueue.objects.create(
+        #     bot_id=bot_id,
+        #     price=price,
+        #     quantity=quantity,
+        #     side="BID",
+        #     status="OPEN",
+        #     candle=candle,
+        #     exec_ref_price=exec_ref_price,
+        # )
+        #
+        # log.save()
 
     return {
         "name": "biconomy_auto_trade_order_open",
