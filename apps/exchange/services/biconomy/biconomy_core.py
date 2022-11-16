@@ -266,6 +266,7 @@ def biconomy_auto_trade_order_open(
     bot_id: int,
     candle: int,
     operation_type: int = 3,
+    status: str = "OPEN"
 ):
     order = operation_type
     if operation_type != 1 and operation_type != 2:
@@ -284,7 +285,7 @@ def biconomy_auto_trade_order_open(
             price=price,
             quantity=quantity,
             side="ASK",
-            status="OPEN",
+            status=status,
             candle=candle,
             exec_ref_price=exec_ref_price,
         )
@@ -300,7 +301,7 @@ def biconomy_auto_trade_order_open(
             price=price,
             quantity=quantity,
             side="BID",
-            status="OPEN",
+            status=status,
             candle=candle,
             exec_ref_price=exec_ref_price,
         )
@@ -448,6 +449,81 @@ def biconomy_autotrade_close(candle) -> dict:
         "status": "success",
         "exit_code": result,
     }
+
+
+def biconomy_new_autotrade(candle: int):
+    result = []
+
+    bots = MarketMakerBot.objects.filter(
+        status="START", trade_candle=candle, api_key__exchange__name="biconomy"
+    )
+
+    for data in bots:
+
+        bot_id = data.id
+        apikey = EncryptationTool.read(data.api_key.api_key)
+        apisec = EncryptationTool.read(data.api_key.api_secret)
+        user_side_choice = data.side
+        user_max_order_value = data.trade_amount
+        token = data.pair_token
+        user_ref_price = data.user_ref_price
+        side = data.side
+
+        if user_ref_price == 0:
+            exec_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
+        else:
+            exec_ref_price = user_ref_price
+
+        if side != 1 and side != 2:
+            side = random.randint(1, 2)
+
+        biconomy_autotrade_open_result = biconomy_auto_trade_order_open(
+            exec_ref_price,
+            user_side_choice,
+            token,
+            user_max_order_value,
+            apikey,
+            apisec,
+            bot_id,
+            candle,
+            side,
+            status="NMOPN"
+        )
+
+        if side == 1:
+            side = 2
+        elif side == 2:
+            side = 1
+        else:
+            raise ValueError(['at biconomy_new_autotrade invalid side option', side])
+
+        biconomy_autotrade_close_result = biconomy_auto_trade_order_open(
+            exec_ref_price,
+            user_side_choice,
+            token,
+            user_max_order_value,
+            apikey,
+            apisec,
+            bot_id,
+            candle,
+            side,
+            status="NMCLO"
+        )
+
+        edata = {
+            "exec_ref_price": exec_ref_price,
+            "user_side_choice": user_side_choice,
+            "user_max_order_value": user_max_order_value,
+            "token": token,
+            "side": data.side,
+            "status": data.status,
+            "bot_id": bot_id,
+            "candle": candle,
+            "autotrade_open": biconomy_autotrade_open_result,
+            "autotrade_close": biconomy_autotrade_close_result,
+        }
+
+        result.append(edata)
 
 
 def biconomy_market_creator_open(geneses_bot) -> dict:
