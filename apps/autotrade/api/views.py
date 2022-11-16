@@ -165,7 +165,7 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
                     user=self.request.user, id=self.kwargs.get("pk")
                 ).update(status="START")
                 exit_code = "START"
-            elif set_status == "stop":
+            else:
                 MarketMakerBot.objects.filter(
                     user=self.request.user, id=self.kwargs.get("pk")
                 ).update(status="STOP")
