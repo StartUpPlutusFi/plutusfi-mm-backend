@@ -266,15 +266,18 @@ def biconomy_auto_trade_order_open(
     bot_id: int,
     candle: int,
     operation_type: int = 3,
-    status: str = "OPEN"
+    status: str = "OPEN",
+    quantity: float = None,
+    price: float = None,
 ):
     order = operation_type
     if operation_type != 1 and operation_type != 2:
         order = random.randint(1, 2)
 
-    quantity, price = biconomy_reference_value(
-        exec_ref_price, user_side_choice, user_max_order_value, token
-    )
+    if quantity is None or price is None:
+        quantity, price = biconomy_reference_value(
+            exec_ref_price, user_side_choice, user_max_order_value, token
+        )
 
     # ask
     if order == 1:
@@ -311,18 +314,18 @@ def biconomy_auto_trade_order_open(
     return {
         "name": "biconomy_auto_trade_order_open",
         "status": "success",
-        "data": (
-            exit_code,
-            exec_ref_price,
-            user_side_choice,
-            token,
-            user_max_order_value,
-            api_key,
-            api_sec,
-            bot_id,
-            candle,
-            operation_type,
-        ),
+        "exit_code": exit_code,
+        "info": {
+                "exec_ref_price": exec_ref_price,
+                "quantity": quantity,
+                "price": price,
+                "user_side_choice": user_side_choice,
+                "token": token,
+                "user_max_order_value": user_max_order_value,
+                "bot_id": bot_id,
+                "candle": candle,
+                "operation_type": operation_type,
+            }
     }
 
 
@@ -477,6 +480,10 @@ def biconomy_new_autotrade(candle: int):
         if side != 1 and side != 2:
             side = random.randint(1, 2)
 
+        quantity, price = biconomy_reference_value(
+            exec_ref_price, user_side_choice, user_max_order_value, token
+        )
+
         biconomy_autotrade_open_result = biconomy_auto_trade_order_open(
             exec_ref_price,
             user_side_choice,
@@ -487,7 +494,9 @@ def biconomy_new_autotrade(candle: int):
             bot_id,
             candle,
             side,
-            status="NMOPN"
+            status="NMOPN",
+            quantity=quantity,
+            price=price,
         )
 
         if side == 1:
@@ -507,23 +516,31 @@ def biconomy_new_autotrade(candle: int):
             bot_id,
             candle,
             side,
-            status="NMCLO"
+            status="NMCLO",
+            quantity=quantity,
+            price=price,
         )
 
         edata = {
-            "exec_ref_price": exec_ref_price,
-            "user_side_choice": user_side_choice,
-            "user_max_order_value": user_max_order_value,
-            "token": token,
-            "side": data.side,
-            "status": data.status,
-            "bot_id": bot_id,
-            "candle": candle,
             "autotrade_open": biconomy_autotrade_open_result,
             "autotrade_close": biconomy_autotrade_close_result,
+            "info": {
+                "exec_ref_price": exec_ref_price,
+                "quantity": quantity,
+                "price": price,
+                "user_side_choice": user_side_choice,
+                "user_max_order_value": user_max_order_value,
+                "token": token,
+                "side": data.side,
+                "status": data.status,
+                "bot_id": bot_id,
+                "candle": candle,
+            },
         }
 
         result.append(edata)
+
+    return result
 
 
 def biconomy_market_creator_open(geneses_bot) -> dict:
