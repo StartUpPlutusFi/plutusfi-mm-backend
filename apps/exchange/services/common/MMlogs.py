@@ -12,6 +12,14 @@ def mm_logs(
     status,
 ):
     try:
+
+        if side == 1:
+            side = "ASK"
+        elif side == 2:
+            side = "BID"
+        else:
+            raise ValueError(["at mm_logs", "side is not valid value", side])
+
         logs = MarketMakerBotOrderHistory.objects.create(
             bot_id=bot_id,
             pair_token=pair_token,
@@ -38,8 +46,6 @@ def mm_logs(
                 "status": status,
             },
         }
-
-        logger.warning(edata)
 
     except Exception as err:
 

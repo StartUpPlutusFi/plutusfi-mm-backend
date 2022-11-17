@@ -128,7 +128,6 @@ class TestAutoTrade(TestCase):
             "trade_candle": ["A valid integer is required."],
             "trade_amount": ["A valid number is required."],
         }
-        print(request_data)
         self.assertDictEqual(request_data, expected)
 
     def test_get_all_autotrade(self):

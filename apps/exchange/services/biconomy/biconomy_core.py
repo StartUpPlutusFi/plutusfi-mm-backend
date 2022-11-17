@@ -1,7 +1,3 @@
-## Biconomy
-
-# Modules
-from email import header
 from hashlib import md5
 from urllib.parse import urlencode
 import requests
@@ -12,213 +8,53 @@ from apps.autotrade.models.models import *
 from apps.exchange.services.common.MMlogs import mm_logs
 from apps.geneses.models.models import *
 from apps.bookfiller.models.models import *
+from apps.exchange.helper.crypto_utils import EncryptationTool
 
 
-# função de encriptação do header
 def encript_string(query_string):
     return md5(query_string.encode()).hexdigest().upper()
 
 
-def biconomy_default_header():
+def get_headers() -> dict:
     return {
         "Content-Type": "application/x-www-form-urlencoded",
         "X-SITE-ID": "127",
     }
 
 
-def check_ref_price_only(symbol, size=100):
-    # @symbol -> pait_token
-    # @size -> response size
-
-    headers = biconomy_default_header()
-    BASE_URL = f"https://www.biconomy.com/api/v1/depth?symbol={symbol}"
-
-    params = {
-        "symbol": symbol,
-        "size": size,
-    }
-
-    response = requests.get(BASE_URL, headers=headers, data=params)
-    response_json = response.json()
-
-    ask = float(response_json["asks"][0][0])
-    bid = float(response_json["bids"][0][0])
-
-    ref_price = (ask + bid) / 2
-
-    return ref_price
+def get_order_url() -> str:
+    return "https://www.biconomy.com/api/v1/private/trade/limit"
 
 
-def make_request(params, URL):
-    headers = biconomy_default_header()
-
-    query_string = urlencode(params)
-    # print(query_string)
-    md5_params = encript_string(query_string)
-    params.pop("secret_key")
-    params["sign"] = md5_params
-    r = requests.post(URL, headers=headers, data=params)
-    response_json = r.json()
-    # print(response_json, params["sign"])
-    return response_json
+def get_order_cancel_url() -> str:
+    return "https://www.biconomy.com/api/v1/private/trade/cancel"
 
 
-## Take total ASKS and BIDS of an symbol
-def take_all_asks_and_bids_by_symbol(symbol, size=100):
-    BASE_URL = f"https://www.biconomy.com/api/v1/depth?symbol={symbol}"
-    headers = biconomy_default_header()
-
-    params = {
-        "symbol": symbol,
-        "size": size,
-    }
-
-    response = requests.get(BASE_URL, headers=headers, data=params)
-
-    return response.json()
-
-
-## Biconomy gets the total amount of ASKS and BIDS of x SYMBOL
-def get_total_amount_of_asks_and_bids_of_one_symbol(symbol, size=100):
-    headers = biconomy_default_header()
-
-    # base URL
-    BASE_URL = f"https://www.biconomy.com/api/v1/depth?symbol={symbol}"
-
-    # Configuração de parametros para inclusão de ordem
-    params = {
-        "symbol": symbol,
-        "size": size,
-    }
-
-    total_ask = 0.0
-    total_bids = 0.0
-
-    response = requests.get(BASE_URL, headers=headers, data=params)
-    response_json = response.json()
-
-    for ask in response_json["asks"]:
-        total_ask = total_ask + (float(ask[0]) * float(ask[1]))
-
-    for bids in response_json["bids"]:
-        total_bids = total_bids + (float(bids[0]) * float(bids[1]))
-
-    return {
-        "total_ask": total_ask,
-        "total_bids": total_bids,
-    }
-
-
-## Biconomy check all pending orders of x symbol
-def check_all_pending_orders_by_symbol(api_key, api_sec, symbol):
-    BASE_URL = "https://www.biconomy.com/api/v1/private/order/pending"
-    headers = biconomy_default_header()
-
-    params = {"api_key": api_key, "market": symbol, "secret_key": api_sec}
-
-    query_string = urlencode(params)
-    md5_params = encript_string(query_string)
-    params.pop("secret_key")
-    params["sign"] = md5_params
-
-    response = requests.post(BASE_URL, headers=headers, data=params)
-    return response.json()
-
-
-## Biconomy GET ALL USDT PAIRS
-def take_all_usdt_pairs():
-    headers = biconomy_default_header()
-    BASE_URL = "https://www.biconomy.com/api/v1/tickers"
-    response = requests.get(BASE_URL, headers=headers)
-    return response.json()
-
-
-## Biconomy BOOK REF_PRICE AND MINIMAL QUANTITY
-def take_bool_ref_price_and_minimal_quantity(symbol, size=100):
-    total_order = 10
-    ref_price = check_ref_price(symbol, size=100)
-    quantity = total_order / ref_price
-
-    return quantity
-
-
-## Biconomy BOOK ORDER CREATOR BASED ON REF_PRICE AND MINIMAL QUANTITY
-def bid_order_creator(limit, price, symbol):
-    # @limit -> Order quantity
-    # @symbol -> Pair token
-    # @size -> Response size
-
-    total_order = 11
-
-    if price != 0:
-        bid_price = price
-    else:
-        bid_price = check_ref_price(symbol)
-
-    bid_prices = []
-    bid_quantitys = []
-
-    order_pair = []
-
-    for number in range(limit):
-        bid_price = (1.02) * bid_price
-        bid_prices.append(bid_price)
-
-        bid_quantity = total_order / bid_price
-        bid_quantitys.append(bid_quantity)
-
-        order_pair.append({"price": bid_price, "quantity": bid_quantity})
-
-    return {"order_pair": order_pair}
-
-
-## Biconomy RANDOM ORDER LOOP
-
-
-def get_order_url():
-    BASE_URL = "https://www.biconomy.com/api/v1/private/trade/limit"
-    return BASE_URL
-
-
-def get_order_cancel_url():
-    BASE_URL = "https://www.biconomy.com/api/v1/private/trade/cancel"
-    return BASE_URL
-
-
-def check_ref_price(token):
+def check_ref_price(token) -> tuple[float, bool, float, float]:
     smallest_ask = 0.0
     highest_bid = 0.0
     ask = False
-    BASE_URL = f"https://www.biconomy.com/api/v1/depth?symbol={token}"
-    r = requests.get(BASE_URL)
-    response_json = r.json()
+
+    url = f"https://www.biconomy.com/api/v1/depth?symbol={token}"
+    response = requests.get(url)
+    response_json = response.json()
+
     if not response_json["bids"]:
         ref_price = float(float(response_json["asks"][0][0]))
         ask = True
-        # print(f"There is no bids so the ref price value is the lowest ask: {ref_price}")
         return ref_price, ask, smallest_ask, highest_bid
+
     if not response_json["asks"]:
         ref_price = float(response_json["bids"][0][0])
-        # print(
-        #     f"There is no asks so the ref price value is the highest bid: {ref_price}"
-        # )
         return ref_price, ask, smallest_ask, highest_bid
+
     ref_price = (
-        float(response_json["bids"][0][0]) + float(float(response_json["asks"][0][0]))
-    ) / 2
+                        float(response_json["bids"][0][0]) + float(float(response_json["asks"][0][0]))
+                ) / 2
     smallest_ask = float(float(response_json["asks"][0][0]))
     highest_bid = float(response_json["bids"][0][0])
-    # print(f"The ref price value is: {ref_price}")
-    # print(f"The smallest ASK is {smallest_ask} and the highest BID is {highest_bid}")
+
     return ref_price, ask, smallest_ask, highest_bid
-
-
-def get_headers():
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-SITE-ID": "127",
-    }
-    return headers
 
 
 def create_order(price, quantity, token, side, api_key, api_sec):
@@ -230,27 +66,26 @@ def create_order(price, quantity, token, side, api_key, api_sec):
         "side": side,
         "secret_key": api_sec,
     }
+
     query_string = urlencode(params)
     md5_params = encript_string(query_string)
     params.pop("secret_key")
     params["sign"] = md5_params
-    r = requests.post(get_order_url(), headers=get_headers(), data=params)
-    response_json = r.json()
+
+    response = requests.post(get_order_url(), headers=get_headers(), data=params)
+    response_json = response.json()
     return response_json
 
 
-# Gets the price and quantity necessary to make an order from (reference price * 1.02)
-
-
 def book_generator(
-    limit_generator,
-    token,
-    user_ref_price,
-    user_max_order_value,
-    user_side_choice,
-    api_key,
-    api_sec,
-    bookbot_id,
+        limit_generator,
+        token,
+        user_ref_price,
+        user_max_order_value,
+        user_side_choice,
+        api_key,
+        api_sec,
+        bookbot_id,
 ):
     price = 0.0
     if user_ref_price == 0:
@@ -281,9 +116,10 @@ def book_generator(
 
 
 def get_budget(token, side):
-    BASE_URL = "https://www.biconomy.com/api/v1/private/user"
-    r = requests.get(BASE_URL, headers=get_headers())
-    response_json = r.json()
+    url = "https://www.biconomy.com/api/v1/private/user"
+    response = requests.get(url, headers=get_headers())
+    response_json = response.json()
+
     for x in response_json["result"]:
         if (x) == "USDT" and side == 2:
             return x["available"]
@@ -291,10 +127,10 @@ def get_budget(token, side):
             return x["available"]
 
 
-def biconomy_cancel_all_orders(bookbot):
+def biconomy_cancel_all_orders(bookbot) -> list:
     responses = []
-
     bot_id = bookbot.id
+
     cancel_list = CancelOrderBookBot.objects.filter(
         order_status=True, bot_id=bot_id
     ).values("id", "bot", "cancel_order_id")
@@ -312,8 +148,10 @@ def biconomy_cancel_all_orders(bookbot):
         params.pop("secret_key")
         params["sign"] = md5_params
 
-        r = requests.post(get_order_cancel_url(), headers=get_headers(), data=params)
-        response_json = r.json()
+        response = requests.post(
+            get_order_cancel_url(), headers=get_headers(), data=params
+        )
+        response_json = response.json()
         responses.append(response_json)
 
         CancelOrderBookBot.objects.filter(id=bot["id"], bot_id=bot_id).update(
@@ -323,24 +161,23 @@ def biconomy_cancel_all_orders(bookbot):
     return responses
 
 
-def biconomy_init_bookbot(data):
+def biconomy_init_bookbot(data) -> dict:
     limit_generator = data.number_of_orders
     token = data.pair_token
     user_ref_price = data.user_ref_price
     user_max_order_value = data.order_size
     user_side_choice = data.side
-    api_key = data.api_key.api_key
-    api_sec = data.api_key.api_secret
+    api_key = EncryptationTool.read(data.api_key.api_key)
+    api_sec = EncryptationTool.read(data.api_key.api_secret)
     bookbot_id = data.id
 
-    # salva id da ordem criada
     if user_side_choice == "ASK":
         user_side_choice = 1
     else:
         user_side_choice = 2
 
     if user_ref_price == 0:
-        user_ref_price = check_ref_price(token)
+        user_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
 
     cancel_codes = book_generator(
         limit_generator,
@@ -372,13 +209,16 @@ def biconomy_cancel_one_order(api_key, api_sec, order_id, token):
     params.pop("secret_key")
     params["sign"] = md5_params
 
-    r = requests.post(get_order_cancel_url(), headers=get_headers(), data=params)
-    return r.json()
+    response = requests.post(get_order_cancel_url(), headers=get_headers(), data=params)
+    return response.json()
 
 
-def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
+def biconomy_reference_value(
+        user_ref_price: float, user_side_choice: int, user_max_order_value: int, token: str
+) -> tuple[float, float]:
+    random_operation = 0.0
     smallest_ask = 0.0
-    random_operation = None
+    price = 0.0
 
     if user_ref_price == 0:
         ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
@@ -391,39 +231,46 @@ def ref_value(user_ref_price, user_side_choice, user_max_order_value, token):
             random_operation = random.choice(random_list)
             price = random.uniform(ref_price, random_operation)
     else:
-        ref_price = user_ref_price
-        price = ref_price
+        price = user_ref_price
+
     total_order = random.randint(1, user_max_order_value)
 
-    # Gets the price and quantity necessary to make an order from (reference price * 1.02) or * 0.98
-    if ask or user_side_choice == 1 or random_operation == smallest_ask:
-        price = 0.98 * price
+    if isinstance(price, (int, float)):
+        if user_side_choice == 1 or random_operation == smallest_ask:
+            price = 0.98 * price
+        else:
+            price = 1.02 * price
     else:
-        price = 1.02 * price
-    print(f"Price {price}")
+        raise ValueError(
+            {"status": "price is not numeric", "data": [price, total_order]}
+        )
+
     quantity = total_order / price
-    print(f"Quantity {quantity}")
     return quantity, price
 
 
 def biconomy_auto_trade_order_open(
-    exec_ref_price,
-    user_side_choice,
-    token,
-    user_max_order_value,
-    api_key,
-    api_sec,
-    bot_id,
-    candle,
-    op=3,
+        exec_ref_price: float,
+        user_side_choice: int,
+        token: str,
+        user_max_order_value: int,
+        api_key: str,
+        api_sec: str,
+        bot_id: int,
+        candle: int,
+        operation_type: int = 3,
+        status: str = "OPEN",
+        quantity: float = None,
+        price: float = None,
 ):
-    order = op
-    if op != 1 and op != 2:
+    order = operation_type
+    if operation_type != 1 and operation_type != 2:
         order = random.randint(1, 2)
 
-    quantity, price = ref_value(
-        exec_ref_price, user_side_choice, user_max_order_value, token
-    )
+    if quantity is None or price is None:
+        quantity, price = biconomy_reference_value(
+            exec_ref_price, user_side_choice, user_max_order_value, token
+        )
 
     # ask
     if order == 1:
@@ -434,7 +281,7 @@ def biconomy_auto_trade_order_open(
             price=price,
             quantity=quantity,
             side="ASK",
-            status="OPEN",
+            status=status,
             candle=candle,
             exec_ref_price=exec_ref_price,
         )
@@ -450,7 +297,7 @@ def biconomy_auto_trade_order_open(
             price=price,
             quantity=quantity,
             side="BID",
-            status="OPEN",
+            status=status,
             candle=candle,
             exec_ref_price=exec_ref_price,
         )
@@ -460,11 +307,24 @@ def biconomy_auto_trade_order_open(
     return {
         "name": "biconomy_auto_trade_order_open",
         "status": "success",
-        "data": exit_code,
+        "exit_code": exit_code,
+        "info": {
+            "exec_ref_price": exec_ref_price,
+            "quantity": quantity,
+            "price": price,
+            "user_side_choice": user_side_choice,
+            "token": token,
+            "user_max_order_value": user_max_order_value,
+            "bot_id": bot_id,
+            "candle": candle,
+            "operation_type": operation_type,
+        }
     }
 
 
-def biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token):
+def biconomy_auto_trade_order_close(
+        price, quantity, side, apikey, apisec, token
+) -> dict:
     try:
 
         if side == "ASK":
@@ -488,34 +348,34 @@ def biconomy_auto_trade_order_close(price, quantity, side, apikey, apisec, token
         return {
             "name": "biconomy_auto_trade_order_close",
             "status": "error",
-            "error": f"ERROR at auto_trade_order_close → {str(e)}",
+            "error": f"{str(e)}",
         }
 
 
-def biconomy_autotrade_open(candle):
+def biconomy_autotrade_open(candle) -> list:
+    result = []
+
     bots = MarketMakerBot.objects.filter(
         status="START", trade_candle=candle, api_key__exchange__name="biconomy"
     )
 
-    result = []
-
     for data in bots:
+
         bot_id = data.id
-        apikey = data.api_key.api_key
-        apisec = data.api_key.api_secret
+        apikey = EncryptationTool.read(data.api_key.api_key)
+        apisec = EncryptationTool.read(data.api_key.api_secret)
         user_side_choice = data.side
         user_max_order_value = data.trade_amount
         token = data.pair_token
         user_ref_price = data.user_ref_price
-        op = data.side
-        ref = check_ref_price(token)
+        side = data.side
 
         if user_ref_price == 0:
-            exec_ref_price = ref
+            exec_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
         else:
             exec_ref_price = user_ref_price
 
-        exit_code = biconomy_auto_trade_order_open(
+        biconomy_autotrade_open_result = biconomy_auto_trade_order_open(
             exec_ref_price,
             user_side_choice,
             token,
@@ -524,18 +384,7 @@ def biconomy_autotrade_open(candle):
             apisec,
             bot_id,
             candle,
-            op,
-        )
-
-        exit_log = mm_logs(
-            bot_id,
-            token,
-            user_ref_price,
-            exec_ref_price,
-            user_side_choice,
-            candle,
-            user_max_order_value,
-            status="ACTIVE",
+            side,
         )
 
         edata = {
@@ -547,35 +396,31 @@ def biconomy_autotrade_open(candle):
             "status": data.status,
             "bot_id": bot_id,
             "candle": candle,
-            "autotrade": exit_code,
-            "exit_log": exit_log,
+            "autotrade": biconomy_autotrade_open_result,
         }
 
         result.append(edata)
-        # print(f"bigone_autotrade_open:: :: {edata}")
 
     return result
 
 
-def biconomy_autotrade_close(candle):
+def biconomy_autotrade_close(candle) -> dict:
     open_orders = MarketMakerBotAutoTradeQueue.objects.filter(
         status="OPEN", candle=candle, bot__api_key__exchange__name="biconomy"
     )
+
+    result = []
 
     for order in open_orders:
 
         price = order.price
         quantity = order.quantity
         side = order.side
-        apikey = order.bot.api_key.api_key
-        apisec = order.bot.api_key.api_secret
+        apikey = EncryptationTool.read(order.bot.api_key.api_key)
+        apisec = EncryptationTool.read(order.bot.api_key.api_secret)
         token = order.bot.pair_token
 
         order_id = order.id
-
-        # print(
-        #     f"bigone_autotrade_close :: :: {price}, {quantity}, {side},  {apikey}, {apisec}, {token}"
-        # )
 
         exit_code = biconomy_auto_trade_order_close(
             price, quantity, side, apikey, apisec, token
@@ -593,28 +438,109 @@ def biconomy_autotrade_close(candle):
                 status="CLOSE"
             )
 
-        mm_logs(
-            bot_id=order.bot.id,
-            pair_token=token,
-            user_ref_price=0,
-            exec_ref_price=order.exec_ref_price,
-            side=side,
-            trade_candle=candle,
-            trade_amount=order.bot.trade_amount,
-            status="ACTIVE",
-        )
+        result.append(exit_code)
 
     return {
         "status": "success",
+        "exit_code": result,
     }
 
 
-def biconomy_market_creator_open(geneses_bot):
+def biconomy_new_autotrade(candle: int):
+    result = []
+
+    bots = MarketMakerBot.objects.filter(
+        status="START", trade_candle=candle, api_key__exchange__name="biconomy"
+    )
+
+    for data in bots:
+
+        bot_id = data.id
+        apikey = EncryptationTool.read(data.api_key.api_key)
+        apisec = EncryptationTool.read(data.api_key.api_secret)
+        user_side_choice = data.side
+        user_max_order_value = data.trade_amount
+        token = data.pair_token
+        user_ref_price = data.user_ref_price
+        side = data.side
+
+        if user_ref_price == 0:
+            exec_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
+        else:
+            exec_ref_price = user_ref_price
+
+        if side != 1 and side != 2:
+            side = random.randint(1, 2)
+
+        quantity, price = biconomy_reference_value(
+            exec_ref_price, user_side_choice, user_max_order_value, token
+        )
+
+        biconomy_autotrade_open_result = biconomy_auto_trade_order_open(
+            exec_ref_price,
+            user_side_choice,
+            token,
+            user_max_order_value,
+            apikey,
+            apisec,
+            bot_id,
+            candle,
+            side,
+            status="NMOPN",
+            quantity=quantity,
+            price=price,
+        )
+
+        if side == 1:
+            side = 2
+        elif side == 2:
+            side = 1
+        else:
+            raise ValueError(['at biconomy_new_autotrade invalid side option', side])
+
+        biconomy_autotrade_close_result = biconomy_auto_trade_order_open(
+            exec_ref_price,
+            user_side_choice,
+            token,
+            user_max_order_value,
+            apikey,
+            apisec,
+            bot_id,
+            candle,
+            side,
+            status="NMCLO",
+            quantity=quantity,
+            price=price,
+        )
+
+        edata = {
+            "autotrade_open": biconomy_autotrade_open_result,
+            "autotrade_close": biconomy_autotrade_close_result,
+            "info": {
+                "exec_ref_price": exec_ref_price,
+                "quantity": quantity,
+                "price": price,
+                "user_side_choice": user_side_choice,
+                "user_max_order_value": user_max_order_value,
+                "token": token,
+                "side": data.side,
+                "status": data.status,
+                "bot_id": bot_id,
+                "candle": candle,
+            },
+        }
+
+        result.append(edata)
+
+    return result
+
+
+def biconomy_market_creator_open(geneses_bot) -> dict:
     user_order_size_bid = geneses_bot.user_order_size_bid
     user_order_size_ask = geneses_bot.user_order_size_ask
     token = geneses_bot.token
-    apikey = geneses_bot.api_key.api_key
-    apisec = geneses_bot.api_key.api_secret
+    apikey = EncryptationTool.read(geneses_bot.api_key.api_key)
+    apisec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     market_value = geneses_bot.market_value
     spread_distance = geneses_bot.spread_distance
     gid = geneses_bot.id
@@ -657,11 +583,11 @@ def biconomy_market_creator_open(geneses_bot):
         }
 
 
-def biconomy_market_creator_close(geneses_bot):
+def biconomy_market_creator_close(geneses_bot) -> dict:
     responses = []
 
-    api_key = geneses_bot.api_key.api_key
-    api_sec = geneses_bot.api_key.api_secret
+    api_key = EncryptationTool.read(geneses_bot.api_key.api_key)
+    api_sec = EncryptationTool.read(geneses_bot.api_key.api_secret)
     gid_id = geneses_bot.id
 
     cancel_list = GenesesQueue.objects.filter(status="OPEN", geneses_id=gid_id)
@@ -698,3 +624,5 @@ def biconomy_market_creator_close(geneses_bot):
                 "code": response_json["result"],
             }
         )
+
+    return {"status": "success", "responses": responses}

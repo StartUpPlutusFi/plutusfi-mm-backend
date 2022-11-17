@@ -142,7 +142,7 @@ class AutoTradeStatus(generics.ListAPIView):
 class AutoTradeBotCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = MMBotSerializerUpdate
-    http_method_names = ("get",)
+    http_method_names = ("post",)
 
     def get_queryset(self):
         try:
@@ -153,12 +153,14 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
         except Exception:
             return {}
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        exit_code = None
         try:
 
             data = self.get_queryset()
+            set_status = self.kwargs.get("set")
 
-            if data.status == "STOP":
+            if set_status == "start":
                 MarketMakerBot.objects.filter(
                     user=self.request.user, id=self.kwargs.get("pk")
                 ).update(status="START")
