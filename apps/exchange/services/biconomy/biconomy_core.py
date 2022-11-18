@@ -137,10 +137,10 @@ def biconomy_cancel_all_orders(bookbot) -> list:
 
     for bot in cancel_list:
         params = {
-            "api_key": bookbot.api_key.api_key,
+            "api_key": EncryptationTool.read(bookbot.api_key.api_key),
             "market": bookbot.pair_token,
             "order_id": bot["cancel_order_id"],
-            "secret_key": bookbot.api_key.api_secret,
+            "secret_key": EncryptationTool.read(bookbot.api_key.api_secret),
         }
 
         query_string = urlencode(params)
