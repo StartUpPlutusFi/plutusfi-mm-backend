@@ -40,6 +40,13 @@ class MMBotSerializerAdd(serializers.Serializer):
         )
 
     def create(self, validated_data):
+        validated_data = validated_data | {
+            "api_key_id": ApiKeys.objects.filter(
+                id=validated_data["api_key_id"], user=self.context["request"].user
+            )
+            .values("id")
+            .first()["id"],
+        }
         new_autotrade = MarketMakerBot.objects.create(
             user=self.context["request"].user, **validated_data
         )
@@ -75,6 +82,11 @@ class MMBotSerializerUpdate(serializers.Serializer):
             for k, v in validation_data.items():
                 if k == "photo":
                     v = self.context["request"].data["photo"]
+                if k == "api_key_id":
+                    v = \
+                        ApiKeys.objects.filter(id=validation_data["api_key_id"],
+                                               user=self.context["request"].user).values(
+                            "id").first()["id"]
                 setattr(instance, k, v)
             instance.save()
             return instance
