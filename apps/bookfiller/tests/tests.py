@@ -105,12 +105,11 @@ class TestBookFiller(TestCase):
         update = {
             "name": "TestBookFiller",
             "side": 400,
-            "api_key_id": self.apikey.id,
+            "api_key_id": "www67",
             "pair_token": "SCAM",
             "order_size": 300,
-            "number_of_orders": 20,
             "budget": 1,
-            "user_ref_price": "110",
+            "user_ref_price": "110"
         }
 
         request = self.client.put(
@@ -120,12 +119,16 @@ class TestBookFiller(TestCase):
 
         expected_response = {
             "error": True,
-            "errors": {"user_id": "This field is required."},
+            "errors": {
+                "api_key_id": "A valid integer is required.",
+                "number_of_orders": "This field is required."
+            }
         }
 
         self.assertEqual(request.status_code, 500)
         data = request.json()
-        self.assertDictEqual(request.json(), expected_response)
+
+        self.assertDictEqual(data, expected_response)
 
     def test_update_bookfiller(self):
         update = {
