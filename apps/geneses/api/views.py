@@ -1,17 +1,15 @@
-# Create your views here.
-import json
-
+import django.db.utils
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-
-from apps.exchange.helper.helper import status_code
 from rest_framework import status
 
+from apps.exchange.helper.helper import status_code
 from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
 from apps.geneses.serializers import *
 from apps.geneses.models.models import *
+import json
 
 logger = logging.getLogger("geneses")
 
@@ -44,32 +42,27 @@ class GenesesAdd(generics.CreateAPIView):
     serializer_class = GenesesSerializer
 
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
-            res = dict(request.data)
-            insert_data = res | {
-                "user_id": request.user.id,
-                "api_key_id": ApiKeys.objects.filter(
-                    id=res["api_key_id"], user_id=request.user.id
+            obj: Geneses = serializer.save()
+            return Response(GenesesSerializerResponse(obj).data, 201)
+        except django.db.utils.IntegrityError as err:
+            if "FOREIGN KEY constraint failed" in err.args:
+                return Response(
+                    {
+                        "error": True,
+                        "message": "ID entered is invalid, please check and try again.",
+                    },
+                    500,
                 )
-                .values("id")
-                .first()["id"],
-            }
-
-            serializer = GenesesSerializer(data=insert_data)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-
-            return Response(status_code(5, f"Data is invalid {serializer}"))
-
+            return Response(
+                {"error": True, "message": f"An error occurred: {err.args}"}
+            )
         except Exception as err:
             return Response(
-                {
-                    "status": "error",
-                    "msg": "invalid data or unauthorized api_key_id",
-                    "code": str(err),
-                }
+                {"error": True, "message": f"An error occurred: {err.args}"}
             )
 
 
@@ -167,7 +160,7 @@ class GenesesStatus(generics.ListAPIView):
 class GenesesCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = GenesesSerializerStatusUpdate
-    http_method_names = ("get",)
+    http_method_names = ("post",)
 
     def get_queryset(self):
         result = Geneses.objects.filter(
@@ -175,14 +168,15 @@ class GenesesCtrl(generics.UpdateAPIView):
         ).first()
         return result
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
 
         try:
             geneses_bot = self.get_queryset()
             bot_ex = geneses_bot.api_key.exchange.name
             # op_result = None
 
-            if geneses_bot.status == "STOP":
+            status_set = self.kwargs.get("set")
+            if status_set == "start":
 
                 if "biconomy" == bot_ex:
                     op_result = biconomy_market_creator_open(geneses_bot)
