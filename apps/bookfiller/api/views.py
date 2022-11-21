@@ -46,6 +46,10 @@ class BookFillerAdd(generics.CreateAPIView):
             return Response(
                 {"error": True, "message": f"An error occurred: {err.args}"}
             )
+        except Exception as err:
+            return Response(
+                {"error": True, "message": f"An error occurred: {err.args}"}
+            )
 
 
 class BookFillerDetail(generics.ListAPIView):

@@ -28,6 +28,13 @@ class BookFillerSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
+        validated_data = validated_data | {
+            "api_key_id": ApiKeys.objects.filter(
+                id=validated_data["api_key_id"], user=self.context["request"].user
+            )
+            .values("id")
+            .first()["id"],
+        }
         new_bookfiller = BookFiller.objects.create(
             user=self.context["request"].user, **validated_data
         )
@@ -49,7 +56,6 @@ class BookFillerSerializerDetail(serializers.Serializer):
 class BookFillerSerializerUpdate(serializers.Serializer):
     name = serializers.CharField(required=True)
     side = serializers.CharField(required=True)
-    user_id = serializers.IntegerField(required=True)
     order_size = serializers.IntegerField(required=True)
     api_key_id = serializers.IntegerField(required=True)
     pair_token = serializers.CharField(required=True)
@@ -61,7 +67,6 @@ class BookFillerSerializerUpdate(serializers.Serializer):
         fields = (
             "name",
             "side",
-            "user_id",
             "api_key_id",
             "pair_token",
             "order_size",
@@ -73,11 +78,15 @@ class BookFillerSerializerUpdate(serializers.Serializer):
     def update(self, instance, validation_data):
         try:
             for k, v in validation_data.items():
+                if k == "api_key_id":
+                    v = \
+                    ApiKeys.objects.filter(id=validation_data["api_key_id"], user=self.context["request"].user).values(
+                        "id").first()["id"]
                 setattr(instance, k, v)
             instance.save()
             return instance
-        except Exception as e:
 
+        except Exception:
             return None
 
 
