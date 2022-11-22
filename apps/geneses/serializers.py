@@ -3,7 +3,6 @@ from apps.geneses.models.models import *
 
 
 class GenesesSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(required=True)
     api_key_id = serializers.IntegerField(required=True)
     name = serializers.CharField(required=True)
     token = serializers.CharField(required=True)
@@ -16,7 +15,6 @@ class GenesesSerializer(serializers.ModelSerializer):
         model = Geneses
         fields = (
             "id",
-            "user_id",
             "api_key_id",
             "name",
             "token",
@@ -25,6 +23,20 @@ class GenesesSerializer(serializers.ModelSerializer):
             "market_value",
             "spread_distance",
         )
+
+    def create(self, validated_data):
+        validated_data = validated_data | {
+            "api_key_id": ApiKeys.objects.filter(
+                id=validated_data["api_key_id"], user=self.context["request"].user
+            )
+            .values("id")
+            .first()["id"],
+        }
+        new_geneses = Geneses.objects.create(
+            user=self.context["request"].user, **validated_data
+        )
+        new_geneses.save()
+        return new_geneses
 
 
 class GenesesSerializerDetail(serializers.Serializer):
@@ -55,6 +67,11 @@ class GenesesSerializerUpdate(serializers.Serializer):
     def update(self, instance, validation_data):
         try:
             for k, v in validation_data.items():
+                if k == "api_key_id":
+                    v = \
+                        ApiKeys.objects.filter(id=validation_data["api_key_id"],
+                                               user=self.context["request"].user).values(
+                            "id").first()["id"]
                 setattr(instance, k, v)
             instance.save()
             return instance
@@ -84,3 +101,9 @@ class GenesesSerializerStatus(serializers.ModelSerializer):
     class Meta:
         model = Geneses
         fields = ("status",)
+
+
+class GenesesSerializerResponse(serializers.ModelSerializer):
+    class Meta:
+        model = Geneses
+        fields = '__all__'

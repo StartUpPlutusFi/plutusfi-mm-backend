@@ -46,6 +46,10 @@ class BookFillerAdd(generics.CreateAPIView):
             return Response(
                 {"error": True, "message": f"An error occurred: {err.args}"}
             )
+        except Exception as err:
+            return Response(
+                {"error": True, "message": f"An error occurred: {err.args}"}
+            )
 
 
 class BookFillerDetail(generics.ListAPIView):
@@ -133,7 +137,7 @@ class BookFillerStatus(generics.ListAPIView):
 class BookFillerCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatusUpdate
-    http_method_names = ("get",)
+    http_method_names = ("post",)
 
     def get_queryset(self):
         result = BookFiller.objects.filter(
@@ -141,13 +145,13 @@ class BookFillerCtrl(generics.UpdateAPIView):
         ).first()
         return result
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
             data = self.get_queryset()
             bot_ex = data.api_key.exchange.name
-            # op_result = None
+            set_status = self.kwargs.get("set")
 
-            if data.status == "STOP":
+            if set_status == "start":
 
                 if "biconomy" == bot_ex:
                     op_result = biconomy_init_bookbot(data)
@@ -163,8 +167,10 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 return Response(
                     {
                         "status": "success",
-                        "op": op_result,
-                        "bot": bot_ex,
+                        "result": {
+                            "op": op_result,
+                            "bot": bot_ex,
+                        }
                     }
                 )
 
@@ -185,7 +191,9 @@ class BookFillerCtrl(generics.UpdateAPIView):
             return Response(
                 {
                     "status": "success",
-                    "exit_codes": exit_codes,
+                    "result": {
+                        "op": exit_codes
+                    },
                 }
             )
 
