@@ -38,6 +38,7 @@ PROJECT_APPS = [
     "apps.autotrade",
     "apps.bookfiller",
     "apps.geneses",
+    "apps.orderLimit",
 ]
 
 THIRDPARTY_APPS = [
