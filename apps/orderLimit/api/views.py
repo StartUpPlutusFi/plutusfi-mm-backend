@@ -171,7 +171,7 @@ class OrderLimitCtrl(generics.UpdateAPIView):
                         "result": {
                             "op": op_result,
                             "bot": order_limit_ex,
-                        }
+                        },
                     }
                 )
 
@@ -192,9 +192,7 @@ class OrderLimitCtrl(generics.UpdateAPIView):
             return Response(
                 {
                     "status": "success",
-                    "result": {
-                        "op": exit_codes
-                    },
+                    "result": {"op": exit_codes},
                 }
             )
 

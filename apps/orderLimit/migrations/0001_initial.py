@@ -9,52 +9,97 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('exchange', '0001_initial'),
+        ("exchange", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrderLimit',
+            name="OrderLimit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(default='nil', max_length=32)),
-                ('side', models.CharField(default='nil', max_length=5)),
-                ('pair_token', models.CharField(default='DUMMY', max_length=64)),
-                ('quantity', models.FloatField(default=0)),
-                ('price', models.FloatField(default=0)),
-                ('status', models.CharField(default='STOP', max_length=16)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('api_key', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='exchange.apikeys')),
                 (
-                'user', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(default="nil", max_length=32)),
+                ("side", models.CharField(default="nil", max_length=5)),
+                ("pair_token", models.CharField(default="DUMMY", max_length=64)),
+                ("quantity", models.FloatField(default=0)),
+                ("price", models.FloatField(default=0)),
+                ("status", models.CharField(default="STOP", max_length=16)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "api_key",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="exchange.apikeys",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderLimitOrderHistory',
+            name="OrderLimitOrderHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('side', models.CharField(default='nil', max_length=5)),
-                ('pair_token', models.CharField(default='DUMMY', max_length=64)),
-                ('quantity', models.FloatField(default=0)),
-                ('price', models.FloatField(default=0)),
-                ('trade_amount', models.FloatField(default=0)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('OrderLimitCfg',
-                 models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='orderLimit.orderlimit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("side", models.CharField(default="nil", max_length=5)),
+                ("pair_token", models.CharField(default="DUMMY", max_length=64)),
+                ("quantity", models.FloatField(default=0)),
+                ("price", models.FloatField(default=0)),
+                ("trade_amount", models.FloatField(default=0)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "OrderLimitCfg",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="orderLimit.orderlimit",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CancelOrderOrderLimit',
+            name="CancelOrderOrderLimit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('cancel_order_id', models.CharField(max_length=64)),
-                ('order_status', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('OrderLimitCfg',
-                 models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='orderLimit.orderlimit')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("cancel_order_id", models.CharField(max_length=64)),
+                ("order_status", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "OrderLimitCfg",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="orderLimit.orderlimit",
+                    ),
+                ),
             ],
         ),
     ]
