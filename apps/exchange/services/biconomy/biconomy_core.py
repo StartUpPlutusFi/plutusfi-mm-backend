@@ -319,7 +319,7 @@ def biconomy_auto_trade_order_open(
             "bot_id": bot_id,
             "candle": candle,
             "operation_type": operation_type,
-        }
+        },
     }
 
 
@@ -497,7 +497,7 @@ def biconomy_new_autotrade(candle: int):
         elif side == 2:
             side = 1
         else:
-            raise ValueError(['at biconomy_new_autotrade invalid side option', side])
+            raise ValueError(["at biconomy_new_autotrade invalid side option", side])
 
         biconomy_autotrade_close_result = biconomy_auto_trade_order_open(
             exec_ref_price,
@@ -630,57 +630,74 @@ def biconomy_market_creator_close(geneses_bot) -> dict:
 
 
 def biconomy_order_limit_open(order_limit_cfg) -> dict:
-    price = order_limit_cfg.price
-    quantity = order_limit_cfg.quantity
-    token = order_limit_cfg.pair_token
-    side = order_limit_cfg.side
-    api_key = EncryptationTool.read(order_limit_cfg.api_key.api_key)
-    api_sec = EncryptationTool.read(order_limit_cfg.api_key.api_secret)
-    order_limit_id = order_limit_cfg.id
+    try:
+        price = order_limit_cfg.price
+        quantity = order_limit_cfg.quantity
+        token = order_limit_cfg.pair_token
+        side = order_limit_cfg.side
+        api_key = EncryptationTool.read(order_limit_cfg.api_key.api_key)
+        api_sec = EncryptationTool.read(order_limit_cfg.api_key.api_secret)
+        order_limit_id = order_limit_cfg.id
 
-    response = create_order(price, quantity, token, side, api_key, api_sec)
-    order_id = response["result"]["id"]
+        response = create_order(price, quantity, token, side, api_key, api_sec)
+        order_id = response["result"]["id"]
 
-    CancelOrderOrderLimit.objects.create(
-        OrderLimitCfg_id=order_limit_id, cancel_order_id=order_id, order_status=True
-    )
+        CancelOrderOrderLimit.objects.create(
+            OrderLimitCfg_id=order_limit_id, cancel_order_id=order_id, order_status=True
+        )
 
-    return {
-        "status": "success",
-        "op": {
-            "order_id": order_id,
+        return {
+            "status": "success",
+            "op": {
+                "order_id": order_id,
+            },
         }
-    }
+
+    except Exception as err:
+
+        return {
+            "status": "error",
+            "op": {
+                "result": str(err)
+            }
+        }
 
 
 def biconomy_order_limit_close(order_limit_cfg) -> dict:
+    try:
+        responses = []
+        order_limit_cfg_id = order_limit_cfg.id
 
-    responses = []
-    order_limit_cfg_id = order_limit_cfg.id
+        cancel_list = CancelOrderOrderLimit.objects.filter(
+            OrderLimitCfg_id=order_limit_cfg_id, order_status=True
+        ).values("id", "OrderLimitCfg", "cancel_order_id")
 
-    cancel_list = CancelOrderOrderLimit.objects.filter(
-        OrderLimitCfg_id=order_limit_cfg_id, order_status=True
-    ).values("id", "OrderLimitCfg", "cancel_order_id")
+        api_key = EncryptationTool.read(order_limit_cfg.api_key.api_key)
+        api_sec = EncryptationTool.read(order_limit_cfg.api_key.api_secret)
+        token = order_limit_cfg.pair_token
 
-    api_key = EncryptationTool.read(order_limit_cfg.OrderLimitCfg.api_key.api_key)
-    api_sec = EncryptationTool.read(order_limit_cfg.OrderLimitCfg.api_key.api_sec)
-    token = order_limit_cfg.OrderLimitCfg.pair_token
+        for cfg in cancel_list:
+            order_id = cfg["cancel_order_id"]
 
-    for cfg in cancel_list:
+            response = biconomy_cancel_one_order(api_key, api_sec, order_id, token)
+            responses.append(response)
 
-        order_id = cfg["cancel_order_id"]
+            CancelOrderOrderLimit.objects.filter(
+                id=cfg["id"], OrderLimitCfg=order_limit_cfg_id
+            ).update(order_status=False)
 
-        response = biconomy_cancel_one_order(api_key, api_sec, order_id, token)
-        response.append(response)
-
-        CancelOrderOrderLimit.objects.filter(id=cfg["id"], bot_id=order_limit_cfg_id).update(
-            order_status=False
-        )
-
-    return {
-        "status": "success",
-        "op": {
-            "canceled": len(responses),
-            "result": responses,
+        return {
+            "status": "success",
+            "op": {
+                "result": responses,
+            },
         }
-    }
+
+    except Exception as err:
+
+        return {
+            "status": "error",
+            "op": {
+                "result": str(err)
+            }
+        }
