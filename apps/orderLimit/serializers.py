@@ -92,6 +92,7 @@ class OrderLimitSerializerStatusUpdate(serializers.Serializer):
     status = serializers.CharField()
 
     class Meta:
+        model = OrderLimit
         fields = ("status",)
 
     def update(self, instance, validation_data):

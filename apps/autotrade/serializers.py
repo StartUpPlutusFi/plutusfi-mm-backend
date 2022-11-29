@@ -99,6 +99,7 @@ class MMBotSerializerStatus(serializers.Serializer):
     status = serializers.CharField()
 
     class Meta:
+        model = MarketMakerBot
         fields = ("status",)
 
     def update(self, instance, validation_data):
