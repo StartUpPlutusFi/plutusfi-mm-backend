@@ -149,7 +149,7 @@ class BookFillerCtrl(generics.UpdateAPIView):
         try:
             data = self.get_queryset()
             bot_ex = data.api_key.exchange.name
-            set_status = self.request.data["status"]
+            set_status = self.request.data.get("status")
 
             if set_status == "start":
 
