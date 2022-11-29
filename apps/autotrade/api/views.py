@@ -141,7 +141,7 @@ class AutoTradeStatus(generics.ListAPIView):
 
 class AutoTradeBotCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = MMBotSerializerUpdate
+    serializer_class = MMBotSerializerStatus
     http_method_names = ("post",)
 
     def get_queryset(self):
