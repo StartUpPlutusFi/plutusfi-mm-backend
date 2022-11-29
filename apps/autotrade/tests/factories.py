@@ -1,14 +1,10 @@
-import factory
-
 from random import choice
-
-import factory
 from django.utils.crypto import get_random_string
-
 from apps.autotrade.models.models import MarketMakerBot
 from apps.account.tests.factories import UserFactory
 from apps.exchange.tests.factories import ApiKeyFactory
 
+import factory
 
 class MMFactory(factory.django.DjangoModelFactory):
     photo = factory.django.ImageField(width=1024, height=768)

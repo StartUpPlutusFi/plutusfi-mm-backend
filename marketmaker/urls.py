@@ -42,6 +42,7 @@ urlpatterns = [
     path("geneses/", include("apps.geneses.api.urls")),
     path("autotrade/", include("apps.autotrade.api.urls")),
     path("bookfiller/", include("apps.bookfiller.api.urls")),
+    path("orderlimit/", include("apps.orderLimit.api.urls")),
     path("", include("apps.exchange.api.urls")),
     path("auth/api/token/", include("apps.auth.api.urls")),
     re_path(
