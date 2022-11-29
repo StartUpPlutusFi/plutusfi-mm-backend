@@ -94,6 +94,7 @@ class BookFillerSerializerStatusUpdate(serializers.Serializer):
     status = serializers.CharField()
 
     class Meta:
+        model = BookFiller
         fields = ("status",)
 
     def update(self, instance, validation_data):

@@ -84,6 +84,7 @@ class GenesesSerializerStatusUpdate(serializers.Serializer):
     status = serializers.CharField()
 
     class Meta:
+        model = Geneses
         fields = ("status",)
 
     def update(self, instance, validation_data):

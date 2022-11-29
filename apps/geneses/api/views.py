@@ -175,7 +175,7 @@ class GenesesCtrl(generics.UpdateAPIView):
             bot_ex = geneses_bot.api_key.exchange.name
             # op_result = None
 
-            status_set = self.kwargs.get("set")
+            status_set = self.request.data["status"]
             if status_set == "start":
 
                 if "biconomy" == bot_ex:

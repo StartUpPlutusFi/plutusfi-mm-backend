@@ -158,7 +158,7 @@ class AutoTradeBotCtrl(generics.UpdateAPIView):
         try:
 
             data = self.get_queryset()
-            set_status = self.kwargs.get("set")
+            set_status = self.request.data["status"]
 
             if set_status == "start":
                 MarketMakerBot.objects.filter(
