@@ -87,33 +87,42 @@ def book_generator(
         api_key,
         api_sec,
         bookbot_id,
-):
-    price = 0.0
-    if user_ref_price == 0:
-        price, ask, smallest_ask, highest_bid = check_ref_price(token)
-    else:
-        price = user_ref_price
-    multiplier = 1.02
-    if user_side_choice == 2:
-        multiplier = 0.98
-    prices = []
-    quantitys = []
-    cancel_codes = []
+) -> dict:
+    try:
+        if user_ref_price == 0:
+            price, ask, smallest_ask, highest_bid = check_ref_price(token)
+        else:
+            price = user_ref_price
+        multiplier = 1.02
+        if user_side_choice == 2:
+            multiplier = 0.98
+        prices = []
+        quantitys = []
+        response = []
 
-    for x in range(limit_generator):
-        price = multiplier * price
-        prices.append(price)
-        quantity = user_max_order_value / price
-        quantitys.append(quantity)
-        time.sleep(0.2)
-        code = create_order(price, quantity, token, user_side_choice, api_key, api_sec)
-        cancel_codes.append(code["result"]["id"])
+        for x in range(limit_generator):
+            price = multiplier * price
+            prices.append(price)
+            quantity = user_max_order_value / price
+            quantitys.append(quantity)
+            time.sleep(0.2)
+            code = create_order(price, quantity, token, user_side_choice, api_key, api_sec)
+            response.append(code)
 
-        CancelOrderBookBot.objects.create(
-            bot_id=bookbot_id, cancel_order_id=code["result"]["id"], order_status=True
-        )
+            if code['code'] == 10:
+                raise ValueError(code, price, quantity, token, user_side_choice)
 
-    return cancel_codes
+            CancelOrderBookBot.objects.create(
+                bot_id=bookbot_id, cancel_order_id=code["result"]["id"], order_status=True
+            )
+
+        return {"response": response}
+
+    except Exception as err:
+
+        return {
+            "response": str(err)
+        }
 
 
 def get_budget(token, side):
@@ -163,38 +172,51 @@ def biconomy_cancel_all_orders(bookbot) -> list:
 
 
 def biconomy_init_bookbot(data) -> dict:
-    limit_generator = data.number_of_orders
-    token = data.pair_token
-    user_ref_price = data.user_ref_price
-    user_max_order_value = data.order_size
-    user_side_choice = data.side
-    api_key = EncryptationTool.read(data.api_key.api_key)
-    api_sec = EncryptationTool.read(data.api_key.api_secret)
-    bookbot_id = data.id
+    try:
+        limit_generator = data.number_of_orders
+        token = data.pair_token
+        user_ref_price = data.user_ref_price
+        user_max_order_value = data.order_size
+        user_side_choice = data.side
+        api_key = EncryptationTool.read(data.api_key.api_key)
+        api_sec = EncryptationTool.read(data.api_key.api_secret)
+        bookbot_id = data.id
 
-    if user_side_choice == "ASK":
-        user_side_choice = 1
-    else:
-        user_side_choice = 2
+        if user_side_choice == "ASK":
+            user_side_choice = 1
+        elif user_side_choice == "BID":
+            user_side_choice = 2
+        else:
+            raise ValueError("Invalid side, side must be ASK or BID strings")
 
-    if user_ref_price == 0:
-        user_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
+        if user_ref_price == 0:
+            user_ref_price, ask, smallest_ask, highest_bid = check_ref_price(token)
 
-    cancel_codes = book_generator(
-        limit_generator,
-        token,
-        user_ref_price,
-        user_max_order_value,
-        user_side_choice,
-        api_key,
-        api_sec,
-        bookbot_id,
-    )
+        cancel_codes = book_generator(
+            limit_generator,
+            token,
+            user_ref_price,
+            user_max_order_value,
+            user_side_choice,
+            api_key,
+            api_sec,
+            bookbot_id,
+        )
 
-    return {
-        "number_of_orders": len(cancel_codes),
-        "cancel_codes": cancel_codes,
-    }
+        return {
+            "status": "success",
+            "number_of_orders": len(cancel_codes),
+            "cancel_codes": cancel_codes,
+        }
+
+    except Exception as err:
+
+        return {
+            "status": "error",
+            "code": str(err),
+            "number_of_orders": 0,
+            "cancel_codes": 0,
+        }
 
 
 def biconomy_cancel_one_order(api_key, api_sec, order_id, token):
