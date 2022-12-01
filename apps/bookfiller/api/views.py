@@ -168,8 +168,8 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     {
                         "status": "success",
                         "result": {
-                            "op": op_result,
-                            "bot": bot_ex,
+                            "exchange_operation_result": op_result,
+                            "bot_id": data.id,
                         }
                     }
                 )
@@ -192,7 +192,8 @@ class BookFillerCtrl(generics.UpdateAPIView):
                 {
                     "status": "success",
                     "result": {
-                        "op": exit_codes
+                        "exchange_operation_result": exit_codes,
+                        "bot_id": data.id,
                     },
                 }
             )
