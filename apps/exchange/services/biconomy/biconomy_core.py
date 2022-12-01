@@ -405,6 +405,8 @@ def biconomy_new_autotrade(candle: int):
             exec_ref_price, user_side_choice, user_max_order_value, token
         )
 
+        quantity = quantity * random.uniform(0.1, 0.99)
+
         biconomy_autotrade_open_result = biconomy_auto_trade_order_open(
             exec_ref_price,
             user_side_choice,
