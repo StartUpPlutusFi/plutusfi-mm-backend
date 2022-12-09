@@ -172,3 +172,13 @@ class TestBookFiller(TestCase):
         self.assertEqual(request.status_code, 404)
         data = request.json()
         self.assertDictEqual(data, expected_response)
+
+    def test_return_bookfiller_cancel_code(self):
+        request = self.client.get(
+            reverse("bookfiller:BookFillerCancelCode", kwargs={"pk": 922337203685477580})
+        )
+
+        self.assertEqual(request.status_code, 200)
+        data = request.json()
+        self.assertEqual(request.json(), [])
+        self.assertEqual(isinstance(request.json(), list), isinstance([], list))
