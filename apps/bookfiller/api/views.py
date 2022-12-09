@@ -148,7 +148,7 @@ class BookFillerCancelCode(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         data = self.get_queryset()
         return Response(
-            data.values()
+            BookFillerCancelCodeSerializerResponse.list_all(self, data)
         )
 
 
