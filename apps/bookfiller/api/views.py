@@ -136,7 +136,7 @@ class BookFillerStatus(generics.ListAPIView):
 
 class BookFillerCancelCode(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = BookFillerSerializerStatus
+    serializer_class = BookFillerCancelCodeSerializerResponse
     http_method_names = ("get",)
 
     def get_queryset(self):
@@ -146,10 +146,7 @@ class BookFillerCancelCode(generics.ListAPIView):
         return data
 
     def get(self, request, *args, **kwargs):
-        data = self.get_queryset()
-        return Response(
-            BookFillerCancelCodeSerializerResponse.list_all(self, data)
-        )
+        return self.list(request, *args, **kwargs)
 
 
 class BookFillerCtrl(generics.UpdateAPIView):
