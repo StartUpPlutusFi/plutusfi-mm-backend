@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from apps.bookfiller.serializers import *
 from apps.exchange.services.biconomy.biconomy_core import *
 from apps.exchange.services.bigone.bigone_core import *
+from apps.exchange.services.mexc.mexc_core import *
 
 
 class BookFillerList(generics.ListAPIView):
@@ -172,6 +173,8 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     op_result = biconomy_init_bookbot(data)
                 elif "bigone" == bot_ex:
                     op_result = bigone_init_bookbot(data)
+                elif "mexc" == bot_ex:
+                    op_result = mexc_init_bookbot(data)
                 else:
                     op_result = {"status": "error", "code": "Exchange not found"}
 
@@ -196,12 +199,29 @@ class BookFillerCtrl(generics.UpdateAPIView):
                     exit_codes = biconomy_cancel_all_orders(data)
                 elif "bigone" == bot_ex:
                     exit_codes = bigone_cancel_all_orders(data)
+                elif "mexc" == bot_ex:
+                    exit_codes = mexc_cancel_all_orders(data)
                 else:
-                    exit_codes = []
+                    exit_codes = {"status": "error", "code": "Exchange not found"}
 
-                BookFiller.objects.filter(
-                    id=self.kwargs.get("pk"), user=request.user
-                ).update(status="STOP")
+                if exit_codes["status"] == "success":
+                    BookFiller.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="STOP")
+                else:
+                    BookFiller.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="STOP")
+                    return Response(
+                        {
+                            "status": "error",
+                            "result": {
+                                "message": f"Unknown error at {bot_ex} function in Cancel all orders",
+                                "exchange_operation_result": exit_codes,
+                                "bot_id": data.id,
+                            },
+                        }
+                    )
 
             return Response(
                 {
