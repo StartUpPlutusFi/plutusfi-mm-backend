@@ -7,6 +7,7 @@ from rest_framework import status
 from apps.exchange.helper.helper import status_code
 from apps.exchange.services.bigone.bigone_core import *
 from apps.exchange.services.biconomy.biconomy_core import *
+from apps.exchange.services.mexc.mexc_core import mexc_market_creator_open, mexc_market_creator_close
 from apps.geneses.serializers import *
 from apps.geneses.models.models import *
 import json
@@ -182,18 +183,31 @@ class GenesesCtrl(generics.UpdateAPIView):
                     op_result = biconomy_market_creator_open(geneses_bot)
                 elif "bigone" == bot_ex:
                     op_result = bigone_market_creator_open(geneses_bot)
+                elif "mexc" == bot_ex:
+                    op_result = mexc_market_creator_open(geneses_bot)
                 else:
                     op_result = {"status": "error", "code": "Exchange not found"}
 
-                Geneses.objects.filter(
-                    id=self.kwargs.get("pk"), user=request.user
-                ).update(status="START")
+                if op_result["status"] == "success":
+                    Geneses.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="START")
+
+                else:
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": f"Unknown error at {bot_ex} function in market_creator_open",
+                            "exchange_operation_result": op_result,
+                            "exchange": bot_ex,
+                        }
+                    )
 
                 return Response(
                     {
                         "status": "pass",
                         "op": op_result,
-                        "bot": bot_ex,
+                        "exchange": bot_ex,
                     }
                 )
 
@@ -204,18 +218,33 @@ class GenesesCtrl(generics.UpdateAPIView):
                     exit_codes = biconomy_market_creator_close(geneses_bot)
                 elif "bigone" == bot_ex:
                     exit_codes = bigone_market_creator_close(geneses_bot)
+                elif "mexc" == bot_ex:
+                    exit_codes = mexc_market_creator_close(geneses_bot)
                 else:
-                    exit_codes = []
+                    exit_codes = {"status": "error", "code": "Exchange not found"}
 
-                Geneses.objects.filter(
-                    id=self.kwargs.get("pk"), user=request.user
-                ).update(status="STOP")
+                if exit_codes["status"] == "success":
+                    Geneses.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="STOP")
+                else:
+                    Geneses.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="STOP")
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": f"Unknown error at {bot_ex} function in market_creator_close",
+                            "exchange_operation_result": exit_codes,
+                            "exchange": bot_ex,
+                        }
+                    )
 
                 return Response(
                     {
                         "status": "success",
-                        "op": exit_codes,
-                        "bot": bot_ex,
+                        "exchange_operation_result": exit_codes,
+                        "exchange": bot_ex,
                     }
                 )
 
