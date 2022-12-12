@@ -112,3 +112,9 @@ class BookFillerSerializerResponse(serializers.ModelSerializer):
     class Meta:
         model = BookFiller
         exclude = ("status",)
+
+
+class BookFillerCancelCodeSerializerResponse(serializers.ModelSerializer):
+    class Meta:
+        model = CancelOrderBookBot
+        fields = '__all__'

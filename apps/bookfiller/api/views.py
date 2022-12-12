@@ -134,6 +134,21 @@ class BookFillerStatus(generics.ListAPIView):
         return self.list(request, *args, **kwargs)
 
 
+class BookFillerCancelCode(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = BookFillerCancelCodeSerializerResponse
+    http_method_names = ("get",)
+
+    def get_queryset(self):
+        data = CancelOrderBookBot.objects.filter(
+            bot_id=self.kwargs.get("pk"), bot__user=self.request.user
+        )
+        return data
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
 class BookFillerCtrl(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BookFillerSerializerStatusUpdate
