@@ -30,6 +30,7 @@ celery-amqp-backend = "^1.0.0"
 redis = "^4.3.4"
 django-celery-beat = "^2.3.0"
 python-json-logger = "^2.0.4"
+mexcapiclient = "^0.1.9"
 
 [tool.poetry.dev-dependencies]
 ipython = "^8.4.0"
