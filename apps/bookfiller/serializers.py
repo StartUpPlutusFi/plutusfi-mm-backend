@@ -116,17 +116,5 @@ class BookFillerSerializerResponse(serializers.ModelSerializer):
 
 class BookFillerCancelCodeSerializerResponse(serializers.ModelSerializer):
     class Meta:
-        many = True
         model = CancelOrderBookBot
-        fields = (
-            "id",
-            "bot_id",
-            "cancel_order_id",
-            "order_status",
-            "created_at",
-            "updated_at",
-        )
-
-    def list_all(self, data):
-        return data.values()
-
+        fields = '__all__'
