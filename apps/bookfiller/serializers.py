@@ -25,6 +25,8 @@ class BookFillerSerializer(serializers.ModelSerializer):
             "number_of_orders",
             "budget",
             "user_ref_price",
+            "created_at",
+            "updated_at",
         )
 
     def create(self, validated_data):
