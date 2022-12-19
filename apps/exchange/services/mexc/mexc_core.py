@@ -1,4 +1,7 @@
-from urllib.parse import urlencode
+from datetime import datetime
+from MexcClient.client import MexcClient
+from MexcClient.Enums import EnumKlineInterval
+from MexcClient.Enums.enums import EnumOrderSide, EnumOrderType
 import requests
 import random
 import time
@@ -10,36 +13,117 @@ from apps.exchange.helper.crypto_utils import EncryptationTool
 from apps.orderLimit.models.models import CancelOrderOrderLimit
 
 
-def mexc_check_ref_price(token) -> tuple[float, bool, float, float]:
+def mexc_check_ref_price(token, api_key, api_sec) -> tuple[float, bool, float, float]:
     smallest_ask = 0.0
     highest_bid = 0.0
     ask = False
+    client = MexcClient(api_key, api_sec)
+    response_json = client.order_book_of_symbol(token)
 
-    url = f"https://www.biconomy.com/api/v1/depth?symbol={token}"
-    response = requests.get(url)
-    response_json = response.json()
-
-    if not response_json["bids"]:
-        ref_price = float(float(response_json["asks"][0][0]))
+    if not response_json['bids']:
+        ref_price = float(response_json['asks'][0][0])
         ask = True
         return ref_price, ask, smallest_ask, highest_bid
-
-    if not response_json["asks"]:
-        ref_price = float(response_json["bids"][0][0])
+    if not (response_json['asks']):
+        ref_price = float(response_json['bids'][0][0])
         return ref_price, ask, smallest_ask, highest_bid
-
-    ref_price = (
-                        float(response_json["bids"][0][0]) + float(float(response_json["asks"][0][0]))
-                ) / 2
-    smallest_ask = float(float(response_json["asks"][0][0]))
-    highest_bid = float(response_json["bids"][0][0])
+    ref_price = ((float(response_json['bids'][0][0]) + float(response_json['asks'][0][0])) / 2)
+    smallest_ask = float(response_json['asks'][0][0])
+    highest_bid = float(response_json['bids'][0][0])
 
     return ref_price, ask, smallest_ask, highest_bid
 
 
-def mexc_create_order(price, quantity, token, side, api_key, api_sec):
-    response_json = ""
-    return response_json
+def mexc_create_order(price, quantity, token, side, api_key, api_sec) -> dict:
+    try:
+        client = MexcClient(api_key, api_sec)
+        timestamp = datetime.now().timestamp()
+        response = None
+        if side == "BID":
+            response = client.create_new_order(
+                token,
+                EnumOrderSide.BUY,
+                EnumOrderType.LIMIT,
+                int(timestamp),
+                quantity=quantity,
+                price=str(price),
+            )
+        if side == "ASK":
+            response = client.create_new_order(
+                token,
+                EnumOrderSide.SELL,
+                EnumOrderType.LIMIT,
+                int(timestamp),
+                quantity=quantity,
+                price=str(price),
+            )
+        return {
+            "status": "success",
+            "response": response
+        }
+    except Exception as err:
+        return {
+            "status": "success",
+            "loc": "mexc_create_order",
+            "response": str(err),
+        }
+
+
+def mexc_cancel_one_order(api_key, api_sec, order_id, token) -> dict:
+    try:
+        client = MexcClient(api_key, api_sec)
+        timestamp = datetime.now().timestamp()
+        response = client.cancel_order(
+            symbol=token,
+            order_id=order_id,
+            timestamp=int(timestamp), )
+        return {
+            "status": "success",
+            "response": response
+        }
+    except Exception as err:
+        return {
+            "status": "success",
+            "loc": "mexc_cancel_one_order",
+            "response": str(err),
+        }
+
+
+def mexc_cancel_all_orders(bookbot) -> dict:
+    try:
+        responses = []
+        bot_id = bookbot.id
+
+        cancel_list = CancelOrderBookBot.objects.filter(
+            order_status=True, bot_id=bot_id
+        ).values("id", "bot", "cancel_order_id")
+
+        for bot in cancel_list:
+            api_key = EncryptationTool.read(bookbot.api_key.api_key)
+            secret_key = EncryptationTool.read(bookbot.api_key.api_secret)
+            token = bookbot.pair_token
+            order_id = bot["cancel_order_id"]
+            response_json = mexc_cancel_one_order(
+                api_key, secret_key, order_id, token
+            )
+            responses.append(response_json)
+
+            CancelOrderBookBot.objects.filter(id=bot["id"], bot_id=bot_id).update(
+                order_status=False
+            )
+
+        return {
+            "status": "success",
+            "response": responses,
+            "bot_id": bot_id,
+        }
+    except Exception as err:
+        return {
+            "status": "success",
+            "bot_id": bookbot.id,
+            "loc": "mexc_cancel_all_orders",
+            "response": str(err),
+        }
 
 
 def mexc_book_generator(
@@ -54,7 +138,7 @@ def mexc_book_generator(
 ) -> dict:
     try:
         if user_ref_price == 0:
-            price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token)
+            price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token, api_key, api_sec)
         else:
             price = user_ref_price
         multiplier = 1.02
@@ -73,39 +157,21 @@ def mexc_book_generator(
             code = mexc_create_order(price, quantity, token, user_side_choice, api_key, api_sec)
             response.append(code)
 
-            if code['code'] == 10:
-                raise ValueError(code, price, quantity, token, user_side_choice)
-
             CancelOrderBookBot.objects.create(
-                bot_id=bookbot_id, cancel_order_id=code["hipotetic_id"], order_status=True
+                bot_id=bookbot_id, cancel_order_id=code["orderId"], order_status=True
             )
 
-        return {"response": response}
+        return {
+            "status": "success",
+            "response": response,
+        }
 
     except Exception as err:
 
         return {
-            "response": str(err)
+            "status": "error",
+            "response": str(err),
         }
-
-
-def mexc_cancel_all_orders(bookbot) -> list:
-    responses = []
-    bot_id = bookbot.id
-
-    cancel_list = CancelOrderBookBot.objects.filter(
-        order_status=True, bot_id=bot_id
-    ).values("id", "bot", "cancel_order_id")
-
-    for bot in cancel_list:
-        response_json = ""
-        responses.append(response_json)
-
-        CancelOrderBookBot.objects.filter(id=bot["id"], bot_id=bot_id).update(
-            order_status=False
-        )
-
-    return responses
 
 
 def mexc_init_bookbot(data) -> dict:
@@ -119,15 +185,11 @@ def mexc_init_bookbot(data) -> dict:
         api_sec = EncryptationTool.read(data.api_key.api_secret)
         bookbot_id = data.id
 
-        if user_side_choice == "ASK":
-            user_side_choice = 1
-        elif user_side_choice == "BID":
-            user_side_choice = 2
-        else:
+        if user_side_choice != "ASK" or user_side_choice != "BID":
             raise ValueError("Invalid side, side must be ASK or BID strings")
 
         if user_ref_price == 0:
-            user_ref_price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token)
+            user_ref_price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token, api_key, api_sec)
 
         cancel_codes = mexc_book_generator(
             limit_generator,
@@ -156,20 +218,19 @@ def mexc_init_bookbot(data) -> dict:
         }
 
 
-def mexc_cancel_one_order(api_key, api_sec, order_id, token):
-    json = ""
-    return json
-
-
 def mexc_reference_value(
-        user_ref_price: float, user_side_choice: int, user_max_order_value: int, token: str
+        user_ref_price: float, user_side_choice: int, user_max_order_value: int, token: str, api_key: str, api_sec: str
 ) -> tuple[float, float]:
-    random_operation = 0.0
-    smallest_ask = 0.0
-    price = 0.0
+    ask = False
+    price, smallest_ask, highest_bid, random_operation = 0, 0, 0, 0
 
     if user_ref_price == 0:
-        ref_price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token)
+        ref_price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token, api_key, api_sec)
+    else:
+        ref_price = user_ref_price
+        ask = False
+        price = ref_price
+    if smallest_ask > 0 and highest_bid > 0:
         if user_side_choice == 1:
             price = random.uniform(ref_price, smallest_ask)
         elif user_side_choice == 2:
@@ -179,20 +240,17 @@ def mexc_reference_value(
             random_operation = random.choice(random_list)
             price = random.uniform(ref_price, random_operation)
     else:
-        price = user_ref_price
+        price = ref_price
 
-    total_order = random.randint(1, user_max_order_value)
+    total_order = random.randint(5, user_max_order_value)
 
-    if isinstance(price, (int, float)):
-        if user_side_choice == 1 or random_operation == smallest_ask:
-            price = 0.98 * price
-        else:
-            price = 1.02 * price
+    # Gets the price and quantity necessary to make an order from (reference price * 1.02) or * 0.98
+    if ask or user_side_choice == 1 or random_operation == smallest_ask:
+        price_mult = random.uniform(1.00, 0.98)
+        price = price_mult * price
     else:
-        raise ValueError(
-            {"status": "price is not numeric", "data": [price, total_order]}
-        )
-
+        price_mult = random.uniform(1.00, 1.02)
+        price = price_mult * price
     quantity = total_order / price
     return quantity, price
 
@@ -276,11 +334,9 @@ def mexc_auto_trade_order_close(
     try:
 
         if side == "ASK":
-            side = 2  # BID
             exit_code = mexc_create_order(price, quantity, token, side, apikey, apisec)
 
         elif side == "BID":
-            side = 1  # ASK
             exit_code = mexc_create_order(price, quantity, token, side, apikey, apisec)
         else:
             exit_code = "Invalid side at auto_trade_order_close"
@@ -319,7 +375,7 @@ def mexc_new_autotrade(candle: int):
         side = data.side
 
         if user_ref_price == 0:
-            exec_ref_price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token)
+            exec_ref_price, ask, smallest_ask, highest_bid = mexc_check_ref_price(token, apikey, apisec)
         else:
             exec_ref_price = user_ref_price
 
@@ -327,7 +383,7 @@ def mexc_new_autotrade(candle: int):
             side = random.randint(1, 2)
 
         quantity, price = mexc_reference_value(
-            exec_ref_price, user_side_choice, user_max_order_value, token
+            exec_ref_price, user_side_choice, user_max_order_value, token, apikey, apisec
         )
 
         quantity = quantity * random.uniform(0.1, 0.99)
@@ -408,7 +464,7 @@ def mexc_market_creator_open(geneses_bot) -> dict:
         exit_code_bid = mexc_create_order(price_bid, quantity_bid, token, 2, apikey, apisec)
 
         GenesesQueue.objects.create(
-            geneses_id=gid, cancel_code=exit_code_bid["result"]["id"], status="OPEN"
+            geneses_id=gid, cancel_code=exit_code_bid["orderId"], status="OPEN"
         )
 
         price_ask = market_value * ((spread_distance / 100.0) + 1.0)
@@ -417,7 +473,7 @@ def mexc_market_creator_open(geneses_bot) -> dict:
         exit_code_ask = mexc_create_order(price_ask, quantity_ask, token, 1, apikey, apisec)
 
         GenesesQueue.objects.create(
-            geneses_id=gid, cancel_code=exit_code_ask["result"]["id"], status="OPEN"
+            geneses_id=gid, cancel_code=exit_code_ask["orderId"], status="OPEN"
         )
 
         return {
@@ -455,18 +511,10 @@ def mexc_market_creator_close(geneses_bot) -> dict:
 
         response_json = mexc_cancel_one_order(api_key, api_sec, order_id, token)
 
-        exit = {"code": 10, "message": "Order not found", "result": None}
-
         try:
-            if response_json == exit:
-                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(
-                    status="FAIL"
-                )
-            else:
-                GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(
-                    status="DONE"
-                )
-
+            GenesesQueue.objects.filter(id=reg.id, geneses_id=gid_id).update(
+                status="DONE"
+            )
         except Exception as err:
 
             return {
@@ -495,7 +543,7 @@ def mexc_order_limit_open(order_limit_cfg) -> dict:
         order_limit_id = order_limit_cfg.id
 
         response = mexc_create_order(price, quantity, token, side, api_key, api_sec)
-        order_id = response["hipotetic_id"]
+        order_id = response["orderId"]
 
         CancelOrderOrderLimit.objects.create(
             OrderLimitCfg_id=order_limit_id, cancel_order_id=order_id, order_status=True
@@ -503,7 +551,7 @@ def mexc_order_limit_open(order_limit_cfg) -> dict:
 
         return {
             "status": "success",
-            "op": {
+            "operation_result": {
                 "order_id": order_id,
             },
         }
@@ -512,7 +560,7 @@ def mexc_order_limit_open(order_limit_cfg) -> dict:
 
         return {
             "status": "error",
-            "op": {
+            "operation_result": {
                 "result": str(err)
             }
         }
@@ -543,7 +591,7 @@ def mexc_order_limit_close(order_limit_cfg) -> dict:
 
         return {
             "status": "success",
-            "op": {
+            "operation_result": {
                 "result": responses,
             },
         }
@@ -552,7 +600,7 @@ def mexc_order_limit_close(order_limit_cfg) -> dict:
 
         return {
             "status": "error",
-            "op": {
+            "operation_result": {
                 "result": str(err)
             }
         }
