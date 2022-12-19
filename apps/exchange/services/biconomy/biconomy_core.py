@@ -116,12 +116,16 @@ def book_generator(
                 bot_id=bookbot_id, cancel_order_id=code["result"]["id"], order_status=True
             )
 
-        return {"response": response}
+        return {
+            "status": "success",
+            "response": response,
+        }
 
     except Exception as err:
 
         return {
-            "response": str(err)
+            "status": "error",
+            "response": str(err),
         }
 
 
@@ -578,7 +582,7 @@ def biconomy_order_limit_open(order_limit_cfg) -> dict:
 
         return {
             "status": "success",
-            "op": {
+            "operation_result": {
                 "order_id": order_id,
             },
         }
@@ -587,7 +591,7 @@ def biconomy_order_limit_open(order_limit_cfg) -> dict:
 
         return {
             "status": "error",
-            "op": {
+            "operation_result": {
                 "result": str(err)
             }
         }
@@ -618,7 +622,7 @@ def biconomy_order_limit_close(order_limit_cfg) -> dict:
 
         return {
             "status": "success",
-            "op": {
+            "operation_result": {
                 "result": responses,
             },
         }
@@ -627,7 +631,7 @@ def biconomy_order_limit_close(order_limit_cfg) -> dict:
 
         return {
             "status": "error",
-            "op": {
+            "operation_result": {
                 "result": str(err)
             }
         }
