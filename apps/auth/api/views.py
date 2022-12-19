@@ -1,3 +1,4 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -34,6 +35,7 @@ class GetProfileInfoView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = ProfileSerializer
 
+    @swagger_auto_schema(responses={200: ProfileInforSerializer})
     def get(self, request, *args, **kwargs):
         return Response(
             ProfileInforSerializer(request.user.profile).data, status=status.HTTP_200_OK
