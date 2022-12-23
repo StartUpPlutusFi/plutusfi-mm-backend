@@ -94,7 +94,7 @@ def book_generator(
         else:
             price = user_ref_price
         multiplier = 1.02
-        if user_side_choice == 2:
+        if user_side_choice == "BID":
             multiplier = 0.98
         prices = []
         quantitys = []
