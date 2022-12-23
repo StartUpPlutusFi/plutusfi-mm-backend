@@ -1,10 +1,12 @@
 from datetime import datetime
+
 from MexcClient.client import MexcClient
 from MexcClient.Enums import EnumKlineInterval
 from MexcClient.Enums.enums import EnumOrderSide, EnumOrderType
 import requests
 import random
 import time
+import numpy as np
 
 from apps.autotrade.models.models import *
 from apps.geneses.models.models import *
@@ -64,7 +66,7 @@ def mexc_create_order(price, quantity, token, side, api_key, api_sec) -> dict:
     except Exception as err:
         return {
             "status": "success",
-            "loc": "mexc_create_order",
+            "local": "mexc_create_order",
             "response": str(err),
         }
 
@@ -142,35 +144,51 @@ def mexc_book_generator(
         else:
             price = user_ref_price
         multiplier = 1.02
-        if user_side_choice == 2:
+        if user_side_choice == "BID":
             multiplier = 0.98
-        prices = []
-        quantitys = []
+        params = []
         response = []
 
         for x in range(limit_generator):
             price = multiplier * price
-            prices.append(price)
             quantity = user_max_order_value / price
-            quantitys.append(quantity)
-            time.sleep(0.2)
-            code = mexc_create_order(price, quantity, token, user_side_choice, api_key, api_sec)
+
+            nprice = str("%.18f" % price)
+
+            code = mexc_create_order(nprice, quantity, token, user_side_choice, api_key, api_sec)
+            params.append({
+                "price": nprice,
+                "quantity": quantity,
+                "token": token,
+                "user_side_choice": user_side_choice
+            })
             response.append(code)
 
+            if "code" in code["response"]:
+                if code["response"]["code"] == 700008:
+                    return {
+                        "status": "error",
+                        "response": code["response"],
+                        "params": params,
+                    }
+
             CancelOrderBookBot.objects.create(
-                bot_id=bookbot_id, cancel_order_id=code["orderId"], order_status=True
+                bot_id=bookbot_id, cancel_order_id=code["response"]["orderId"], order_status=True
             )
 
         return {
             "status": "success",
             "response": response,
+            "params": params,
         }
 
     except Exception as err:
 
         return {
             "status": "error",
+            "local": "mexc_book_generator",
             "response": str(err),
+            "p": user_ref_price
         }
 
 
@@ -185,7 +203,7 @@ def mexc_init_bookbot(data) -> dict:
         api_sec = EncryptationTool.read(data.api_key.api_secret)
         bookbot_id = data.id
 
-        if user_side_choice != "ASK" or user_side_choice != "BID":
+        if user_side_choice != "ASK" and user_side_choice != "BID":
             raise ValueError("Invalid side, side must be ASK or BID strings")
 
         if user_ref_price == 0:
