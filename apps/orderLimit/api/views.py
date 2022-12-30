@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from apps.exchange.services.mexc.mexc_core import mexc_order_limit_open, mexc_order_limit_close
 from apps.orderLimit.models.models import *
 from apps.orderLimit.serializers import *
 from apps.exchange.services.biconomy.biconomy_core import *
@@ -158,18 +159,33 @@ class OrderLimitCtrl(generics.UpdateAPIView):
                     op_result = biconomy_order_limit_open(data)
                 elif "bigone" == order_limit_ex:
                     return Response({"status": "unavailable"})
+                elif "mexc" == order_limit_ex:
+                    op_result = mexc_order_limit_open(data)
                 else:
                     op_result = {"status": "error", "code": "Exchange not found"}
 
-                OrderLimit.objects.filter(
-                    id=self.kwargs.get("pk"), user=request.user
-                ).update(status="START")
+                if op_result["status"] == "success":
+                    OrderLimit.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="START")
+
+                else:
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": f"Unknown error at {op_result} function in market_creator_open",
+                            "exchange_operation_result": op_result,
+                            "exchange": order_limit_ex,
+                        }
+                    )
+
+
 
                 return Response(
                     {
                         "status": "success",
                         "result": {
-                            "op": op_result,
+                            "exchange_operation_result": op_result,
                             "bot": order_limit_ex,
                         },
                     }
@@ -182,17 +198,34 @@ class OrderLimitCtrl(generics.UpdateAPIView):
                     exit_codes = biconomy_order_limit_close(data)
                 elif "bigone" == order_limit_ex:
                     return Response({"status": "unavailable"})
+                elif "mexc" == order_limit_ex:
+                    exit_codes = mexc_order_limit_close(data)
                 else:
-                    exit_codes = []
+                    exit_codes = {"status": "error", "code": "Exchange not found"}
 
-                OrderLimit.objects.filter(
-                    id=self.kwargs.get("pk"), user=request.user
-                ).update(status="STOP")
+                if exit_codes["status"] == "success":
+                    OrderLimit.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="STOP")
+                else:
+                    OrderLimit.objects.filter(
+                        id=self.kwargs.get("pk"), user=request.user
+                    ).update(status="STOP")
+                    return Response(
+                        {
+                            "status": "error",
+                            "message": f"Unknown error at {op_result} function in market_creator_open",
+                            "exchange_operation_result": op_result,
+                            "exchange": order_limit_ex,
+                        }
+                    )
+
+
 
             return Response(
                 {
                     "status": "success",
-                    "result": {"op": exit_codes},
+                    "result": {"exchange_operation_result": exit_codes},
                 }
             )
 
